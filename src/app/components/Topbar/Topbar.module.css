@@ -1,0 +1,53 @@
+.topbar{
+    width: 100%;
+    margin: 0 auto;
+    height: 50px;
+    background-color: #074765;
+    display: grid;
+    grid-template-columns: 4fr 1fr .5fr;
+    box-sizing: border-box;
+    box-shadow: 1px 1px 2px 1px #d1d1d1;
+    position: fixed;
+    z-index: 1000;
+}
+
+
+.topbar__boxUser{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    margin-left: 5rem;
+}
+
+.topbar__boxUser svg{
+    object-fit: cover;
+}
+
+.topbar__boxLogout{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+   
+}
+
+.topbar__boxLogo{
+    width: 350px;
+    height: auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-left: -2rem;
+    gap: 1rem;
+}
+
+
+.topbar__icon{
+    width: 100px;
+    height: 40px;
+    object-fit: cover;
+}

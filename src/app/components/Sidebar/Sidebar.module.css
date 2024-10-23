@@ -1,0 +1,80 @@
+.sidebar{
+    height: 100vh;
+    background-color: #f3f3f3;
+    padding: 0rem .4rem;
+    overflow-y: scroll;
+    z-index: 100;
+    transition: width 0.3s ease;
+}
+
+.menu__hamburguer{
+    width: 25px;
+    height: 40px;
+    margin-left: 1rem;
+    margin-top: 4rem;
+    color: #0F548C;
+}
+
+.menu__list {
+    display: block;
+    margin-top: 1rem;
+  }
+  
+  .menu__hamburguer {
+    margin-bottom: 20px;
+  }
+  
+
+.icon{
+    width: 15px;
+    height: 50px;
+    color: #0F548C;
+}
+
+.icon__text{
+    padding: 0 .7rem;
+    color: #555;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 1px; 
+    background-color: #dddddd;
+}
+
+ 
+.sidebar::-webkit-scrollbar-thumb {
+    background-color: #cccccc; 
+    border-radius: 4px; 
+}
+  
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background-color: #c9c9c9; /* cor de fundo do botão ao passar o mouse */
+}
+  
+
+.sidebarOpen {
+    width: 15%; 
+}
+  
+.sidebarClosed {
+    width: 64px; 
+  
+    
+}
+
+.sidebar_compressed{
+    width: 50px;
+    height: 94.5vh;
+    background-color: #f1f1f1;
+    box-shadow: 1px 2px 2px 1px #b8b8b8;
+    margin-top: 3rem;
+}
+
+.menu__hamburguer__compressed{
+    width: 30px;
+    height: 30px;
+    margin-left: 0.5rem;
+    margin-top: 1rem;
+}
+  

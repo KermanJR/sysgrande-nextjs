@@ -1,0 +1,47 @@
+{
+  "name": "nextjs-coffe-code",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": "/inicio",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@mui/icons-material": "^5.15.15",
+    "@mui/material": "^5.15.15",
+    "axios": "^1.6.8",
+    "date-fns": "^3.6.0",
+    "font-awesome": "^4.7.0",
+    "js-cookie": "^3.0.5",
+    "js-cookies": "^1.0.4",
+    "jsonwebtoken": "^9.0.2",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
+    "leaflet": "^1.9.4",
+    "next": "14.1.3",
+    "nookies": "^2.5.2",
+    "notistack": "^3.0.1",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-froala-wysiwyg": "^4.2.0",
+    "react-hot-toast": "^2.4.1",
+    "react-icons": "^5.1.0",
+    "react-leaflet": "^4.2.1",
+    "react-multi-carousel": "^2.8.5",
+    "react-quill": "^2.0.0",
+    "react-router-dom": "^6.22.3",
+    "react-slick": "^0.30.2",
+    "react-toastify": "^10.0.5",
+    "slick-carousel": "^1.8.1",
+    "styled-components": "^6.1.8"
+  },
+  "devDependencies": {
+    "eslint": "^8",
+    "eslint-config-next": "14.1.3"
+  }
+}
