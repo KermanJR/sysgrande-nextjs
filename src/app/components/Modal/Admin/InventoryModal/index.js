@@ -83,10 +83,10 @@ const InventoryModal = ({ open, onClose, onSave, item }) => {
   }, [open]);
 
   const handleSaveItem = async () => {
-    if (!name || !description || !serialNumber || !patrimonyNumber || !brand || !model || !condition || !location || !regionalCode) {
+    /*if (!name || !description || !serialNumber || !patrimonyNumber || !brand || !model || !condition || !location || !regionalCode) {
       toast.error("Todos os campos obrigatórios devem ser preenchidos");
       return;
-    }
+    }*/
 
     const itemData = {
       name,
