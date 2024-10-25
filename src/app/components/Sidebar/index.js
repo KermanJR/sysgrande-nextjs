@@ -18,6 +18,7 @@ import { RiPagesLine } from "react-icons/ri";
 import { RxHamburgerMenu } from "react-icons/rx";
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
+import { GrMenu } from "react-icons/gr";
 
 const Sidebar = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
 
