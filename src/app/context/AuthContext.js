@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Cookies from 'js-cookie';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://sysgrande-nodejs.onrender.com/api';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {

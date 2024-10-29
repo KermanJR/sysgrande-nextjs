@@ -5,7 +5,7 @@
     overflow-y: hidden;
     overflow-x: hidden;
     padding: 2rem;
-  
+    
 }
 
 .init__top{
@@ -66,5 +66,6 @@
     padding: 1rem;
     width: 95.5%;
     margin: 0 auto;
+    font-weight: 100;
 }
   

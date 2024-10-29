@@ -28,7 +28,7 @@ import { FaEdit, FaTrash } from "react-icons/fa";
 import { fetchUsers, deleteUser } from './API';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import styles from "./users.module.css";
+import styles from "./Users.module.css";
 
 function TablePaginationActions(props) {
   const theme = useTheme();

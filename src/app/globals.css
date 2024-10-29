@@ -1,40 +1,16 @@
 
-@import 'froala-editor/css/froala_style.min.css';
-@import 'froala-editor/css/froala_editor.pkgd.min.css';
-@import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
-@import "~slick-carousel/slick/slick.css";
-@import "~slick-carousel/slick/slick-theme.css";
-
-@import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
-@import 'froala-editor/css/froala_style.min.css';
-@import 'froala-editor/css/froala_editor.pkgd.min.css';
-
 
 *{
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Urbanist", sans-serif;
-  font-optical-sizing: auto;
-  font-family: "Urbanist", sans-serif;
-  font-optical-sizing: auto;
-}
-
-
-*{
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Urbanist", sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 
 :root {
   --max-width: 1100px;
   --border-radius: 12px;
-  --font-mono: ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono",
-    "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro",
-    "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
 
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;

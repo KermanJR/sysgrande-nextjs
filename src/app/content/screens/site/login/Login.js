@@ -8,6 +8,14 @@ import { fetchRegionals } from "./API";
 import LogoSanegrande from '../../../../../../public/icons/logo-sanegrande.png';
 import Image from "next/image";
 
+import { Montserrat } from 'next/font/google'
+
+const Ms = Montserrat({
+    weight: ['400', '700'], // Defina os pesos necessários
+    subsets: ['latin'], // Subconjuntos da fonte
+  });
+  
+
 const LoginPage = () => {
     const { login } = useContext(AuthContext);
     const [email, setEmail] = useState("");
@@ -42,7 +50,7 @@ const LoginPage = () => {
     const handleLogin = async (e) => {
         e.preventDefault()
         try {
-            const response = await fetch("http://localhost:5000/api/login", {
+            const response = await fetch("https://sysgrande-nodejs.onrender.com/api/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -59,7 +67,6 @@ const LoginPage = () => {
             }
 
             const data = await response.json();
-            console.log(data)
 
             // Usar a função login do AuthContext para armazenar o token e detalhes do usuário
             login(data);
@@ -75,7 +82,8 @@ const LoginPage = () => {
     };
 
     return (
-        <Box className={styles.containerLogin}>
+        <Box className={`${styles.containerLogin}`}>
+           
             <Box
                 sx={{
                     display: "flex",
@@ -83,25 +91,25 @@ const LoginPage = () => {
                     justifyContent: "center",
                     alignSelf: 'center',
                     alignItems: "center",
-                    width: '50vh',
+                    width: '40vh',
                     margin: '0 auto',
-                    borderRadius: 2,
                     padding: 3,
-                    boxShadow: 3,
-                    backgroundColor: "#fff",
                 }}
+                
+
             >
                 <Image
                     src={LogoSanegrande}
                     width={50}
                     height={50}
+                    style={{objectFit: 'contain'}}
                     alt="Logo - Sanegrande"
                 />
-                <Typography variant="h4" sx={{ mb: 2 }}>
-                    Sanegrande
+                <Typography variant="h4" sx={{ mb: 2, color: '#5E899D'}}>
+                    Sanegrande 
                 </Typography>
                 <TextField
-                    label="E-mail"
+                    label="Digite seu E-mail"
                     variant="outlined"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -110,7 +118,7 @@ const LoginPage = () => {
                 />
 
                 <TextField
-                    label="Senha"
+                    label="Digite sua senha"
                     type="password"
                     variant="outlined"
                     value={password}
@@ -119,7 +127,7 @@ const LoginPage = () => {
                     sx={{ mb: 2 }}
                 />
 
-                <FormControl fullWidth margin="normal">
+                <FormControl fullWidth margin="normal" style={{marginTop: '-.1rem'}}>
                     <InputLabel>Regional</InputLabel>
                     <Select
                         value={selectedRegional} // Agora o valor vem de selectedRegional
@@ -134,11 +142,10 @@ const LoginPage = () => {
                     </Select>
                 </FormControl>
 
-                <Button variant="contained" color="primary" onClick={(e)=>handleLogin(e)} fullWidth sx={{ mt: 2 }}>
+                <Button variant="contained" onClick={(e)=>handleLogin(e)}  sx={{ mt: 2, padding: '.7rem 2.5rem', background: '#5E899D'}}>
                     Entrar
                 </Button>
             </Box>
-            <Typography sx={{marginTop: '.5rem', fontSize: '.7rem'}}>V1.0 - Sysgrande</Typography>
         </Box>
     );
 };

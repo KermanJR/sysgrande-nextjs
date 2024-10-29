@@ -168,17 +168,17 @@ export default function Init() {
         >
           Serviços executados
         </Typography>
-        <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
+        <Table sx={{ minWidth: 500}} aria-label="custom pagination table">
           <TableHead>
             <TableRow>
-              <TableCell style={{ fontWeight: "bold" }}>N°</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Quantidade</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Nome</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Estado de Conservação</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Localização</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Marca</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Modelo</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Nº</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>N°</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Quantidade</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Nome</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Estado de Conservação</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Localização</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Marca</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Modelo</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Nº</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

@@ -83,10 +83,10 @@ const InventoryModal = ({ open, onClose, onSave, item }) => {
   }, [open]);
 
   const handleSaveItem = async () => {
-    if (!name || !description || !serialNumber || !patrimonyNumber || !brand || !model || !condition || !location || !regionalCode) {
+    /*if (!name || !description || !serialNumber || !patrimonyNumber || !brand || !model || !condition || !location || !regionalCode) {
       toast.error("Todos os campos obrigatórios devem ser preenchidos");
       return;
-    }
+    }*/
 
     const itemData = {
       name,
@@ -216,6 +216,7 @@ const InventoryModal = ({ open, onClose, onSave, item }) => {
               onChange={(e) => setCondition(e.target.value)}
             >
               <MenuItem value="Ruim">Ruim</MenuItem>
+              <MenuItem value="Ruim">Em condições razoáveis</MenuItem>
               <MenuItem value="Bom">Bom</MenuItem>
               <MenuItem value="Novo">Novo</MenuItem>
               <MenuItem value="Usado">Usado</MenuItem>

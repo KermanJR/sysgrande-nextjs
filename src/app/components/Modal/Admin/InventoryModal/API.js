@@ -1,6 +1,6 @@
 export const createItem = async (itemData) => {
   try {
-    const response = await fetch('http://localhost:5000/api/items', {
+    const response = await fetch('https://sysgrande-nodejs.onrender.com/api/items', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -20,7 +20,7 @@ export const createItem = async (itemData) => {
 
 export const updateItem = async (id, itemData) => {
   try {
-    const response = await fetch(`http://localhost:5000/api/items/${id}`, {
+    const response = await fetch(`https://sysgrande-nodejs.onrender.com/api/items/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ export const updateItem = async (id, itemData) => {
 
 export const fetchRegionals = async () => {
   try {
-    const response = await fetch('http://localhost:5000/api/regionals', { 
+    const response = await fetch('https://sysgrande-nodejs.onrender.com/api/regionals', { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export const fetchRegionals = async () => {
 
 export const updateItemById = async (itemId, updatedData) => {
   try {
-    const response = await fetch(`http://localhost:5000/api/items/${itemId}`, {
+    const response = await fetch(`https://sysgrande-nodejs.onrender.com/api/items/${itemId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

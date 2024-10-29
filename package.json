@@ -2,7 +2,7 @@
   "name": "nextjs-coffe-code",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/inicio",
+  "homepage": "/login",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -298,15 +298,15 @@ export default function Inventory() {
           <TableHead>
             <TableRow>
             
-              <TableCell style={{ fontWeight: "bold" }}>Nome</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Quantidade</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Estado de Conservação</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Localização</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Marca</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Modelo</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Nº Série</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Nº Patrimônio</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>Ação</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Nome</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Quantidade</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Estado de Conservação</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Localização</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Marca</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Modelo</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Nº Série</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Nº Patrimônio</TableCell>
+              <TableCell style={{ fontWeight: "normal" }}>Ação</TableCell>
             
             </TableRow>
           </TableHead>
