@@ -15,6 +15,7 @@ import CategoriesProducts from "./layouts/categoriesProducts";
 import ProfileAdmin from "./layouts/profile/ProfileAdmin";
 import Permissions from "./layouts/permissions";
 import Inventory from "./layouts/Inventory/Inventory";
+import Finances from "./layouts/finances/Finances";
 
 export default function ScreenDashboardAdmin() {
 
@@ -33,6 +34,7 @@ export default function ScreenDashboardAdmin() {
 
   const components = {
     Início: <Init />,
+    Financeiro: <Finances/>,
     //Produtos: <Products />,
     Inventário: <Inventory/>,
     //Usuários: <Users/>,

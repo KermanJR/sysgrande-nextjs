@@ -7,11 +7,10 @@ import {
 } from "@mui/material";
 
 import styles from "./Sidebar.module.css";
-
-import { AiOutlineUser } from "react-icons/ai";
 import { BsBoxSeam } from "react-icons/bs";
 import { GrMenu } from "react-icons/gr";
 import { RxDashboard } from "react-icons/rx";
+import { FaMoneyBillTransfer } from "react-icons/fa6";
 
 const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
   const [selectedMenuItem, setSelectedMenuItem] = useState(""); // Novo estado para item selecionado
@@ -68,6 +67,18 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
         >
           <BsBoxSeam className={styles.icon} color="#0F548C"/>
           <ListItemText primary="Inventário" className={styles.icon__text} />
+        </ListItem>
+        <ListItem
+          button
+          style={getListItemStyle("Financeiro")}
+          onClick={() => {
+            onMenuClick("Financeiro");
+            updateURL("Financeiro");
+          }}
+        >
+
+          <FaMoneyBillTransfer className={styles.icon} color="#0F548C"/>
+          <ListItemText primary="Financeiro" className={styles.icon__text} />
         </ListItem>
        </List>
     </Box>

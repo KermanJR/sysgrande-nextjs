@@ -16,7 +16,6 @@ import { createItem, updateItem, fetchRegionals} from "./API";
 import { Toaster } from "react-hot-toast";
 
 const InventoryModal = ({ open, onClose, onSave, item }) => {
-  console.log(item)
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [description, setDescription] = useState("");

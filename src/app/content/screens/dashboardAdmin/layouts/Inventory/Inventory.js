@@ -135,7 +135,6 @@ export default function Inventory() {
   };
 
   const handleOpenPlanModal = (plan) => {
-    console.log(plan)
     setCurrentPlan(plan);
     setIsPlanModalOpen(true);
   };
@@ -228,7 +227,7 @@ export default function Inventory() {
     doc.save("relatorio_itens.pdf");
   };
   
-  console.log(plans)
+
 
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - filteredPlans.length) : 0;

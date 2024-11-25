@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import useHistory from "react-router-dom";
 
 //COMPONENTS
-import { Box, Collapse, List, ListItem, ListItemButton, ListItemText, ListItemIcon } from "@mui/material";
+import { Box, List, ListItem, ListItemText } from "@mui/material";
 
 //STYLES
 import styles from './Sidebar.module.css'
@@ -10,14 +10,8 @@ import styles from './Sidebar.module.css'
 //ICONS
 import { AiOutlineUser } from "react-icons/ai";
 import { BiSolidCoffeeBean } from "react-icons/bi";
-import { FaUsers } from "react-icons/fa";
-import { BsPersonVcardFill } from "react-icons/bs";
-import { BsBoxSeam } from "react-icons/bs";
 import { PiUsersFour } from "react-icons/pi";
-import { RiPagesLine } from "react-icons/ri";
 import { GrMenu } from "react-icons/gr";
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
 
 const SidebarClient = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
 
