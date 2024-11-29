@@ -20,6 +20,8 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+
+
   const updateURL = (menuOption) => {
     if (typeof window !== "undefined") {
       window.location.hash = menuOption.toLowerCase(); // Atualiza o hash da URL
