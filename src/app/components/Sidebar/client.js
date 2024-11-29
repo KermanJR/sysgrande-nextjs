@@ -27,7 +27,7 @@ const SidebarClient = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
   };
   
   const updateURL = (menuOption) => {
-    window.location.hash = menuOption.toLowerCase(); 
+    window?.location.hash = menuOption.toLowerCase(); 
   };
 
   function verifyUserPosition(){
@@ -35,7 +35,7 @@ const SidebarClient = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
   }
 
   useEffect(()=>{
-    let url = window.location.href;
+    let url = window?.location.href;
     if(url.includes('cliente')){
       setTypeUser("cliente")
     }else if(url.includes('admin')){

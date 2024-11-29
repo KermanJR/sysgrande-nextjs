@@ -21,13 +21,19 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
   };
 
   const updateURL = (menuOption) => {
-    window.location.hash = menuOption.toLowerCase();
+    if (typeof window !== "undefined") {
+      window.location.hash = menuOption.toLowerCase(); // Atualiza o hash da URL
+    }
     setSelectedMenuItem(menuOption); // Atualiza o item selecionado
   };
+  
 
   useEffect(() => {
-    const currentPath = window.location.hash.substring(1);
-    setSelectedMenuItem(currentPath.charAt(0).toUpperCase() + currentPath.slice(1));
+    if (typeof window !== "undefined") {
+      const currentPath = window?.location.hash.substring(1);
+      setSelectedMenuItem(currentPath.charAt(0).toUpperCase() + currentPath.slice(1));
+    }
+   
   }, []);
 
   const getListItemStyle = (menuOption) => ({

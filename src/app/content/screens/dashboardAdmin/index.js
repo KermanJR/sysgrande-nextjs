@@ -9,7 +9,6 @@ import Users from "./layouts/users/Users";
 import Positions from "./layouts/positions/Positions";
 import Clients from "./layouts/clients/Clients";
 import About from "./layouts/aboutUs/About";
-import Contact from "./layouts/Contact/Contact";
 import SidebarAdmin from "@/app/components/Sidebar/admin";
 import CategoriesProducts from "./layouts/categoriesProducts";
 import ProfileAdmin from "./layouts/profile/ProfileAdmin";
