@@ -1,4 +1,5 @@
 const API_URL = 'http://localhost:3001/api';
+import axios from 'axios'; 
 
 export const fetchProducts = async () => {
   try {
@@ -41,3 +42,25 @@ export const fetchOrders = async () => {
     return [];
   }
 };
+
+
+const getAccessToken = async () => {
+  const clientId = '50d79ab5-df6b-45f7-a786-615a8a73d960';
+  const clientSecret = '740fd9c3-21c4-434a-be36-3e06dbae1025';
+  const tenantId = '06738f6b-6721-49b2-908b-ddeed51824ff';
+
+  const url = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+
+  const params = new URLSearchParams();
+  params.append('grant_type', 'client_credentials');
+  params.append('client_id', clientId);
+  params.append('client_secret', clientSecret);
+  params.append('scope', 'https://analysis.windows.net/powerbi/api/.default');
+
+  const response = await axios.post(url, params);
+  console.log(response)
+  return response.data.access_token;
+};
+
+//await getAccessToken()
+

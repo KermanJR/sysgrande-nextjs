@@ -32,10 +32,10 @@ import { Toaster } from "react-hot-toast";
 import AddIcon from "@mui/icons-material/Add";
 import PlanModal from "@/app/components/Modal/Admin/InventoryModal";
 import ReportModal from "@/app/components/Modal/Admin/ReportModal";
-import { fetchedExpenses, deleteExpenseById, fetchedExpensesByCompany } from "./API";
+import { fetchedExpenses, deleteExpenseById, fetchedEmployeesByCompany, deleteEmployeeById } from "./API";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import styles from './Finances.module.css'
+import styles from './Employees.module.css'
 import ExpenseModal from "@/app/components/Modal/Admin/CreateFinances";
 import { useCompany } from "@/app/context/CompanyContext";
 
@@ -102,16 +102,16 @@ function TablePaginationActions(props) {
 }
 
 
-export default function Finances() {
+export default function Employees() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(4);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [currentExpense, setCurrentExpense] = useState([]);
-  const [expenses, setExpenses] = useState([]);
-  const [filteredExpenses, setFilteredExpenses] = useState([]);
-  const [selectedExpense, setSelectedExpense] = useState('');
-  const [newExpense, setNewExpense] = useState({
+  const [employees, setEmployees] = useState([]);
+  const [filteredEmployess, setFilteredEmployess] = useState([]);
+  const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [newEmployee, setNewEmployee] = useState({
     type: "",
     description: "",
     eventDate: "",
@@ -133,17 +133,20 @@ export default function Finances() {
 
 
   useEffect(() => {
-    // Se uma empresa for selecionada, faça a requisição para buscar as despesas
+    // Se uma empresa for selecionada, faça a requisição para buscar os funcionários
     if (company) {
-      const loadExpenses = async () => {
-        const expensesData = await fetchedExpensesByCompany(company.name); // Passe o nome da empresa
-        setExpenses(expensesData);
-        setFilteredExpenses(expensesData);
+      const loadEmployees = async () => {
+        const employeesData = await fetchedEmployeesByCompany(company.name); // Passe o nome da empresa
+        // Filtrar os funcionários que não têm a data de exclusão (soft delete)
+        const activeEmployees = employeesData.filter(employee => !employee.deletedAt);
+        setEmployees(activeEmployees);
+        setFilteredEmployess(activeEmployees);
       };
-
-      loadExpenses();
+  
+      loadEmployees();
     }
   }, [company]);  // O useEffect vai rodar sempre que a empresa mudar
+  
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -193,24 +196,27 @@ export default function Finances() {
     });
   };
 
-  const handleDeleteExpense = async (id) => {
-    const deleted = await deleteExpenseById(id);
+  const handleDeleteEmployee = async (id) => {
+    const deleted = await deleteEmployeeById(id);
     if (deleted) {
-      setExpenses((prevItem) => prevItem.filter((item) => item.id !== id));
-      setFilteredExpenses((prevExpense) => prevExpense.filter((expense) => expense.id !== id));
-      toast.success('Despesa excluída com sucesso.')
+      // Recarrega os funcionários após a exclusão
+      const loadEmployees = async () => {
+        const employeesData = await fetchedEmployeesByCompany(company.name); // Passe o nome da empresa
+        // Filtra os funcionários que não têm a data de exclusão (soft delete)
+        const activeEmployees = employeesData.filter(employee => !employee.deletedAt);
+        setEmployees(activeEmployees);
+        setFilteredEmployess(activeEmployees);
+      };
+  
+      loadEmployees();
+      toast.success("Funcionário deletado com sucesso!");
+    } else {
+      toast.error("Erro ao deletar o funcionário!");
     }
   };
-
-  function formatDateToDDMMYYYY(dateString) {
-    const date = new Date(dateString); // Cria um objeto Date
-    const day = String(date.getDate()).padStart(2, '0'); // Obtém o dia com dois dígitos
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Obtém o mês com dois dígitos (0-11, por isso +1)
-    const year = date.getFullYear(); // Obtém o ano completo
-    return `${day}/${month}/${year}`; // Retorna no formato dd/mm/aaaa
-  }
   
-  console.log(company)
+
+  
 
   const generatePdf = () => {
     const doc = new jsPDF();
@@ -249,7 +255,7 @@ export default function Finances() {
     const tableRows = [];
   
     // Preencher as linhas da tabela
-    filteredExpenses.forEach((expense) => {
+    filteredEmployess.forEach((expense) => {
       const planData = [
         expense?.type,
         expense?.description || "-",
@@ -264,7 +270,7 @@ export default function Finances() {
     });
   
     // Calcular o total da coluna "Valor"
-    const totalAmount = filteredExpenses?.reduce((sum, expense) => sum + expense.amount, 0);
+    const totalAmount = filteredEmployess?.reduce((sum, expense) => sum + expense.amount, 0);
   
     // Gera a tabela no PDF
     doc.autoTable(tableColumn, tableRows, { startY: 40 });
@@ -278,6 +284,8 @@ export default function Finances() {
     doc.save("relatorio_itens.pdf");
   };
   
+
+  console.log(employees)
   
 
 
@@ -287,13 +295,13 @@ export default function Finances() {
         typography="h4"
         style={{ fontWeight: "bold", color: "#1E3932" }}
       >
-        Finanças
+        Funcionários
       </Typography>
       <Typography
         typography="label"
         style={{ padding: "0 0 1rem 0", color: "#1E3932", fontSize: ".875rem" }}
       >
-        Gerencie todos as suas finanças e despesas
+        Gerencie todos os funcionários da sua empresa
       </Typography>
 
       <TableContainer component={Paper} className={styles.plans__table__container}>
@@ -319,87 +327,61 @@ export default function Finances() {
         </Box>
         <Table className={styles.plans__table}>
           <TableHead>
-            <TableRow>
-              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Tipo</TableCell>
-              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Descrição</TableCell>
-              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Data do Evento</TableCell>
-              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Data de Pagamento</TableCell>
-              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Valor</TableCell>
-              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Forma de Pagamento</TableCell>
-              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Situação</TableCell>
-              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Anexo</TableCell>
+            <TableRow> 
+            <TableCell  align="center" sx={{fontWeight: 'bold'}}>Equipe</TableCell>
+              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Nome</TableCell>
+              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Empresa</TableCell>
+              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Regional</TableCell>
+              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Município</TableCell>
+              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Localidade</TableCell>
               <TableCell  align="center" sx={{fontWeight: 'bold'}}>Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredExpenses.map((expense) => {
-              let statusBgColor = "";
-              if (expense.status === "Paga") {
-                statusBgColor = "#8BE78B";
-              } else if (expense.status === "Pendente") {
-                statusBgColor = "#F6F794";
-              } else if (expense.status === "Atrasada") {
-                statusBgColor = "red";
-              } else if (expense.status === "Cancelada") {
-                statusBgColor = "red";
-              }
+          {
+  employees?.map((employee) => (
+    <TableRow key={employee._id}>
+      <TableCell align="center">{employee?.codigoEquipe}</TableCell>
+      <TableCell align="center">{employee?.name}</TableCell>
+      <TableCell align="center">{employee?.company}</TableCell>
+      <TableCell align="center">{employee?.codigoRegional?.regionalCode + ' ' + employee.codigoRegional?.name}</TableCell>
+      <TableCell align="center">{employee?.codigoMunicipio?.codigo + ' ' + employee?.codigoMunicipio?.nome}</TableCell>
+      <TableCell align="center">{employee?.codigoLocal?.codigo + ' ' + employee?.codigoLocal?.nome}</TableCell>
+     
+      <TableCell align="center">
+        <Box className={styles.plans__table__actions}>
+          <Tooltip title="Editar Item">
+            <span>
+              <FaEdit
+                style={{ cursor: "pointer" }}
+                onClick={() => handleOpenPlanModal(employee)} // Passando 'employee' ao invés de 'expense'
+              />
+            </span>
+          </Tooltip>
+          <Tooltip title="Excluir">
+            <span>
+              <FaTrash
+                style={{ cursor: "pointer" }}
+                color="red"
+                onClick={() => handleDeleteEmployee(employee._id)} // Corrigido para 'employee._id'
+              />
+            </span>
+          </Tooltip>
+        </Box>
+      </TableCell>
+    </TableRow>
+  ))
+}
 
-              return (
-                <TableRow key={expense._id}>
-                  <TableCell align="center">{expense.type}</TableCell>
-                  <TableCell align="center">{expense.description}</TableCell>
-                  <TableCell align="center">{formatDate(expense.eventDate)}</TableCell>
-                  <TableCell align="center">{formatDate(expense.paymentDate)}</TableCell>
-                  <TableCell align="center">{(expense.amount).toLocaleString('pt-br', { style: 'currency', currency: 'BRL' })}</TableCell>
-                  <TableCell align="center">{expense.paymentMethod}</TableCell>
-                  <TableCell align="center">
-                    <Box style={{
-                      backgroundColor: statusBgColor,
-                      borderRadius: '8px',
-                      padding: '.28rem',
-                      color: statusBgColor === '#F6F794' ? 'black' : 'white'
-                    }}>{expense.status}</Box>
-                  </TableCell>
-                  <TableCell align="center">
-                    {expense.attachment ? (
-                      <a href={expense.attachment} target="_blank">
-                        Ver Anexo
-                      </a>
-                    ) : (
-                      "Nenhum"
-                    )}
-                  </TableCell>
-                  <TableCell align="center">
-                    <Box className={styles.plans__table__actions}>
-                      <Tooltip title="Editar Item">
-                        <span>
-                          <FaEdit
-                            style={{ cursor: "pointer" }}
-                            onClick={() => handleOpenPlanModal(expense)}
-                          />
-                        </span>
-                      </Tooltip>
-                      <Tooltip title="Excluir">
-                        <span>
-                          <FaTrash
-                            style={{ cursor: "pointer" }}
-                            color="red"
-                            onClick={() => handleDeleteExpense(expense.id)}
-                          />
-                        </span>
-                      </Tooltip>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
+              
+            
           </TableBody>
           <TableFooter>
             <TableRow>
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: "Todos", value: -1 }]}
                 colSpan={5}
-                count={filteredExpenses.length}
+                count={filteredEmployess.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 slotProps={{

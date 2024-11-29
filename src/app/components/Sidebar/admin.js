@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"; 
+import React, { useEffect, useState } from "react";
 import {
   Box,
   List,
@@ -11,6 +11,7 @@ import { BsBoxSeam } from "react-icons/bs";
 import { GrMenu } from "react-icons/gr";
 import { RxDashboard } from "react-icons/rx";
 import { FaMoneyBillTransfer } from "react-icons/fa6";
+import { HiUsers } from "react-icons/hi";
 
 const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
   const [selectedMenuItem, setSelectedMenuItem] = useState(""); // Novo estado para item selecionado
@@ -54,7 +55,7 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
             updateURL("Início");
           }}
         >
-          <RxDashboard className={styles.icon} color="#0F548C"/>
+          <RxDashboard className={styles.icon} color="#0F548C" />
           <ListItemText primary="Início" className={styles.icon__text} />
         </ListItem>
         <ListItem
@@ -65,7 +66,7 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
             updateURL("Inventário");
           }}
         >
-          <BsBoxSeam className={styles.icon} color="#0F548C"/>
+          <BsBoxSeam className={styles.icon} color="#0F548C" />
           <ListItemText primary="Inventário" className={styles.icon__text} />
         </ListItem>
         <ListItem
@@ -77,17 +78,29 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
           }}
         >
 
-          <FaMoneyBillTransfer className={styles.icon} color="#0F548C"/>
+          <FaMoneyBillTransfer className={styles.icon} color="#0F548C" />
           <ListItemText primary="Financeiro" className={styles.icon__text} />
         </ListItem>
-       </List>
+        <ListItem
+          button
+          style={getListItemStyle("Funcionário")}
+          onClick={() => {
+            onMenuClick("Funcionário");
+            updateURL("Funcionário");
+          }}
+        >
+
+          <HiUsers className={styles.icon} color="#0F548C" />
+          <ListItemText primary="Funcionários" className={styles.icon__text} />
+        </ListItem>
+      </List>
     </Box>
   ) : (
     <Box color="primary.contrastText" className={`${styles.sidebar_compressed}`}>
       <GrMenu
         className={styles.menu__hamburguer__compressed}
         onClick={handleMenuClick}
-        style={{ cursor: "pointer", color: "#0F548C", width: '20px', marginLeft: '15px'}}
+        style={{ cursor: "pointer", color: "#0F548C", width: '20px', marginLeft: '15px' }}
       />
       <List className={styles.menu__list}>
         <ListItem
@@ -98,7 +111,7 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
             updateURL("Início");
           }}
         >
-          <RxDashboard className={styles.icon} color="#0F548C"/>
+          <RxDashboard className={styles.icon} color="#0F548C" />
         </ListItem>
         <ListItem
           button

@@ -187,15 +187,14 @@ export default function Init(){
                         colSpan={6}
                         count={rows.length}
                         rowsPerPage={rowsPerPage}
+                        labelRowsPerPage={"Linhas por Página"}
                         page={page}
                         slotProps={{
-                            select: {
-                            inputProps: {
-                                'aria-label': 'Linhas por página',
-                            },
-                            native: true,
-                            },
-                        }}
+                          pagination: {
+                            labelRowsPerPage: "Linhas por Página",
+                          },
+                       }}
+                        
                         onPageChange={handleChangePage}
                         onRowsPerPageChange={handleChangeRowsPerPage}
                         ActionsComponent={TablePaginationActions}

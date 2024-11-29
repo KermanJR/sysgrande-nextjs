@@ -4,7 +4,7 @@
     height: 60px;
     background-color: #074765;
     display: grid;
-    grid-template-columns: 4fr 1fr .5fr;
+    grid-template-columns: 4fr 1fr 1fr;
     box-sizing: border-box;
     box-shadow: 1px 1px 2px 1px #d1d1d1;
     position: fixed;
@@ -41,7 +41,7 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    margin-left: -2rem;
+    margin-left: rem;
     gap: 1rem;
 }
 
