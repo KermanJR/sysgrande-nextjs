@@ -19,7 +19,7 @@ export const fetchedExpenses = async () => {
 
 export const fetchedExpensesByCompany = async (companyName) => {
   try {
-    const response = await fetch(`http://localhost:5000/api/expenses?company=${companyName}`, { 
+    const response = await fetch(`https://sysgrande-nodejs.onrender.com/api/expenses?company=${companyName}`, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

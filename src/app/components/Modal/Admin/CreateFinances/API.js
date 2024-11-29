@@ -1,6 +1,6 @@
 export const createExpense = async (expenseData) => {
     try {
-        const response = await fetch('http://localhost:5000/api/expenses', {
+        const response = await fetch('https://sysgrande-nodejs.onrender.com/api/expenses', {
             method: 'POST',
             // Não define Content-Type explicitamente, pois o FormData já define isso
             body: expenseData, // Passa diretamente o FormData
@@ -41,7 +41,7 @@ export const createExpense = async (expenseData) => {
   
   export const fetchCategoryExpenses = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/despesas', { 
+      const response = await fetch('https://sysgrande-nodejs.onrender.com/api/despesas', { 
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
