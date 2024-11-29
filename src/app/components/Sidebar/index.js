@@ -33,8 +33,9 @@ const Sidebar = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
   };
   
   const updateURL = (menuOption) => {
-    window?.location.hash = menuOption.toLowerCase(); // Atualiza a URL com a opção do menu
-  };
+    if (typeof window !== "undefined") {
+    window.location.hash = menuOption.toLowerCase(); // Atualiza a URL com a opção do menu
+    }  };
 
   return (
     isMenuOpen? 
