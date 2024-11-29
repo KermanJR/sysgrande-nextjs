@@ -27,7 +27,9 @@ const SidebarClient = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
   };
   
   const updateURL = (menuOption) => {
-    window?.location.hash = menuOption.toLowerCase(); 
+    if (typeof window !== "undefined") {
+    window.location.hash = menuOption.toLowerCase(); 
+    }
   };
 
   function verifyUserPosition(){
@@ -35,12 +37,14 @@ const SidebarClient = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
   }
 
   useEffect(()=>{
+    if (typeof window !== "undefined") {
     let url = window?.location.href;
     if(url.includes('cliente')){
       setTypeUser("cliente")
     }else if(url.includes('admin')){
       setTypeUser("admin")
     }
+  }
   }, [typeUser])
 
   console.log(typeUser)
