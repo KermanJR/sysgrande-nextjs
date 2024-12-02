@@ -9,6 +9,7 @@ import LogoSanegrande from '../../../../../../public/icons/logo-sanegrande.png';
 import Image from "next/image";
 
 import { Montserrat } from 'next/font/google'
+import Wave from "@/app/components/Footer/Wave";
 
 const Ms = Montserrat({
     weight: ['400', '700'], // Defina os pesos necessários
@@ -145,7 +146,9 @@ const LoginPage = () => {
                 <Button variant="contained" onClick={(e)=>handleLogin(e)}  sx={{ mt: 2, padding: '.7rem 2.5rem', background: '#5E899D'}}>
                     Entrar
                 </Button>
+                
             </Box>
+           <Wave/>
         </Box>
     );
 };

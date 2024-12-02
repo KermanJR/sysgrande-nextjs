@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { Box, Typography, Button } from "@mui/material";
 import styles from './Topbar.module.css';
 import LogoSanegrande from '../../../../public/icons/logo-sanegrande.png';
+import LogoEnterHome from '../../../../public/icons/logo-enterhome.png';
 import Image from "next/image";
 import { FaUser } from "react-icons/fa";
 import { IoMdLogOut } from "react-icons/io";
@@ -17,15 +18,34 @@ export default function Topbar() {
   const { company } = useCompany(); // Acessando a empresa selecionada do contexto
   const router = useRouter();
 
+  console.log(company)
+
   return (
     <Box className={styles.topbar}>
       <Box className={styles.topbar__boxLogo}>
-        <Image
-          src={LogoSanegrande.src}
-          width={40}
-          height={40}
-          style={{ objectFit: 'contain', marginTop: '0rem', width: '40px', height: '50px' }}
-        />
+
+        {
+          company?.name == "Sanegrande" && (
+            <Image
+            src={LogoSanegrande.src}
+            width={40}
+            height={40}
+            style={{ objectFit: 'contain', marginTop: '0rem', width: '40px', height: '50px' }}
+          />
+          )
+        }
+
+{
+          company?.name == "Enterhome" && (
+            <Image
+            src={LogoEnterHome.src}
+            width={40}
+            height={40}
+            style={{ objectFit: 'contain', marginTop: '0rem', width: '40px', height: '50px' }}
+          />
+          )
+        }
+       
         
         {/* Botões para selecionar a empresa */}
         <SelectCompanyButton companyData={{ name: 'Sanegrande', id: 1 }} />

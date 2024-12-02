@@ -6,6 +6,7 @@ body{
   box-sizing: border-box;
   font-family: "Poppins", sans-serif;
   font-optical-sizing: auto;
+  overflow-x: hidden;
 }
 
 
