@@ -1,7 +1,7 @@
 export const fetchedEmployeesByCompany = async (companyName) => {
   try {
     const response = await fetch(
-      `http://localhost:5000/api/employees?company=${companyName}`,
+      `https://sysgrande-nodejs.onrender.com/api/employees?company=${companyName}`,
       {
         method: "GET",
         headers: {
@@ -23,7 +23,7 @@ export const fetchedEmployeesByCompany = async (companyName) => {
 export const createExpense = async (expenseData) => {
   try {
     const response = await fetch(
-      "http://localhost:5000/api/expenses/vacation",
+      "https://sysgrande-nodejs.onrender.com/api/expenses/vacation",
       {
         method: "POST",
         body: expenseData,
@@ -45,7 +45,7 @@ export const createExpense = async (expenseData) => {
 export const updateExpense = async (expenseData, id) => {
   try {
     const response = await fetch(
-      `http://localhost:5000/api/expenses/vacation/${id}`,
+      `https://sysgrande-nodejs.onrender.com/api/expenses/vacation/${id}`,
       {
         method: "PUT",
         body: expenseData, // Passando o FormData diretamente como body

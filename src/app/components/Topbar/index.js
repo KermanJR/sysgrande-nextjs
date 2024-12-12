@@ -70,6 +70,8 @@ export default function Topbar() {
             }}
           />
         )}
+
+        <Typography sx={{fontSize: '2rem', fontWeight: 'bold', color: '#1E3932'}}>{company?.name}</Typography>
       </Box>
 
       <Box className={styles.topbar__boxSecond}>

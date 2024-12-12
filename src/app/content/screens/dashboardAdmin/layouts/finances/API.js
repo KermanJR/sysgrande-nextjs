@@ -1,6 +1,6 @@
 export const fetchedExpenses = async () => {
   try {
-    const response = await fetch('http://localhost:5000/api/expenses', { 
+    const response = await fetch('https://sysgrande-nodejs.onrender.com/api/expenses', { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -19,7 +19,7 @@ export const fetchedExpenses = async () => {
 
 export const fetchedExpensesByCompany = async (companyName) => {
   try {
-    const response = await fetch(`http://localhost:5000/api/expenses?company=${companyName}`, { 
+    const response = await fetch(`https://sysgrande-nodejs.onrender.com/api/expenses?company=${companyName}`, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ export const fetchedExpensesByCompany = async (companyName) => {
 
 export const deleteExpenseById = async (expenseId) => {
   try {
-    const response = await fetch(`http://localhost:5000/api/expenses/${expenseId}`, { 
+    const response = await fetch(`https://sysgrande-nodejs.onrender.com/api/expenses/${expenseId}`, { 
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

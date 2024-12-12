@@ -50,11 +50,35 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
    
   }, []);
 
+  
+  // Estilização para o item selecionado
   const getListItemStyle = (menuOption) => ({
-    borderLeft: selectedMenuItem === menuOption ? '4px solid #0F548C' : 'none', // Linha azul no item selecionado
-    backgroundColor: selectedMenuItem === menuOption ? '#f0f0f0' : 'transparent', // Cor de fundo opcional para o item selecionado
-    height: '50px'
+    backgroundColor: selectedMenuItem === menuOption ? "#0F548C" : "transparent", // Fundo azul para o selecionado
+    color: selectedMenuItem === menuOption ? "#fff" : "#000", // Texto branco no selecionado
+    borderRadius: "8px", // Bordas arredondadas
+    marginBottom: "8px",
+    height: "50px",
+    display: "flex",
+    alignItems: "center",
   });
+
+    // Estilização para o ícone
+    const getIconStyle = (menuOption) => ({
+      width: "30px",
+      height: "30px",
+      borderRadius: "50%", // Círculo ao redor do ícone
+      backgroundColor: selectedMenuItem === menuOption ? "#fff" : "transparent", // Círculo branco no selecionado
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      color: selectedMenuItem === menuOption ? "#0F548C" : "#0F548C", // Ícone azul no selecionado
+    });
+  // Estilização para o ícone
+  const getTextStyle = (menuOption) => ({
+    color: selectedMenuItem === menuOption ? "#fff" : "#0F548C", // Ícone azul no selecionado
+  });
+
+
 
   return isMenuOpen ? (
     <Box
@@ -76,8 +100,10 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
           }}
           sx={{marginTop: '-1.4rem'}}
         >
-          <SpaceDashboardIcon className={styles.icon} color="#0F548C" sx={{width: '20px'}}/>
-          <ListItemText primary="Início" className={styles.icon__text}/>
+         <Box style={getIconStyle("Início")}>
+            <SpaceDashboardIcon sx={{width: '20px'}} />
+          </Box>
+          <ListItemText primary="Início" className={styles.icon__text} style={getTextStyle("Início")}/>
         </ListItem>
         <ListItem
           button
@@ -87,8 +113,10 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
             updateURL("Inventário");
           }}
         >
-          <InventoryIcon className={styles.icon} color="#0F548C" sx={{width: '20px'}}/>
-          <ListItemText primary="Inventário" className={styles.icon__text} />
+         <Box style={getIconStyle("Inventário")}>
+            <InventoryIcon sx={{width: '20px'}}/>
+          </Box>
+          <ListItemText primary="Inventário" className={styles.icon__text}  style={getTextStyle("Inventário")}/>
         </ListItem>
         <ListItem
           button
@@ -99,8 +127,10 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
           }}
         >
 
-          <SavingsIcon className={styles.icon} color="#0F548C" sx={{width: '20px'}}/>
-          <ListItemText primary="Financeiro" className={styles.icon__text} />
+<Box style={getIconStyle("Financeiro")}>
+            <SavingsIcon sx={{width: '20px'}}/>
+          </Box>
+          <ListItemText primary="Financeiro" className={styles.icon__text} sx={{color: '#0F548C'}}/>
           {open ? <ExpandLess sx={{fill: '#0F548C'}}/> : <ExpandMore sx={{fill: '#0F548C'}}/>}
         </ListItem>
 
@@ -148,9 +178,11 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
             updateURL("Funcionário");
           }}
         >
-
-          <FaceIcon className={styles.icon} color="#0F548C" sx={{width: '20px'}}/>
-          <ListItemText primary="Funcionários" className={styles.icon__text} />
+        <Box style={getIconStyle("Funcionário")}>
+        <FaceIcon sx={{width: '20px'}}/>
+        </Box>
+                  
+          <ListItemText primary="Funcionários" className={styles.icon__text} style={getTextStyle("Funcionário")}/>
         </ListItem>
       </List>
     </Box>
