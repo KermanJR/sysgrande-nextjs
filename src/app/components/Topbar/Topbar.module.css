@@ -2,13 +2,18 @@
     width: 100%;
     margin: 0 auto;
     height: 60px;
-    background-color: #074765;
-    display: grid;
-    grid-template-columns: 4fr 1fr 1fr;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    justify-content: center;
+    align-items: center;
     box-sizing: border-box;
-    box-shadow: 1px 1px 2px 1px #d1d1d1;
+    box-shadow: 1px 1px 2px 1px #e7e7e7;
     position: fixed;
     z-index: 1000;
+    color: black;
 }
 
 
@@ -18,7 +23,7 @@
     justify-content: center;
     align-items: center;
     gap: 5px;
-    margin-left: 5rem;
+    margin-left: 0rem;
 }
 
 .topbar__boxUser svg{
@@ -30,19 +35,28 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    gap: 5px;
-   
 }
 
 .topbar__boxLogo{
-    width: 350px;
+    width: 70%;
     height: auto;
     display: flex;
     flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    margin-left: rem;
+    justify-content: left;
+    align-items: left;
     gap: 1rem;
+    margin-left: 1rem;
+}
+.topbar__boxSecond{
+    width: 30%;
+    height: auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: right;
+    gap: 1rem;
+    margin-right: 1rem;
+    padding-right: 2rem;
 }
 
 

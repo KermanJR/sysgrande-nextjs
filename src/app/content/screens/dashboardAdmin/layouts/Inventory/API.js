@@ -1,6 +1,6 @@
 export const fetchItems = async () => {
   try {
-    const response = await fetch('https://sysgrande-nodejs.onrender.com/api/items', { 
+    const response = await fetch('http://localhost:5000/api/items', { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -19,7 +19,7 @@ export const fetchItems = async () => {
 
 export const fetchRegionals = async () => {
   try {
-    const response = await fetch('https://sysgrande-nodejs.onrender.com/api/regionals', { 
+    const response = await fetch('http://localhost:5000/api/regionals', { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ export const fetchRegionals = async () => {
 
 export const deleteItemById = async (itemId) => {
   try {
-    const response = await fetch(`https://sysgrande-nodejs.onrender.com/api/items/${itemId}`, { 
+    const response = await fetch(`http://localhost:5000/api/items/${itemId}`, { 
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

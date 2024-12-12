@@ -38,46 +38,6 @@ const ExpenseModal = ({ open, onClose, onSave, item }) => {
     // Modal Principal para Seleção do Tipo de Despesa
     return (
         <>
-            <Modal open={open} onClose={handleClose}>
-                <Box
-                    sx={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        width: "40%",
-                        bgcolor: "background.paper",
-                        borderRadius: "5px",
-                        boxShadow: 24,
-                        p: 4,
-                    }}
-                >
-                    <Typography variant="h6" gutterBottom>
-                        Selecione o Tipo de Despesa
-                    </Typography>
-
-                    <FormControl fullWidth>
-                        <InputLabel>Tipo de Despesa</InputLabel>
-                        <Select
-                            value={selectedType}
-                            onChange={handleTypeChange}
-                            label="Tipo de Despesa"
-                        >
-                            <MenuItem value="Ferias">Férias</MenuItem>
-                            <MenuItem value="Rescisao">Rescisão</MenuItem>
-                            <MenuItem value="Outros">Outros</MenuItem>
-                            {/* Adicione outros tipos de despesas conforme necessário */}
-                        </Select>
-                    </FormControl>
-
-                    <Box sx={{ mt: 3 }}>
-                        <Button variant="contained" color="primary" onClick={handleClose}>
-                            Fechar
-                        </Button>
-                    </Box>
-                </Box>
-            </Modal>
-
             {/* Modais Específicos - Férias e Rescisão */}
             {selectedType === "Ferias" && (
                 <FeriasModal

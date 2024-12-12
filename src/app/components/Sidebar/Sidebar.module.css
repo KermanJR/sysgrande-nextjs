@@ -1,23 +1,27 @@
 .sidebar{
     height: 100vh;
-    background-color: #fcfcfc;
+    background-color: white;
     padding: 0rem .4rem;
     overflow-y: scroll;
     z-index: 100;
     transition: width 0.3s ease;
+    font-size: 1rem;
+    font-weight: 700;
 }
 
 .menu__hamburguer{
     width: 25px;
     height: 40px;
     margin-left: 1rem;
-    margin-top: 4rem;
+    margin-top: 5rem;
     color: #0F548C;
 }
 
 .menu__list {
     display: block;
     margin-top: -1rem;
+     font-size: .75rem;
+    font-weight: 700;
   }
   
   .menu__hamburguer {
@@ -27,30 +31,32 @@
   
 
 .icon{
-    width: 15px;
-    height: 50px;
+    width: 10px;
+    height: 10px;
     color: #0F548C;
 }
 
 .icon__text{
     padding: 0 .7rem;
     color: #000000;
+    font-size: 1px;
+    font-weight: bold;
 }
 
 .sidebar::-webkit-scrollbar {
     width: 1px; 
-    background-color: #dddddd;
+    background-color: rgb(212, 212, 212);
 }
 
  
 .sidebar::-webkit-scrollbar-thumb {
-    background-color: #cccccc; 
+    background-color: white; 
     border-radius: 4px; 
 }
   
 
 .sidebar::-webkit-scrollbar-thumb:hover {
-    background-color: #c9c9c9; /* cor de fundo do botão ao passar o mouse */
+    background-color: white; /* cor de fundo do botão ao passar o mouse */
 }
   
 
@@ -60,22 +66,24 @@
   
 .sidebarClosed {
     width: 64px; 
-  
+    border: 1px solid #d9d9d9 ;
     
 }
 
 .sidebar_compressed{
     width: 50px;
     height: 94.5vh;
-    background-color: #f1f1f1;
+    background-color: white;
     box-shadow: 1px 2px 2px 1px #b8b8b8;
     margin-top: 3rem;
+    border: 1px solid #d9d9d9 ;
 }
 
 .menu__hamburguer__compressed{
     width: 30px;
     height: 30px;
     margin-left: 0.5rem;
+    border: 1px solid #d9d9d9 ;
     margin-top: 1rem;
 }
   

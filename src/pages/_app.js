@@ -4,6 +4,7 @@ import Theme from "@/app/theme/theme";
 import { CartProvider } from "@/app/context/CartContext";
 import { SnackbarProvider } from "notistack";
 import { CompanyProvider } from "@/app/context/CompanyContext";
+import { Toaster } from 'react-hot-toast';
 
 export default function MyApp({ Component, pageProps }) {
   return (
@@ -12,6 +13,7 @@ export default function MyApp({ Component, pageProps }) {
         <CartProvider>
           <AuthProvider>
             <Theme>
+              <Toaster />
               <Component {...pageProps} />
             </Theme>
           </AuthProvider>

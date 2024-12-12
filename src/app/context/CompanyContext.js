@@ -1,29 +1,35 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import Cookies from 'js-cookie';
 
 // Contexto para gerenciar a empresa
 const CompanyContext = createContext();
 
 export const CompanyProvider = ({ children }) => {
-  const [company, setCompany] = useState('Sanegrande');
+  const [company, setCompany] = useState('Sanegrande'); // Valor inicial padrão
 
   useEffect(() => {
     const storedCompany = localStorage.getItem('company');
     if (storedCompany) {
-      setCompany(JSON.parse(storedCompany));
+        setCompany(JSON.parse(storedCompany));
+    } else {
+        // Definir a empresa padrão se não houver dados armazenados
+        const defaultCompany = { name: "Sanegrande", id: 1 };
+        setCompany(defaultCompany);
+        localStorage.setItem('company', JSON.stringify(defaultCompany));
     }
-  }, []);
+}, []);
 
-  const setSelectedCompany = (companyData) => {
-    // Armazenar os dados da empresa no localStorage
-    localStorage.setItem('company', JSON.stringify(companyData));
-    setCompany(companyData);
-  };
+const setSelectedCompany = (companyData) => {
+  if (companyData) {
+      localStorage.setItem('company', JSON.stringify(companyData));
+      setCompany(companyData);
+  }
+};
+
 
   const clearCompany = () => {
     // Limpar dados da empresa
     localStorage.removeItem('company');
-    setCompany(null);
+    setCompany('Sanegrande'); // Voltar ao padrão
   };
 
   return (

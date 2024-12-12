@@ -16,6 +16,7 @@ import Permissions from "./layouts/permissions";
 import Inventory from "./layouts/Inventory/Inventory";
 import Finances from "./layouts/finances/Finances";
 import Employees from "./layouts/employees/Employees";
+import Regionals from "./layouts/regionals/Regionals";
 
 export default function ScreenDashboardAdmin() {
 
@@ -38,6 +39,7 @@ export default function ScreenDashboardAdmin() {
     Inventário: <Inventory/>,
     Funcionário: <Employees/>,
     Perfil: <ProfileAdmin/>,
+    Rh: <Regionals/>,
 
   };
 

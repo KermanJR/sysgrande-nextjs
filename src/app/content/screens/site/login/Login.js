@@ -26,12 +26,17 @@ const LoginPage = () => {
     const router = useRouter();
     const { enqueueSnackbar } = useSnackbar();  // Hook para exibir notificações
 
-    // Carrega as regionais ao montar o componente
     useEffect(() => {
         const carregarRegionais = async () => {
             try {
                 const data = await fetchRegionals();
                 setRegionais(data); // Define as regionais no estado
+    
+                // Selecionar automaticamente "Sanegrande" se estiver na lista
+                const sanegrandeRegional = data.find((regional) => regional.name === "Sanegrande");
+                if (sanegrandeRegional) {
+                    setSelectedRegional(sanegrandeRegional.code); // Define o código correspondente
+                }
             } catch (error) {
                 console.error('Erro ao carregar regionais', error);
                 enqueueSnackbar('Erro ao carregar regionais', { variant: 'error' });
@@ -39,6 +44,7 @@ const LoginPage = () => {
         };
         carregarRegionais();
     }, []);
+    
 
     // Função para lidar com a mudança da regional
     const handleSelectedRegional = (event) => {
@@ -46,20 +52,19 @@ const LoginPage = () => {
     };
 
 
-    console.log(selectedRegional)
+
     // Função para realizar Login
     const handleLogin = async (e) => {
         e.preventDefault()
         try {
-            const response = await fetch("https://sysgrande-nodejs.onrender.com/api/login", {
+            const response = await fetch("http://localhost:5000/api/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                     email,
-                    password,
-                    codigoRegional: selectedRegional, // Enviar a regional selecionada no login
+                    password
                 }),
             });
 
@@ -68,14 +73,12 @@ const LoginPage = () => {
             }
 
             const data = await response.json();
-
+            router.push("/dashboard/admin");
             // Usar a função login do AuthContext para armazenar o token e detalhes do usuário
             login(data);
 
             enqueueSnackbar('Login realizado com sucesso!', { variant: 'success' });  // Exibir notificação de sucesso
 
-            // Redirecionar para a página principal ou dashboard
-            router.push("/dashboard/admin");
         } catch (error) {
             console.error("Erro no login:", error);
             enqueueSnackbar('Erro no login. Verifique suas credenciais.', { variant: 'error' });  // Exibir notificação de erro
@@ -128,7 +131,7 @@ const LoginPage = () => {
                     sx={{ mb: 2 }}
                 />
 
-                <FormControl fullWidth margin="normal" style={{marginTop: '-.1rem'}}>
+               {/*<FormControl fullWidth margin="normal" style={{marginTop: '-.1rem'}}>
                     <InputLabel>Regional</InputLabel>
                     <Select
                         value={selectedRegional} // Agora o valor vem de selectedRegional
@@ -141,7 +144,7 @@ const LoginPage = () => {
                             </MenuItem>
                         ))}
                     </Select>
-                </FormControl>
+                </FormControl>*/} 
 
                 <Button variant="contained" onClick={(e)=>handleLogin(e)}  sx={{ mt: 2, padding: '.7rem 2.5rem', background: '#5E899D'}}>
                     Entrar

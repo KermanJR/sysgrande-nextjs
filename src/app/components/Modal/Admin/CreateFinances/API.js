@@ -1,6 +1,6 @@
 export const createExpense = async (expenseData) => {
     try {
-        const response = await fetch('https://sysgrande-nodejs.onrender.com/api/expenses', {
+        const response = await fetch('http://localhost:5000/api/expenses', {
             method: 'POST',
             // Não define Content-Type explicitamente, pois o FormData já define isso
             body: expenseData, // Passa diretamente o FormData
@@ -21,7 +21,7 @@ export const createExpense = async (expenseData) => {
   
   export const updateItem = async (id, itemData) => {
     try {
-      const response = await fetch(`https://sysgrande-nodejs.onrender.com/api/items/${id}`, {
+      const response = await fetch(`http://localhost:5000/api/items/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ export const createExpense = async (expenseData) => {
   
   export const fetchCategoryExpenses = async () => {
     try {
-      const response = await fetch('https://sysgrande-nodejs.onrender.com/api/despesas', { 
+      const response = await fetch('http://localhost:5000/api/despesas', { 
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ export const createExpense = async (expenseData) => {
   
   export const updateItemById = async (itemId, updatedData) => {
     try {
-      const response = await fetch(`https://sysgrande-nodejs.onrender.com/api/items/${itemId}`, {
+      const response = await fetch(`http://localhost:5000/api/items/${itemId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

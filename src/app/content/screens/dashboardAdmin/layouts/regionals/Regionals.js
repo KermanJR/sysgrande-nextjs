@@ -11,10 +11,15 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  TextField,
   Typography,
   Tooltip,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
-import InventoryIcon from '@mui/icons-material/Inventory';import { useTheme } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
@@ -23,16 +28,16 @@ import LastPageIcon from "@mui/icons-material/LastPage";
 import ArticleIcon from "@mui/icons-material/Article";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import AddIcon from "@mui/icons-material/Add";
+import PlanModal from "@/app/components/Modal/Admin/InventoryModal";
 import ReportModal from "@/app/components/Modal/Admin/ReportModal";
-import { deleteExpenseById, fetchedExpensesByCompany } from "./API";
+import { fetchedExpenses, deleteExpenseById, fetchedExpensesByCompany } from "./API";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import styles from "./Finances.module.css";
-import DescriptionIcon from '@mui/icons-material/Description';
+import styles from './Regionals.module.css'
+import ExpenseModal from "@/app/components/Modal/Admin/CreateFinances";
 import { useCompany } from "@/app/context/CompanyContext";
-import FeriasModal from "@/app/components/Modal/Admin/ModalVacancy";
-import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 function TablePaginationActions(props) {
   const theme = useTheme();
@@ -96,7 +101,8 @@ function TablePaginationActions(props) {
   );
 }
 
-export default function Finances() {
+
+export default function Regionals() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(4);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
@@ -104,7 +110,7 @@ export default function Finances() {
   const [currentExpense, setCurrentExpense] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [filteredExpenses, setFilteredExpenses] = useState([]);
-  const [selectedExpense, setSelectedExpense] = useState("");
+  const [selectedExpense, setSelectedExpense] = useState('');
   const [newExpense, setNewExpense] = useState({
     type: "",
     description: "",
@@ -116,27 +122,28 @@ export default function Finances() {
 
   const { company } = useCompany(); // Acessando a empresa selecionada do contexto
 
-  const formatDate = (date) => {
-    const newDate = new Date(date);
-    return newDate.toLocaleDateString("pt-BR", {timeZone: "UTC"}); // Ajuste o idioma conforme necessário
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0'); // Adiciona 0 à esquerda, se necessário
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Meses começam em 0
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
-  
+
 
   useEffect(() => {
-    // Carrega despesas ao selecionar uma empresa ou editar uma despesa
+    // Se uma empresa for selecionada, faça a requisição para buscar as despesas
     if (company) {
       const loadExpenses = async () => {
-        const expensesData = await fetchedExpensesByCompany(company.name);
+        const expensesData = await fetchedExpensesByCompany(company.name); // Passe o nome da empresa
         setExpenses(expensesData);
         setFilteredExpenses(expensesData);
       };
-  
+
       loadExpenses();
     }
-  }, [company, currentExpense]); // Adicione currentExpense para recarregar após edição
-  
-
- 
+  }, [company]);  // O useEffect vai rodar sempre que a empresa mudar
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -148,7 +155,7 @@ export default function Finances() {
   };
 
   const handleOpenPlanModal = (expense) => {
-    console.log(expense);
+    console.log(expense)
     setCurrentExpense(expense);
     setIsPlanModalOpen(true);
   };
@@ -174,197 +181,158 @@ export default function Finances() {
     setNewExpense((prev) => ({ ...prev, attachment: e.target.files[0] }));
   };
 
-  const handleSaveExpense = (updatedExpense) => {
-    //console.log(updatedExpense);
-    setExpenses((prevExpenses) =>
-      prevExpenses?.map((expense) =>
-        expense.id === updatedExpense.id ? updatedExpense : expense
-      )
-    );
-
-    console.log(expenses)
+  const handleSaveExpense = () => {
+    setPlans((prev) => [...prev, newExpense]);
+    setNewExpense({
+      type: "",
+      description: "",
+      eventDate: "",
+      paymentDate: "",
+      status: "",
+      attachment: null,
+    });
   };
 
   const handleDeleteExpense = async (id) => {
     const deleted = await deleteExpenseById(id);
     if (deleted) {
       setExpenses((prevItem) => prevItem.filter((item) => item.id !== id));
-      setFilteredExpenses((prevExpense) =>
-        prevExpense.filter((expense) => expense.id !== id)
-      );
-      toast.success("Despesa excluída com sucesso.");
+      setFilteredExpenses((prevExpense) => prevExpense.filter((expense) => expense.id !== id));
+      toast.success('Despesa excluída com sucesso.')
     }
   };
 
   function formatDateToDDMMYYYY(dateString) {
     const date = new Date(dateString); // Cria um objeto Date
-    const day = String(date.getDate()).padStart(2, "0"); // Obtém o dia com dois dígitos
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Obtém o mês com dois dígitos (0-11, por isso +1)
+    const day = String(date.getDate()).padStart(2, '0'); // Obtém o dia com dois dígitos
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Obtém o mês com dois dígitos (0-11, por isso +1)
     const year = date.getFullYear(); // Obtém o ano completo
     return `${day}/${month}/${year}`; // Retorna no formato dd/mm/aaaa
   }
+  
+  console.log(company)
 
   const generatePdf = () => {
     const doc = new jsPDF();
-
+  
     // Obter a data e hora atual no formato desejado
     const now = new Date();
-    const reportDate = `${now.toLocaleDateString(
-      "pt-BR"
-    )} ${now.toLocaleTimeString("pt-BR")}`;
-
+    const reportDate = `${now.toLocaleDateString("pt-BR")} ${now.toLocaleTimeString("pt-BR")}`;
+  
     // Título principal
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
-    doc.text("Relatório Financeiro - Férias", 10, 10);
-
+    doc.text("Relatório Financeiro", 10, 10);
+  
     // Nome da empresa
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
     doc.text(`Empresa: ${company.name}`, 10, 20);
-
+  
     // Data e hora de geração do relatório
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.text(`Gerado em: ${reportDate}`, 10, 30);
-
+  
     // Colunas do relatório
     const tableColumn = [
-      "Funcionário",
+      "Tipo",
       "Descrição",
-      "Data Início",
-      "Data Fim",
+      "Data Evento",
+      "Data Pagamento",
       "Valor",
+      "Forma Pag.",
       "Situação",
-      "Criado por",
+      "Criado por"
     ];
-
+  
     const tableRows = [];
-
+  
     // Preencher as linhas da tabela
     filteredExpenses.forEach((expense) => {
       const planData = [
-        expense?.employee?.name,
-        expense?.type == "Vacation" ? "Férias" : "-" || "-",
-        formatDateToDDMMYYYY(expense?.startDate),
-        formatDateToDDMMYYYY(expense?.endDate),
-        expense?.amount.toLocaleString("pt-br", {
-          style: "currency",
-          currency: "BRL",
-        }),
+        expense?.type,
+        expense?.description || "-",
+        formatDateToDDMMYYYY(expense?.eventDate),
+        formatDateToDDMMYYYY(expense?.paymentDate),
+        expense?.amount.toLocaleString("pt-br", { style: "currency", currency: "BRL" }),
+        expense?.paymentMethod,
         expense?.status,
         expense?.createdBy,
       ];
       tableRows.push(planData);
     });
-
+  
     // Calcular o total da coluna "Valor"
-    const totalAmount = filteredExpenses?.reduce(
-      (sum, expense) => sum + expense.amount,
-      0
-    );
-
+    const totalAmount = filteredExpenses?.reduce((sum, expense) => sum + expense.amount, 0);
+  
     // Gera a tabela no PDF
     doc.autoTable(tableColumn, tableRows, { startY: 40 });
-
+  
     // Adicionar o total ao final
     const finalY = doc.lastAutoTable.finalY + 10; // Posição logo abaixo da tabela
     doc.setFont("helvetica", "bold");
-    doc.text(
-      `Total: ${totalAmount.toLocaleString("pt-br", {
-        style: "currency",
-        currency: "BRL",
-      })}`,
-      10,
-      finalY
-    );
-
+    doc.text(`Total: ${totalAmount.toLocaleString("pt-br", { style: "currency", currency: "BRL" })}`, 10, finalY);
+  
     // Salva o PDF com o nome especificado
     doc.save("relatorio_itens.pdf");
   };
+  
+  
+
 
   return (
     <Box className={styles.plans}>
-      <Box
-        sx={{
-          border: "1px solid #d9d9d9",
-          borderRadius: "10px",
-          padding: ".5rem",
-        }}
+      <Typography
+        typography="h4"
+        style={{ fontWeight: "bold", color: "#1E3932" }}
       >
-        <Typography
-          typography="h4"
-          style={{ fontWeight: "bold", color: "#1E3932" }}
-        >
-          Férias
-        </Typography>
-        <Typography
-          typography="label"
-          style={{
-            padding: "0 0 1rem 0",
-            color: "#1E3932",
-            fontSize: ".875rem",
-          }}
-        >
-          Gerencie as férias de seus funcionários
-        </Typography>
-      </Box>
-
-      <TableContainer
-
-        className={styles.plans__table__container}
+        Finanças
+      </Typography>
+      <Typography
+        typography="label"
+        style={{ padding: "0 0 1rem 0", color: "#1E3932", fontSize: ".875rem" }}
       >
+        Gerencie todos as suas finanças e despesas
+      </Typography>
+
+      <TableContainer component={Paper} className={styles.plans__table__container}>
         <Box className={styles.plans__table__actions_download_new}>
           <Button
             variant="contained"
-            style={{ background: "#fff", color: "black", borderRadius: "2px" }}
+            style={{ background: "#fff", color: 'black', borderRadius: '2px' }}
             className={styles.plans__search__input}
             onClick={generatePdf}
           >
-            <DescriptionIcon  sx={{color: '#0F548C', width: '20px'}}/>
+            <ArticleIcon />
             Gerar Relatório
           </Button>
           <Button
             variant="contained"
-            style={{ background: "#fff", color: "#000", borderRadius: "2px" }}
+            style={{ background: "#fff", color: "#000", borderRadius: '2px' }}
             className={styles.plans__search__input}
             onClick={() => handleOpenPlanModal()}
           >
-            <AddCircleIcon  sx={{color: '#0F548C', width: '20px'}}/>
+            <AddIcon />
             Novo Item
           </Button>
         </Box>
         <Table className={styles.plans__table}>
           <TableHead>
             <TableRow>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Funcionário
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Descrição
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Data Início
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Data Fim
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Valor
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Situação
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Anexo
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Ações
-              </TableCell>
+              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Tipo</TableCell>
+              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Descrição</TableCell>
+              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Data do Evento</TableCell>
+              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Data de Pagamento</TableCell>
+              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Valor</TableCell>
+              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Forma de Pagamento</TableCell>
+              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Situação</TableCell>
+              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Anexo</TableCell>
+              <TableCell  align="center" sx={{fontWeight: 'bold'}}>Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {expenses.map((expense) => {
+            {filteredExpenses.map((expense) => {
               let statusBgColor = "";
               if (expense.status === "Paga") {
                 statusBgColor = "#8BE78B";
@@ -378,39 +346,23 @@ export default function Finances() {
 
               return (
                 <TableRow key={expense._id}>
+                  <TableCell align="center">{expense.type}</TableCell>
+                  <TableCell align="center">{expense.description}</TableCell>
+                  <TableCell align="center">{formatDate(expense.eventDate)}</TableCell>
+                  <TableCell align="center">{formatDate(expense.paymentDate)}</TableCell>
+                  <TableCell align="center">{(expense.amount).toLocaleString('pt-br', { style: 'currency', currency: 'BRL' })}</TableCell>
+                  <TableCell align="center">{expense.paymentMethod}</TableCell>
                   <TableCell align="center">
-                    {expense?.employee?.name}
-                  </TableCell>
-                  <TableCell align="center">
-                    {expense?.type == "Vacation" ? "Férias" : ""}
-                  </TableCell>
-                  <TableCell align="center">
-                    {formatDate(expense?.startDate)}
-                  </TableCell>
-                  <TableCell align="center">
-                    {formatDate(expense?.endDate)}
-                  </TableCell>
-                  <TableCell align="center">
-                    {expense?.amount?.toLocaleString("pt-br", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                  </TableCell>
-                  <TableCell align="center">
-                    <Box
-                      style={{
-                        backgroundColor: statusBgColor,
-                        borderRadius: "8px",
-                        padding: ".28rem",
-                        color: statusBgColor === "#F6F794" ? "black" : "white",
-                      }}
-                    >
-                      {expense.status}
-                    </Box>
+                    <Box style={{
+                      backgroundColor: statusBgColor,
+                      borderRadius: '8px',
+                      padding: '.28rem',
+                      color: statusBgColor === '#F6F794' ? 'black' : 'white'
+                    }}>{expense.status}</Box>
                   </TableCell>
                   <TableCell align="center">
                     {expense.attachment ? (
-                      <a href={`${expense.attachment}`} target="_blank">
+                      <a href={expense.attachment} target="_blank">
                         Ver Anexo
                       </a>
                     ) : (
@@ -439,7 +391,7 @@ export default function Finances() {
                     </Box>
                   </TableCell>
                 </TableRow>
-              );
+              )
             })}
           </TableBody>
           <TableFooter>
@@ -467,7 +419,7 @@ export default function Finances() {
         </Table>
       </TableContainer>
       {/* Modal para criar ou editar plano */}
-      <FeriasModal
+      <ExpenseModal
         open={isPlanModalOpen}
         onClose={handleClosePlanModal}
         onSave={handleSaveExpense}
