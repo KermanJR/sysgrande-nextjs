@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   Box,
   Typography,
@@ -6,11 +6,9 @@ import {
 import styles from "./Init.module.css";
 import { useContext } from "react";
 import AuthContext from "@/app/context/AuthContext";
-import { useCompany } from "@/app/context/CompanyContext";
 export default function Init() {
 
   const { user, logout } = useContext(AuthContext);
-  const { company, setSelectedCompany } = useCompany();
 
   return (
     <Box className={styles.init}>

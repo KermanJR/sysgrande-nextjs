@@ -1,13 +1,23 @@
-
-.dashboardContent{
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    overflow-y: hidden;
-    background-color: white;
+.dashboardContent {
+    display: flex;
+    flex-direction: row;
+    height: 100vh; /* Garante que ocupa toda a altura da tela */
+    overflow: hidden;
+    background-color: rgb(255, 255, 255);
 }
 
-.content{
-    width: 80%;
+.sidebar {
+    width: 280px; /* Largura fixa para o sidebar */
+    min-width: 250px;
+    background-color: #f4f4f4; /* Cor de fundo para diferenciar */
+    height: 100%; /* Ocupar toda a altura */
+    overflow-y: auto; /* Permitir rolagem caso o conteúdo seja longo */
+}
+
+.content {
+    flex: 1; /* Ocupar todo o espaço restante */
     background-color: white;
+    padding: 16px; /* Espaço interno */
+    overflow-y: auto; /* Caso o conteúdo precise rolar */
+    height: 100%;
 }

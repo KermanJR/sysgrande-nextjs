@@ -1,12 +1,9 @@
 import React, { useContext, useEffect } from "react";
-import { Box, Typography, Button, Select, MenuItem } from "@mui/material";
+import { Box, Typography, Select, MenuItem } from "@mui/material";
 import styles from "./Topbar.module.css";
 import LogoSanegrande from "../../../../public/icons/logo-sanegrande.png";
 import LogoEnterHome from "../../../../public/icons/logo-enterhome.png";
 import Image from "next/image";
-import { FaUser } from "react-icons/fa";
-import { IoMdLogOut } from "react-icons/io";
-import { useRouter } from "next/router";
 import AuthContext from "@/app/context/AuthContext";
 import { useCompany } from "@/app/context/CompanyContext";
 import Person3Icon from '@mui/icons-material/Person3';
@@ -29,7 +26,7 @@ export default function Topbar() {
   // Lista de empresas
   const companies = [
     { name: "Sanegrande", id: 1 },
-    { name: "Enterhome", id: 2 },
+    { name: "Enter Home", id: 2 },
   ];
 
   // Alterar empresa selecionada
@@ -56,7 +53,7 @@ export default function Topbar() {
           />
         )}
 
-        {company?.name == "Enterhome" && (
+        {company?.name == "Enter Home" && (
           <Image
             alt="Logo - Enter Home"
             src={LogoEnterHome.src}
@@ -71,7 +68,7 @@ export default function Topbar() {
           />
         )}
 
-        <Typography sx={{fontSize: '2rem', fontWeight: 'bold', color: '#1E3932'}}>{company?.name}</Typography>
+        <Typography sx={{fontSize: '2.5rem', fontWeight: 'bold', color: '#1E3932'}}>{company?.name}</Typography>
       </Box>
 
       <Box className={styles.topbar__boxSecond}>
@@ -109,7 +106,7 @@ export default function Topbar() {
         </Select>
 
         <Box className={styles.topbar__boxUser}>
-          <Person3Icon color="#0F548C" style={{ width: "25px", height: "25px", color: "#0F548C"}} />
+          <Person3Icon color="#0F548C" style={{ width: "20px", height: "20px", color: "#0F548C"}} />
           <Typography>
             {user ? user.name : "Minha Conta"}
           </Typography>
@@ -118,7 +115,7 @@ export default function Topbar() {
         <Box className={styles.topbar__boxLogout}>
           <LogoutIcon
             onClick={logout}
-            style={{ width: "40px", height: "30px", cursor: "pointer", color: '#0F548C' }}
+            style={{ width: "20px", height: "20px", cursor: "pointer", color: '#0F548C' }}
           />
           <Typography >Sair</Typography>
         </Box>

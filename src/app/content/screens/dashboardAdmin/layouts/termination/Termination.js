@@ -14,6 +14,7 @@ import {
   Typography,
   Tooltip,
 } from "@mui/material";
+
 import { useTheme } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
@@ -22,16 +23,16 @@ import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
-
 import ReportModal from "@/app/components/Modal/Admin/ReportModal";
 import { deleteExpenseById, fetchedExpensesByCompany } from "./API";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import styles from "./Finances.module.css";
-import DescriptionIcon from "@mui/icons-material/Description";
+import styles from "./Termination.module.css";
+import DescriptionIcon from '@mui/icons-material/Description';
 import { useCompany } from "@/app/context/CompanyContext";
 import FeriasModal from "@/app/components/Modal/Admin/ModalVacancy";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import RescisaoModal from "@/app/components/Modal/Admin/ModalRecision";
 
 function TablePaginationActions(props) {
   const theme = useTheme();
@@ -95,7 +96,7 @@ function TablePaginationActions(props) {
   );
 }
 
-export default function Finances() {
+export default function Termination() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(4);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
@@ -117,8 +118,9 @@ export default function Finances() {
 
   const formatDate = (date) => {
     const newDate = new Date(date);
-    return newDate.toLocaleDateString("pt-BR", { timeZone: "UTC" }); // Ajuste o idioma conforme necessário
+    return newDate.toLocaleDateString("pt-BR", {timeZone: "UTC"}); // Ajuste o idioma conforme necessário
   };
+  
 
   useEffect(() => {
     // Carrega despesas ao selecionar uma empresa ou editar uma despesa
@@ -126,18 +128,19 @@ export default function Finances() {
       const loadExpenses = async () => {
         const expensesData = await fetchedExpensesByCompany(company.name);
         setExpenses(expensesData);
-        console.log(expensesData);
+        console.log(expensesData)
         // Filtra despesas com type == "Termination"
-        const filtered = expensesData.filter(
-          (expense) => expense.type == "Vacation"
-        );
-        console.log(filtered);
+        const filtered = expensesData.filter(expense => expense.type == "Termination");
+        console.log(filtered)
         setFilteredExpenses(filtered);
       };
-
+  
       loadExpenses();
     }
   }, [company, currentExpense]); // Adicione currentExpense para recarregar após edição
+  
+  
+
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -159,8 +162,13 @@ export default function Finances() {
     setCurrentExpense(null);
   };
 
+
   const handleCloseReportModal = () => {
     setIsReportModalOpen(false);
+  };
+
+  const handleFileChange = (e) => {
+    setNewExpense((prev) => ({ ...prev, attachment: e.target.files[0] }));
   };
 
   const handleSaveExpense = (updatedExpense) => {
@@ -169,8 +177,6 @@ export default function Finances() {
         expense.id === updatedExpense.id ? updatedExpense : expense
       )
     );
-
-    console.log(expenses);
   };
 
   const handleDeleteExpense = async (id) => {
@@ -271,8 +277,6 @@ export default function Finances() {
     doc.save("relatorio_itens.pdf");
   };
 
-  const theme = useTheme()
-
   return (
     <Box className={styles.plans}>
       <Box
@@ -286,7 +290,7 @@ export default function Finances() {
           typography="h4"
           style={{ fontWeight: "bold", color: "#1E3932" }}
         >
-          Férias
+          Rescisão
         </Typography>
         <Typography
           typography="label"
@@ -296,11 +300,14 @@ export default function Finances() {
             fontSize: ".875rem",
           }}
         >
-          Gerencie as férias de seus funcionários
+          Gerencie as rescisões de seus funcionários
         </Typography>
       </Box>
 
-      <TableContainer className={styles.plans__table__container}>
+      <TableContainer
+
+        className={styles.plans__table__container}
+      >
         <Box className={styles.plans__table__actions_download_new}>
           <Button
             variant="contained"
@@ -308,17 +315,17 @@ export default function Finances() {
             className={styles.plans__search__input}
             onClick={generatePdf}
           >
-            <DescriptionIcon sx={{ color: theme.palette.grey[600], width: "20px" }} />
+            <DescriptionIcon  sx={{color: '#0F548C', width: '20px'}}/>
             Gerar Relatório
           </Button>
           <Button
             variant="contained"
-            style={{ background: "#fff", color: "black", borderRadius: "2px" }}
+            style={{ background: "#fff", color: "#000", borderRadius: "2px" }}
             className={styles.plans__search__input}
             onClick={() => handleOpenPlanModal()}
           >
-            <AddCircleIcon sx={{ color:  theme.palette.grey[600], width: "20px" }} />
-            Criar
+            <AddCircleIcon  sx={{color: '#0F548C', width: '20px'}}/>
+            Novo Item
           </Button>
         </Box>
         <Table className={styles.plans__table}>
@@ -328,19 +335,34 @@ export default function Finances() {
                 Funcionário
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Descrição
+                Término Cont.
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Data Início
+                Razão
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Data Fim
+                Valor Aviso Prév.
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Valor
+                Valor Férias Restantes
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Situação
+                Valor Resc.
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                Multa FGTS
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                Dedução IR
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                Outras Deduções
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                Prazo Pagamento
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                Status
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
                 Anexo
@@ -365,24 +387,72 @@ export default function Finances() {
 
               return (
                 <TableRow key={expense._id}>
+
                   <TableCell align="center">
                     {expense?.employee?.name}
                   </TableCell>
+
                   <TableCell align="center">
-                    {expense?.type == "Vacation" ? "Férias" : ""}
+                    {formatDate(expense?.terminationDate)}
                   </TableCell>
+
                   <TableCell align="center">
-                    {formatDate(expense?.startDate)}
+                    {expense?.reason}
                   </TableCell>
+
                   <TableCell align="center">
-                    {formatDate(expense?.endDate)}
-                  </TableCell>
-                  <TableCell align="center">
-                    {expense?.amount?.toLocaleString("pt-br", {
+                    {expense?.noticePeriod.toLocaleString("pt-br", {
                       style: "currency",
                       currency: "BRL",
                     })}
                   </TableCell>
+
+                  <TableCell align="center">
+                    {expense?.remainingVacations.toLocaleString("pt-br", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                  </TableCell>
+
+                  <TableCell align="center">
+                    {expense?.severancePay.toLocaleString("pt-br", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                  </TableCell>
+
+                 
+
+                  <TableCell align="center">
+                    {expense?.fineFGTS.toLocaleString("pt-br", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+
+                  </TableCell>
+
+                  <TableCell align="center">
+                    {expense?.incomeTaxDeduction.toLocaleString("pt-br", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                  </TableCell>
+
+
+                  <TableCell align="center">
+                    {expense?.otherDeductions.toLocaleString("pt-br", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                  </TableCell>
+
+                  <TableCell align="center">
+                    {formatDate(expense?.paymentDeadline)}
+                  </TableCell>
+
+              
+                 
+  
                   <TableCell align="center">
                     <Box
                       style={{
@@ -454,7 +524,7 @@ export default function Finances() {
         </Table>
       </TableContainer>
       {/* Modal para criar ou editar plano */}
-      <FeriasModal
+      <RescisaoModal
         open={isPlanModalOpen}
         onClose={handleClosePlanModal}
         onSave={handleSaveExpense}

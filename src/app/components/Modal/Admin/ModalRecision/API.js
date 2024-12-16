@@ -1,19 +1,66 @@
-export const getEmployee = async (expenseData) => {
+export const fetchedEmployeesByCompany = async (companyName) => {
     try {
-        const response = await fetch('http://localhost:5000/api/emp', {
-            method: 'POST',
-            // Não define Content-Type explicitamente, pois o FormData já define isso
-            body: expenseData, // Passa diretamente o FormData
-        });
-
-        if (!response.ok) {
-            throw new Error('Erro ao criar Despesa');
+      const response = await fetch(
+        `http://localhost:5000/api/employees?company=${companyName}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-
-        const data = await response.json();
-        return data;
+      );
+      if (!response.ok) {
+        throw new Error("Erro ao buscar os funcionários");
+      }
+      const data = await response.json();
+      return data; // Retorna os dados dos despesas
     } catch (error) {
-        console.error('Erro:', error);
-        return null;
+      console.error("Erro:", error);
+      return [];
     }
-};
+  };
+  
+  export const createExpense = async (expenseData) => {
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/expenses/vacation",
+        {
+          method: "POST",
+          body: expenseData,
+        }
+      );
+  
+      if (!response.ok) {
+        throw new Error("Erro ao criar Despesa");
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Erro:", error);
+      return null;
+    }
+  };
+  
+  export const updateExpense = async (expenseData, id) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/expenses/vacation/${id}`,
+        {
+          method: "PUT",
+          body: expenseData, // Passando o FormData diretamente como body
+        }
+      );
+  
+      if (!response.ok) {
+        throw new Error("Erro ao editar Despesa");
+      }
+  
+      return await response.json();
+    } catch (error) {
+      console.error("Erro:", error);
+      return null;
+    }
+  };
+  
+  

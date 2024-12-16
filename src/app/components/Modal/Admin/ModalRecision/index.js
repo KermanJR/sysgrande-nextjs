@@ -1,223 +1,366 @@
 import React, { useState, useEffect, useContext } from "react";
 import {
-    Modal,
-    Box,
-    Typography,
-    TextField,
-    Button
+  Modal,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  IconButton,
 } from "@mui/material";
 import toast from "react-hot-toast";
 import AuthContext from "@/app/context/AuthContext";
-import { createExpense } from "../CreateFinances/API";
+import { fetchedEmployeesByCompany, createExpense, updateExpense } from "./API";
+import InfoIcon from "@mui/icons-material/Info";
 import { useCompany } from "@/app/context/CompanyContext";
+import { IoMdCloseCircleOutline } from "react-icons/io";
 
 const RescisaoModal = ({ open, onClose, onSave, item }) => {
-    const { user } = useContext(AuthContext);
-    const { company } = useCompany();
+  const { user } = useContext(AuthContext);
+  const { company } = useCompany();
 
-    const [employeeName, setEmployeeName] = useState("");
-    const [employeePosition, setEmployeePosition] = useState("");
-    const [admissionDate, setAdmissionDate] = useState("");
-    const [terminationDate, setTerminationDate] = useState("");
-    const [terminationReason, setTerminationReason] = useState("");
-    const [terminationPenalty, setTerminationPenalty] = useState("");
-    const [provisions, setProvisions] = useState("");
-    const [deductions, setDeductions] = useState("");
-    const [attachment, setAttachment] = useState(null);
+  const [terminationDate, setTerminationDate] = useState("");
+  const [reason, setReason] = useState("");
+  const [severancePay, setSeverancePay] = useState("");
+  const [noticePeriod, setNoticePeriod] = useState("");
+  const [remainingVacations, setRemainingVacations] = useState("");
+  const [FGTSBalance, setFGTSBalance] = useState("");
+  const [fineFGTS, setFineFGTS] = useState("");
+  const [INSSDeduction, setINSSDeduction] = useState("");
+  const [incomeTaxDeduction, setIncomeTaxDeduction] = useState("");
+  const [otherDeductions, setOtherDeductions] = useState("");
+  const [totalAmount, setTotalAmount] = useState("");
+  const [paymentDeadline, setPaymentDeadline] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [status, setStatus] = useState("Pendente");
+  const [description, setDescription] = useState("");
+  const [attachment, setAttachment] = useState(null);
+  const [employees, setEmployees] = useState([]);
+  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [createdBy, setCreatedBy] = useState(user?.name || "");
+  const [updatedBy, setUpdatedBy] = useState(user?.name || "");
+  const [amount, setAmount] = useState("");
 
-    useEffect(() => {
-        if (item) {
-            setEmployeeName(item?.employeeName || "");
-            setEmployeePosition(item?.employeePosition || "");
-            setAdmissionDate(item?.admissionDate || "");
-            setTerminationDate(item?.terminationDate || "");
-            setTerminationReason(item?.terminationReason || "");
-            setTerminationPenalty(item?.terminationPenalty || "");
-            setProvisions(item?.provisions || "");
-            setDeductions(item?.deductions || "");
-            setAttachment(item?.attachment || null);
+  useEffect(() => {
+    if (item) {
+        setAmount(item?.amount || "");
+      setTerminationDate(item?.terminationDate || "");
+      setReason(item?.reason || "");
+      setSeverancePay(item?.severancePay || "");
+      setNoticePeriod(item?.noticePeriod || "");
+      setRemainingVacations(item?.remainingVacations || "");
+      setFGTSBalance(item?.FGTSBalance || "");
+      setFineFGTS(item?.fineFGTS || "");
+      setINSSDeduction(item?.INSSDeduction || "");
+      setIncomeTaxDeduction(item?.incomeTaxDeduction || "");
+      setOtherDeductions(item?.otherDeductions || "");
+      setTotalAmount(item?.totalAmount || "");
+      setPaymentDeadline(item?.paymentDeadline || "");
+      setPaymentMethod(item?.paymentMethod || "");
+      setStatus(item?.status || "Pendente");
+      setDescription(item?.description || "");
+      setAttachment(item?.attachment || null);
+      setSelectedEmployee(item?.employee || "");
+      setCreatedBy(item?.createdBy || user?.name || "");
+      setUpdatedBy(item?.updatedBy || user?.name || "");
+    } else {
+      resetForm();
+    }
+  }, [item]);
+
+  useEffect(() => {
+    const loadEmployees = async () => {
+      const employeesData = await fetchedEmployeesByCompany(company?.name);
+      setEmployees(employeesData);
+    };
+    loadEmployees();
+  }, [company]);
+
+  const resetForm = () => {
+    setTerminationDate("");
+    setReason("");
+    setSeverancePay("");
+    setNoticePeriod("");
+    setRemainingVacations("");
+    setFGTSBalance("");
+    setFineFGTS("");
+    setINSSDeduction("");
+    setIncomeTaxDeduction("");
+    setOtherDeductions("");
+    setTotalAmount("");
+    setPaymentDeadline("");
+    setPaymentMethod("");
+    setStatus("Pendente");
+    setDescription("");
+    setAttachment(null);
+    setSelectedEmployee("");
+    setCreatedBy(user?.name || "");
+    setUpdatedBy(user?.name || "");
+  };
+
+  console.log(item)
+
+  const handleSaveExpense = async () => {
+    const expenseData = new FormData();
+
+    expenseData.append("amount", totalAmount);
+    expenseData.append("employee", selectedEmployee);
+    expenseData.append("type", "Termination");
+    expenseData.append("terminationDate", terminationDate);
+    expenseData.append("reason", reason);
+    expenseData.append("severancePay", severancePay);
+    expenseData.append("noticePeriod", noticePeriod);
+    expenseData.append("remainingVacations", remainingVacations);
+    expenseData.append("FGTSBalance", FGTSBalance);
+    expenseData.append("fineFGTS", fineFGTS);
+    expenseData.append("INSSDeduction", INSSDeduction);
+    expenseData.append("incomeTaxDeduction", incomeTaxDeduction);
+    expenseData.append("otherDeductions", otherDeductions);
+    expenseData.append("totalAmount", totalAmount);
+    expenseData.append("paymentDeadline", paymentDeadline);
+    expenseData.append("paymentMethod", paymentMethod);
+    expenseData.append("status", status);
+    expenseData.append("description", description);
+    expenseData.append("createdBy", user?.name); // Adicionando o usuário que criou
+    expenseData.append("updateBy", user?.name); // Inicialmente, o usuário de criação é o mesmo para a atualização
+    expenseData.append("company", company?.name);
+
+    if (attachment) {
+      expenseData.append("attachment", attachment);
+    }
+
+    try {
+      let response;
+      if (item) {
+        expenseData.append("id", item.id);
+        response = await createExpense(expenseData);
+        if (response) {
+          onSave(response);
+          toast.success("Despesa de rescisão atualizada com sucesso");
         } else {
-            resetForm();
+          toast.error("Erro ao atualizar item");
         }
-    }, [item]);
-
-    const resetForm = () => {
-        setEmployeeName("");
-        setEmployeePosition("");
-        setAdmissionDate("");
-        setTerminationDate("");
-        setTerminationReason("");
-        setTerminationPenalty("");
-        setProvisions("");
-        setDeductions("");
-        setAttachment(null);
-    };
-
-    const handleFileChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            setAttachment(file); // Atualiza o estado com o arquivo selecionado
+      } else {
+        response = await createExpense(expenseData);
+        if (response) {
+          onSave(response);
+          toast.success("Despesa de rescisão criada com sucesso");
         }
-    };
+      }
+      onClose();
+    } catch (error) {
+      toast.error("Erro ao salvar a despesa");
+    }
+  };
 
-    const handleRemoveFile = () => {
-        setAttachment(null); // Remove o arquivo selecionado
-    };
+  return (
+    <Modal open={open} onClose={onClose}>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "50%",
+          bgcolor: "background.paper",
+          borderRadius: "5px",
+          boxShadow: 24,
+          p: 4,
+        }}
+      >
+        {/* Botão para fechar o modal */}
+        <IconButton
+          onClick={onClose}
+          sx={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+          }}
+        >
+          <IoMdCloseCircleOutline />
+        </IconButton>
+        <Typography variant="h6" component="h2" gutterBottom>
+          {item ? "Editar Despesa de Rescisão" : "Nova Despesa de Rescisão"}
+        </Typography>
 
-    const handleSaveExpense = async () => {
-        const expenseData = new FormData();
-
-        expenseData.append("type", "Rescisão");
-        expenseData.append("createdBy", user?.name);
-        expenseData.append("updateBy", user?.name);
-        expenseData.append("company", company?.name);
-        expenseData.append("employeeName", employeeName);
-        expenseData.append("employeePosition", employeePosition);
-        expenseData.append("admissionDate", admissionDate);
-        expenseData.append("terminationDate", terminationDate);
-        expenseData.append("terminationReason", terminationReason);
-        expenseData.append("terminationPenalty", terminationPenalty);
-        expenseData.append("provisions", provisions);
-        expenseData.append("deductions", deductions);
-
-        if (attachment) {
-            expenseData.append("attachment", attachment);
-        }
-
-        try {
-            let response;
-            if (item) {
-                expenseData.append("id", item.id);
-                response = await createExpense(expenseData); // Envia o FormData para o servidor
-                if (response) {
-                    onSave(response);
-                    toast.success("Despesa de rescisão atualizada com sucesso");
-                } else {
-                    toast.error("Erro ao atualizar item");
-                }
-            } else {
-                response = await createExpense(expenseData);
-                if (response) {
-                    onSave(response);
-                    toast.success("Despesa de rescisão criada com sucesso");
-                }
-            }
-            onClose();
-        } catch (error) {
-            toast.error("Erro ao salvar a despesa");
-        }
-    };
-
-    return (
-        <Modal open={open} onClose={onClose}>
-            <Box
-                sx={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    height: 'auto',
-                    transform: "translate(-50%, -50%)",
-                    width: "60%",
-                    bgcolor: "background.paper",
-                    borderRadius: "5px",
-                    boxShadow: 24,
-                    p: 4,
-                }}
+        <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem'}}>
+        <FormControl fullWidth margin="normal">
+            <InputLabel>Funcionário</InputLabel>
+            <Select
+              value={selectedEmployee}
+              onChange={(e) => setSelectedEmployee(e.target.value)}
             >
-                <Typography variant="h6" gutterBottom>
-                    {item ? "Editar Despesa de Rescisão" : "Adicionar Nova Despesa de Rescisão"}
-                </Typography>
+              {employees.map((employee) => (
+                <MenuItem key={employee._id} value={employee._id}>
+                  {employee.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        <TextField
+            label="Data de Rescisão"
+            type="date"
+            value={terminationDate}
+            onChange={(e) => setTerminationDate(e.target.value)}
+            fullWidth
+            margin="normal"
+            InputLabelProps={{ shrink: true }}
+          />
 
-                <Box sx={{display: 'flex', gap: '1rem'}}>
-                <TextField
-                    fullWidth
-                    label="Funcionário Rescindido"
-                    value={employeeName}
-                    onChange={(e) => setEmployeeName(e.target.value)}
-                    margin="normal"
-                />
-                <TextField
-                    fullWidth
-                    label="Cargo do Funcionário"
-                    value={employeePosition}
-                    onChange={(e) => setEmployeePosition(e.target.value)}
-                    margin="normal"
-                />
-                </Box>
-                
-                <Box sx={{display: 'flex', gap: '1rem'}}>
-                <TextField
-                    fullWidth
-                    label="Data de Admissão"
-                    type="date"
-                    value={admissionDate}
-                    onChange={(e) => setAdmissionDate(e.target.value)}
-                    margin="normal"
-                    InputLabelProps={{ shrink: true }}
-                />
-                <TextField
-                    fullWidth
-                    label="Data de Demissão"
-                    type="date"
-                    value={terminationDate}
-                    onChange={(e) => setTerminationDate(e.target.value)}
-                    margin="normal"
-                    InputLabelProps={{ shrink: true }}
-                />
-                </Box>
-                <TextField
-                    fullWidth
-                    label="Motivo da Rescisão"
-                    value={terminationReason}
-                    onChange={(e) => setTerminationReason(e.target.value)}
-                    margin="normal"
-                />
-                <TextField
-                    fullWidth
-                    label="Valor da Multa Rescisória"
-                    type="number"
-                    value={terminationPenalty}
-                    onChange={(e) => setTerminationPenalty(e.target.value)}
-                    margin="normal"
-                />
-                <TextField
-                    fullWidth
-                    label="Proventos"
-                    type="number"
-                    value={provisions}
-                    onChange={(e) => setProvisions(e.target.value)}
-                    margin="normal"
-                />
-                <TextField
-                    fullWidth
-                    label="Descontos"
-                    type="number"
-                    value={deductions}
-                    onChange={(e) => setDeductions(e.target.value)}
-                    margin="normal"
-                />
+        </Box>
+       
+        <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem'}}>
+        <FormControl fullWidth margin="normal">
+            <InputLabel>Motivo</InputLabel>
+            <Select
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            >
+              <MenuItem value="Demissão sem justa causa">
+                Demissão sem justa causa
+              </MenuItem>
+              <MenuItem value="Demissão com justa causa">
+                Demissão com justa causa
+              </MenuItem>
+              <MenuItem value="Pedido de demissão">Pedido de demissão</MenuItem>
+              <MenuItem value="Término de contrato">
+                Término de contrato
+              </MenuItem>
+              <MenuItem value="Aposentadoria">Aposentadoria</MenuItem>
+              <MenuItem value="Outros">Outros</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            label="Valor Rescisão"
+            type="number"
+            value={severancePay}
+            onChange={(e) => setSeverancePay(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+        </Box>
+          
 
-                <Box sx={{ mt: 2 }}>
-                    <Typography>Termo de Rescisão:</Typography>
-                    <input type="file" onChange={handleFileChange} />
-                    {attachment && (
-                        <Button onClick={handleRemoveFile} sx={{ mt: 1 }}>
-                            Remover Anexo
-                        </Button>
-                    )}
-                </Box>
+          <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem'}}>
+            <TextField
+                label="Aviso Prévio (dias)"
+                type="number"
+                value={noticePeriod}
+                onChange={(e) => setNoticePeriod(e.target.value)}
+                fullWidth
+                margin="normal"
+            />
+            <TextField
+                label="Férias Restantes"
+                type="number"
+                value={remainingVacations}
+                onChange={(e) => setRemainingVacations(e.target.value)}
+                fullWidth
+                margin="normal"
+            />
+          </Box>
+          
+          <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem'}}>
+            <TextField
+                label="Saldo FGTS"
+                type="number"
+                value={FGTSBalance}
+                onChange={(e) => setFGTSBalance(e.target.value)}
+                fullWidth
+                margin="normal"
+            />
+            <TextField
+                label="Multa FGTS"
+                type="number"
+                value={fineFGTS}
+                onChange={(e) => setFineFGTS(e.target.value)}
+                fullWidth
+                margin="normal"
+            />
+          </Box>
+          
+          <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem'}}>
+            <TextField
+                label="Dedução INSS"
+                type="number"
+                value={INSSDeduction}
+                onChange={(e) => setINSSDeduction(e.target.value)}
+                fullWidth
+                margin="normal"
+            />
+            <TextField
+                label="Dedução IR"
+                type="number"
+                value={incomeTaxDeduction}
+                onChange={(e) => setIncomeTaxDeduction(e.target.value)}
+                fullWidth
+                margin="normal"
+            />
 
-                <Box sx={{ mt: 3 }}>
-                    <Button onClick={handleSaveExpense} variant="contained" color="primary">
-                        {item ? "Atualizar" : "Salvar"}
-                    </Button>
-                    <Button variant="outlined" color="error" onClick={onClose} sx={{ ml: 2 }}>
-                        Cancelar
-                    </Button>
-                </Box>
-            </Box>
-        </Modal>
-    );
+          </Box>
+          
+          <TextField
+            label="Outras Deduções"
+            type="number"
+            value={otherDeductions}
+            onChange={(e) => setOtherDeductions(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Valor Total"
+            type="number"
+            value={totalAmount}
+            onChange={(e) => setTotalAmount(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Prazo para Pagamento"
+            type="date"
+            value={paymentDeadline}
+            onChange={(e) => setPaymentDeadline(e.target.value)}
+            fullWidth
+            margin="normal"
+            InputLabelProps={{ shrink: true }}
+          />
+
+          <Button
+            variant="contained"
+            component="label"
+            sx={{ mt: 2 }}
+          >
+            {attachment ? "Alterar Anexo" : "Adicionar Anexo"}
+            <input
+              type="file"
+              hidden
+              onChange={(e) => setAttachment(e.target.files[0])}
+            />
+          </Button>
+          {attachment && (
+            <Typography
+              variant="body2"
+              sx={{ mt: 1, textAlign: "center" }}
+            >
+              Arquivo: {attachment.name}
+            </Typography>
+          )}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSaveExpense}
+            fullWidth
+            sx={{ mt: 3}}
+          >
+            Salvar
+          </Button>
+          </Box>
+    </Modal>
+  );
 };
 
 export default RescisaoModal;

@@ -291,20 +291,32 @@ export default function Employees() {
 
   return (
     <Box className={styles.plans}>
-      <Typography
-        typography="h4"
-        style={{ fontWeight: "bold", color: "#1E3932" }}
+      <Box
+        sx={{
+          border: "1px solid #d9d9d9",
+          borderRadius: "10px",
+          padding: ".5rem",
+        }}
       >
-        Funcionários
-      </Typography>
-      <Typography
-        typography="label"
-        style={{ padding: "0 0 1rem 0", color: "#1E3932", fontSize: ".875rem" }}
-      >
-        Gerencie todos os funcionários da sua empresa
-      </Typography>
+        <Typography
+          typography="h4"
+          style={{ fontWeight: "bold", color: "#1E3932" }}
+        >
+          Funcionários
+        </Typography>
+        <Typography
+          typography="label"
+          style={{
+            padding: "0 0 1rem 0",
+            color: "#1E3932",
+            fontSize: ".875rem",
+          }}
+        >
+          Gerencie todos os funcionários da sua empresa
+        </Typography>
+      </Box>
 
-      <TableContainer component={Paper} className={styles.plans__table__container}>
+      <TableContainer className={styles.plans__table__container}>
         <Box className={styles.plans__table__actions_download_new}>
           <Button
             variant="contained"

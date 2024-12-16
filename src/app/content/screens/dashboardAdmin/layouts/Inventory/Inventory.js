@@ -235,23 +235,33 @@ export default function Inventory() {
   return (
     <Box className={styles.plans}>
       <Toaster />
-      <Box>
-        
+      <Box
+        sx={{
+          border: "1px solid #d9d9d9",
+          borderRadius: "10px",
+          padding: ".5rem",
+        }}
+      >
+        <Typography
+          typography="h4"
+          style={{ fontWeight: "bold", color: "#1E3932" }}
+        >
+          Inventário
+        </Typography>
+        <Typography
+          typography="label"
+          style={{
+            padding: "0 0 1rem 0",
+            color: "#1E3932",
+            fontSize: ".875rem",
+          }}
+        >
+          Gerencie todos os itens da empresa
+        </Typography>
       </Box>
-      <Typography
-        typography="h4"
-        style={{ fontWeight: "bold", color: "#1E3932" }}
-      >
-        Inventário
-      </Typography>
 
-      <Typography
-        typography="label"
-        style={{ padding: "0 0 1rem 0", color: "#1E3932", fontSize: ".875rem" }}
-      >
-        Gerencie todos os seus items
-      </Typography>
-      <TableContainer component={Paper} className={styles.plans__table}>
+
+      <TableContainer className={styles.plans__table}>
         <Box className={styles.plans__table__top}>
           <Box className={styles.plans__table__search}>
             <Typography variant="p">Filtrar por Regional</Typography>

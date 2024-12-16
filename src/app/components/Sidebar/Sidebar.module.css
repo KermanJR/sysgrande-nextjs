@@ -2,7 +2,7 @@
     height: 100vh;
     background-color: white;
     padding: 0rem .4rem;
-    overflow-y: scroll;
+    overflow-y: hidden;
     z-index: 100;
     transition: width 0.3s ease;
 }
@@ -35,8 +35,8 @@
 }
 
 .icon__text{
-    padding: 0 .7rem;
     color: #000000;
+    margin-left: .5rem;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -73,6 +73,7 @@
     box-shadow: 1px 2px 2px 1px #b8b8b8;
     margin-top: 3rem;
     border: 1px solid #d9d9d9 ;
+    padding: .2rem;
 }
 
 .menu__hamburguer__compressed{

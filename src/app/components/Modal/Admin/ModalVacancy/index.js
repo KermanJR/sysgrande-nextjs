@@ -114,9 +114,6 @@ const FeriasModal = ({ open, onClose, onSave, item }) => {
   const formatDate = (date) => {
     const newDate = new Date(date);
 
-    // Subtrai 4 horas para ajustar para o horário local (exemplo: Brasil, horário de Brasília)
-    newDate.setHours(newDate.getHours() - 4);
-
     // Formata a data no formato pt-BR (somente a data)
     const formattedDate = newDate.toLocaleDateString("pt-BR", {
       timeZone: "UTC",
@@ -124,7 +121,7 @@ const FeriasModal = ({ open, onClose, onSave, item }) => {
 
     // Formata o horário no formato HH:MM:SS
     const formattedTime = newDate.toLocaleTimeString("pt-BR", {
-        timeZone: "UTC",
+      timeZone: "UTC",
       hour12: false, // Para garantir que o horário seja exibido no formato de 24 horas
       hour: "2-digit",
       minute: "2-digit",
@@ -238,7 +235,13 @@ const FeriasModal = ({ open, onClose, onSave, item }) => {
           >
             <Tooltip
               title={
-                <Box sx={{ fontSize: ".75rem", boxSizing: 'border-box', padding: '.5rem'}}>
+                <Box
+                  sx={{
+                    fontSize: ".75rem",
+                    boxSizing: "border-box",
+                    padding: ".5rem",
+                  }}
+                >
                   <div>
                     Criado por: {item?.createdBy} em{" "}
                     {formatDate(item?.createdAt)}
@@ -290,7 +293,7 @@ const FeriasModal = ({ open, onClose, onSave, item }) => {
           InputLabelProps={{ shrink: true }}
         />
 
-        <FormControl fullWidth>
+        <FormControl fullWidth sx={{ marginTop: ".8rem" }}>
           <InputLabel>Status</InputLabel>
           <Select
             value={selectedStatus}
@@ -325,7 +328,10 @@ const FeriasModal = ({ open, onClose, onSave, item }) => {
         {attachment ? (
           <Box>
             <Typography variant="body2">
-              Arquivo: {attachment?.name ? attachment?.name : attachment}
+              Arquivo:{" "}
+              {attachment?.name
+                ? attachment?.name
+                : attachment.split("/").pop()}
             </Typography>
           </Box>
         ) : (
@@ -342,7 +348,7 @@ const FeriasModal = ({ open, onClose, onSave, item }) => {
           <Button
             variant="contained"
             color="primary"
-            onClick={(e)=>handleSaveExpense(e)}
+            onClick={(e) => handleSaveExpense(e)}
           >
             Salvar
           </Button>

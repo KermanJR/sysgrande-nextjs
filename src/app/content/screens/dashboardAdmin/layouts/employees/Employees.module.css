@@ -1,9 +1,9 @@
 .plans{
-    width: 100%;
-    margin: 4rem auto;
+    margin: 0 auto;
     height: auto;
     overflow-y: hidden;
     padding: 2rem;
+    overflow-x: hidden;
 }
 
 
@@ -49,4 +49,11 @@
     height: 35px;
 }
 
+
+.plans__table__container{
+    margin-top: 1rem;
+    border: .5px solid #d9d9d9;
+    border-radius: 9px;
+    overflow-x: none;
+}
   
