@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Cookies from 'js-cookie';
 import { CompanyProvider, useCompany } from './CompanyContext'; // Importando o contexto de empresa
 
-const API_URL = 'http://localhost:5000/api';
+const URL = 'https://sysgrande-nodejs.onrender.com/api/'
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserDetails = async (userId, token) => {
     try {
-      const response = await fetch(`${API_URL}/user/${userId}`, {
+      const response = await fetch(`${URL}user/${userId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

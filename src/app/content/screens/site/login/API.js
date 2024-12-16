@@ -1,6 +1,8 @@
+const URL = 'https://sysgrande-nodejs.onrender.com/api/'
+
 export const fetchRegionals = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/regionals', { 
+      const response = await fetch(`${URL}regionals`, { 
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

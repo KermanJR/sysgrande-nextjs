@@ -15,6 +15,8 @@ const Ms = Montserrat({
     weight: ['400', '700'], // Defina os pesos necessários
     subsets: ['latin'], // Subconjuntos da fonte
   });
+
+const URL = 'https://sysgrande-nodejs.onrender.com/api/'
   
 
 const LoginPage = () => {
@@ -57,7 +59,7 @@ const LoginPage = () => {
     const handleLogin = async (e) => {
         e.preventDefault()
         try {
-            const response = await fetch("http://localhost:5000/api/login", {
+            const response = await fetch(`${URL}login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
