@@ -6,6 +6,13 @@
     overflow-x: hidden;
 }
 
+.plans__table{
+    margin-top: 1rem;
+    border: .5px solid #d9d9d9;
+    border-radius: 9px;
+    overflow-x: none;
+}
+
 
 .plans__table__top{
     display: flex;
@@ -33,32 +40,10 @@
     display: flex;
     flex-direction: row;
     gap: 1rem;
-    justify-content: center;
-    padding: 1rem;
-}
-
-.plans__table__actions_download_new{
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
-    justify-content: end;
-    padding: 1rem;
 }
 
 .plans__search__input{
     height: 35px;
 }
 
-
-.plans__table__container{
-    margin-top: 1rem;
-    border: .5px solid #d9d9d9;
-    border-radius: 9px;
-    overflow-x: none;
-}
   
-
-.plans__table{
-    align-items: center;
-    justify-content: center;
-}

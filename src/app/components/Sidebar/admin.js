@@ -14,14 +14,18 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import SpaceDashboardIcon from "@mui/icons-material/SpaceDashboard";
 import LogoSanegrande from "../../../../public/icons/logo-sanegrande.png";
 import LogoEnterHome from "../../../../public/icons/logo-enterhome.png";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import GroupIcon from "@mui/icons-material/Group";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import Image from "next/image";
 import { useCompany } from "@/app/context/CompanyContext";
 import AuthContext from "@/app/context/AuthContext";
+import EventIcon from '@mui/icons-material/Event';
 import LogoutIcon from "@mui/icons-material/Logout";
+import DirectionsCarFilledIcon from '@mui/icons-material/DirectionsCarFilled';
+import TaskIcon from '@mui/icons-material/Task';
+import styles from './Sidebar.module.css'
 
 const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
   const theme = useTheme(); // Aqui acessamos o tema
@@ -119,15 +123,14 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
   return isMenuOpen ? (
     <Box
       color="primary.contrastText"
+      className={styles.sidebar}
       sx={{
         backgroundColor: theme.palette.background.paper,
-        height: "96vh",
+        height: "auto",
         padding: "1rem",
         borderRight: `1px solid ${theme.palette.grey[300]}`,
         transition: "transform 0.3s",
         transform: isMenuOpen ? "translateX(0)" : "translateX(-100%)",
-        overflowX: "hidden",
-        overflowY: "hidden",
       }}
     >
       <Box
@@ -137,6 +140,7 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
           alignItems: "center",
           borderBottom: `1px solid ${theme.palette.grey[300]}`,
           padding: "1rem",
+          position: "sticky"
         }}
       >
         {company?.name == "Sanegrande" && (
@@ -221,31 +225,42 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
         </ListItem>
         <ListItem
           button
-          style={getListItemStyle("Inventário")}
+          style={getListItemStyle("Calendário")}
           onClick={() => {
-            onMenuClick("Inventário");
-            updateURL("Inventário");
+            onMenuClick("Calendário");
+            updateURL("Calendário");
           }}
         >
-          <Box style={getIconStyle("Inventário")}>
-            <InventoryIcon sx={{ width: "20px" }} />
+          <Box style={getIconStyle("Calendário")}>
+            <EventIcon sx={{ width: "20px" }} />
           </Box>
-          <ListItemText
-            primary="Inventário"
-            style={getTextStyle("Inventário")}
-          />
+          <ListItemText primary="Calendário" style={getTextStyle("Calendário")} />
         </ListItem>
         <ListItem
           button
-          style={getListItemStyle("Financeiro")}
+          style={getListItemStyle("Tarefas")}
+          onClick={() => {
+            onMenuClick("Tarefas");
+            updateURL("Tarefas");
+          }}
+        >
+          <Box style={getIconStyle("Tarefas")}>
+            <TaskIcon sx={{ width: "20px" }} />
+          </Box>
+          <ListItemText primary="Tarefas" style={getTextStyle("Tarefas")} />
+        </ListItem>
+
+        <ListItem
+          button
+          style={getListItemStyle("RecursosHumanos")}
           onClick={() => handleToggle()}
         >
-          <Box style={getIconStyle("Financeiro")}>
-            <AttachMoneyIcon sx={{ width: "20px" }} />
+          <Box style={getIconStyle("RecursosHumanos")}>
+            <GroupIcon sx={{ width: "20px" }} />
           </Box>
           <ListItemText
-            primary="Financeiro"
-            style={getTextStyle("Financeiro")}
+            primary="Recursos Humanos"
+            style={getTextStyle("RecursosHumanos")}
           />
           {open ? (
             <ExpandLess sx={{ fill: theme.palette.primary.main }} />
@@ -253,9 +268,8 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
             <ExpandMore sx={{ fill: theme.palette.primary.main }} />
           )}
         </ListItem>
-
-        {/* Submenu */}
-        <Collapse in={open} timeout="auto" unmountOnExit>
+         {/* Submenu */}
+         <Collapse in={open} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             <ListItemButton
               style={{ paddingLeft: 55, color: theme.palette.text.primary }}
@@ -278,29 +292,141 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
             <ListItemButton
               style={{ paddingLeft: 55, color: theme.palette.text.primary }}
               onClick={() => {
-                onMenuClick("Compras");
-                updateURL("Compras");
+                onMenuClick("Afastamento");
+                updateURL("Afastamento");
               }}
             >
-              <ListItemText primary="Compras" />
+              <ListItemText primary="Afastamento" />
             </ListItemButton>
+            <ListItemButton
+              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
+              onClick={() => {
+                onMenuClick("Contratação");
+                updateURL("Contratação");
+              }}
+            >
+              <ListItemText primary="Contratação" />
+            </ListItemButton>
+            <ListItemButton
+              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
+              onClick={() => {
+                onMenuClick("Funcionário");
+                updateURL("Funcionário");
+              }}
+            >
+              <ListItemText primary="Funcionário" />
+            </ListItemButton>
+            
           </List>
         </Collapse>
-
+      
         <ListItem
           button
-          style={getListItemStyle("Funcionário")}
-          onClick={() => {
-            onMenuClick("Funcionário");
-            updateURL("Funcionário");
-          }}
+          style={getListItemStyle("Financeiro")}
+          onClick={() => handleToggle()}
         >
-          <Box style={getIconStyle("Funcionário")}>
+          <Box style={getIconStyle("Financeiro")}>
             <GroupIcon sx={{ width: "20px" }} />
           </Box>
           <ListItemText
-            primary="Funcionários"
-            style={getTextStyle("Funcionário")}
+            primary="Financeiro"
+            style={getTextStyle("Financeiro")}
+          />
+          {open ? (
+            <ExpandLess sx={{ fill: theme.palette.primary.main }} />
+          ) : (
+            <ExpandMore sx={{ fill: theme.palette.primary.main }} />
+          )}
+        </ListItem>
+
+        {/* Submenu */}
+        <Collapse in={open} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <ListItemButton
+              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
+              onClick={() => {
+                onMenuClick("VacancyCheck");
+                updateURL("Férias");
+              }}
+            >
+              <ListItemText primary="Férias" style={getTextStyle("Férias")} />
+            </ListItemButton>
+            <ListItemButton
+              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
+              onClick={() => {
+                onMenuClick("Rescisão");
+                updateURL("Rescisão");
+              }}
+            >
+              <ListItemText primary="Rescisão" />
+            </ListItemButton>
+            <ListItemButton
+              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
+              onClick={() => {
+                onMenuClick("Afastamento");
+                updateURL("Afastamento");
+              }}
+            >
+              <ListItemText primary="Afastamento" />
+            </ListItemButton>
+            <ListItemButton
+              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
+              onClick={() => {
+                onMenuClick("Contratação");
+                updateURL("Contratação");
+              }}
+            >
+              <ListItemText primary="Contratação" />
+            </ListItemButton>
+          </List>
+        </Collapse>
+        <ListItem
+          button
+          style={getListItemStyle("Compras")}
+          onClick={() => {
+            onMenuClick("Compras");
+            updateURL("Compras");
+          }}
+        >
+          <Box style={getIconStyle("Compras")}>
+            <ShoppingCartIcon sx={{ width: "20px" }} />
+          </Box>
+          <ListItemText
+            primary="Compras"
+            style={getTextStyle("Compras")}
+          />
+        </ListItem>
+        
+        <ListItem
+          button
+          style={getListItemStyle("Veículos")}
+          onClick={() => {
+            onMenuClick("Veículos");
+            updateURL("Veículos");
+          }}
+        >
+          <Box style={getIconStyle("Veículos")}>
+            <DirectionsCarFilledIcon sx={{ width: "20px" }} />
+          </Box>
+          <ListItemText
+            primary="Veículos"
+            style={getTextStyle("Veículos")}
+          />
+        </ListItem>
+        <ListItem
+          button
+          style={getListItemStyle("Inventário")}
+          onClick={() => {
+            onMenuClick("Inventário");
+            updateURL("Inventário");
+          }}
+        >
+          <Box style={getIconStyle("Inventário")}>
+            <InventoryIcon sx={{ width: "20px" }} />
+          </Box>
+          <ListItemText
+            primary="Inventário"
+            style={getTextStyle("Inventário")}
           />
         </ListItem>
         <ListItem button style={getListItemStyle("Sair")} onClick={logout}>
@@ -310,7 +436,6 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
           <ListItemText primary="Sair" style={getTextStyle("Sair")} />
         </ListItem>
       </List>
-      <Typography sx={{fontSize: '.75rem', position: 'absolute', bottom: 0, marginLeft: '1rem'}}>V1.0.0</Typography>
     </Box>
   ) : null;
 };

@@ -7,10 +7,10 @@
 }
 
 .sidebar {
-    width: 280px; /* Largura fixa para o sidebar */
+    width: 300px; /* Largura fixa para o sidebar */
     min-width: 250px;
     background-color: #f4f4f4; /* Cor de fundo para diferenciar */
-    height: 100%; /* Ocupar toda a altura */
+    height: auto; /* Ocupar toda a altura */
     overflow-y: auto; /* Permitir rolagem caso o conteúdo seja longo */
 }
 

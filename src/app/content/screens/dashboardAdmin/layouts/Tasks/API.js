@@ -1,59 +1,53 @@
 const URL = 'https://sysgrande-nodejs.onrender.com/api/'
-const URL_LOCAL = 'http://localhost:5000/api/'
 
-export const fetchedExpenses = async () => {
+export const fetchItems = async () => {
   try {
-    const response = await fetch(`${URL_LOCAL}expenses`, { 
+    const response = await fetch(`${URL}items`, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     });
     if (!response.ok) {
-      throw new Error('Erro ao buscar os despesas');
+      throw new Error('Erro ao buscar os itens');
     }
     const data = await response.json();
-    return data; // Retorna os dados dos despesas
+    return data; // Retorna os dados dos itens
   } catch (error) {
     console.error('Erro:', error);
     return [];
   }
 };
 
-export const fetchedExpensesByCompany = async (companyName) => {
+export const fetchRegionals = async () => {
   try {
-    const response = await fetch(`${URL_LOCAL}expenses?company=${companyName}`, { 
+    const response = await fetch(`${URL}regionals`, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     });
-
     if (!response.ok) {
-      throw new Error('Erro ao buscar as despesas');
+      throw new Error('Erro ao buscar as regionais');
     }
-
     const data = await response.json();
-    return data; // Retorna os dados das despesas
+    return data; // Retorna os dados dos itens
   } catch (error) {
     console.error('Erro:', error);
     return [];
   }
 };
 
-
-
-
-export const deleteExpenseById = async (expenseId) => {
+export const deleteItemById = async (itemId) => {
   try {
-    const response = await fetch(`${URL_LOCAL}expenses/${expenseId}`, { 
+    const response = await fetch(`${URL}items/${itemId}`, { 
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
       },
     });
     if (!response.ok) {
-      throw new Error('Erro ao deletar despesa.');
+      throw new Error('Erro ao buscar as regionais');
     }
     const data = await response.json();
     return data; // Retorna os dados dos itens

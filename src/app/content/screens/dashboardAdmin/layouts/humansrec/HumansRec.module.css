@@ -29,6 +29,14 @@
     border-radius: 10px;
 }
 
+
+.plans__table__container{
+    margin-top: 1rem;
+    border: .5px solid #d9d9d9;
+    border-radius: 9px;
+    overflow-x: none;
+}
+
 .plans__table__actions{
     display: flex;
     flex-direction: row;
@@ -47,18 +55,7 @@
 
 .plans__search__input{
     height: 35px;
+    box-shadow: none;
 }
 
-
-.plans__table__container{
-    margin-top: 1rem;
-    border: .5px solid #d9d9d9;
-    border-radius: 9px;
-    overflow-x: none;
-}
   
-
-.plans__table{
-    align-items: center;
-    justify-content: center;
-}

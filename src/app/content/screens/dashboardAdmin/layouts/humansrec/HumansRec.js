@@ -11,14 +11,8 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  TextField,
   Typography,
   Tooltip,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-  Rating,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
@@ -26,25 +20,18 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
-import ArticleIcon from "@mui/icons-material/Article";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
-import { Toaster } from "react-hot-toast";
-import AddIcon from "@mui/icons-material/Add";
-import PlanModal from "@/app/components/Modal/Admin/InventoryModal";
+
 import ReportModal from "@/app/components/Modal/Admin/ReportModal";
-import {
-  fetchedExpenses,
-  deleteExpenseById,
-  fetchedEmployeesByCompany,
-  deleteEmployeeById,
-} from "./API";
+import { deleteExpenseById, fetchedExpensesByCompany } from "./API";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import styles from "./Employees.module.css";
-import ExpenseModal from "@/app/components/Modal/Admin/CreateFinances";
+import styles from "./HumansRec.module.css";
+import DescriptionIcon from "@mui/icons-material/Description";
 import { useCompany } from "@/app/context/CompanyContext";
-import EmployeeModal from "@/app/components/Modal/Admin/ModalEmployee";
+import FeriasModal from "@/app/components/Modal/Admin/ModalVacancy";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 
 function TablePaginationActions(props) {
   const theme = useTheme();
@@ -108,16 +95,16 @@ function TablePaginationActions(props) {
   );
 }
 
-export default function Employees() {
+export default function HumansRec() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(4);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [currentExpense, setCurrentExpense] = useState([]);
-  const [employees, setEmployees] = useState([]);
-  const [filteredEmployess, setFilteredEmployess] = useState([]);
-  const [selectedEmployee, setSelectedEmployee] = useState("");
-  const [newEmployee, setNewEmployee] = useState({
+  const [expenses, setExpenses] = useState([]);
+  const [filteredExpenses, setFilteredExpenses] = useState([]);
+  const [selectedExpense, setSelectedExpense] = useState("");
+  const [newExpense, setNewExpense] = useState({
     type: "",
     description: "",
     eventDate: "",
@@ -125,38 +112,32 @@ export default function Employees() {
     status: "",
     attachment: null,
   });
-  const [isLoading, setIsLoading] = useState(true); // Estado para controlar o loading
 
   const { company } = useCompany(); // Acessando a empresa selecionada do contexto
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, "0"); // Adiciona 0 à esquerda, se necessário
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Meses começam em 0
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+  const formatDate = (date) => {
+    const newDate = new Date(date);
+    return newDate.toLocaleDateString("pt-BR", { timeZone: "UTC" }); // Ajuste o idioma conforme necessário
   };
 
   useEffect(() => {
+    // Carrega despesas ao selecionar uma empresa ou editar uma despesa
     if (company) {
-      const loadEmployees = async () => {
-        setIsLoading(true); // Ativa o loading
-        try {
-          const employeesData = await fetchedEmployeesByCompany(company.name);
-          const activeEmployees = employeesData.filter(
-            (employee) => !employee.deletedAt
-          );
-          setEmployees(activeEmployees);
-          setFilteredEmployees(activeEmployees);
-        } catch (error) {
-          console.error("Erro ao carregar funcionários", error);
-        } finally {
-          setIsLoading(false); // Desativa o loading após a requisição
-        }
+      const loadExpenses = async () => {
+        const expensesData = await fetchedExpensesByCompany(company.name);
+        setExpenses(expensesData);
+        console.log(expensesData);
+        // Filtra despesas com type == "Termination"
+        const filtered = expensesData.filter(
+          (expense) => expense.type == "Vacation"
+        );
+        console.log(filtered);
+        setFilteredExpenses(filtered);
       };
-      loadEmployees();
+
+      loadExpenses();
     }
-  }, [company]);
+  }, [company, currentExpense]); // Adicione currentExpense para recarregar após edição
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -178,54 +159,38 @@ export default function Employees() {
     setCurrentExpense(null);
   };
 
-  const handleOpenReportModal = () => {
-    setIsReportModalOpen(true);
-  };
-
   const handleCloseReportModal = () => {
     setIsReportModalOpen(false);
   };
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewExpense((prev) => ({ ...prev, [name]: value }));
+
+  const handleSaveExpense = (updatedExpense) => {
+    setExpenses((prevExpenses) =>
+      prevExpenses?.map((expense) =>
+        expense.id === updatedExpense.id ? updatedExpense : expense
+      )
+    );
+
+    console.log(expenses);
   };
 
-  const handleFileChange = (e) => {
-    setNewExpense((prev) => ({ ...prev, attachment: e.target.files[0] }));
-  };
-
-  const handleSaveExpense = () => {
-    setPlans((prev) => [...prev, newExpense]);
-    setNewExpense({
-      type: "",
-      description: "",
-      eventDate: "",
-      paymentDate: "",
-      status: "",
-      attachment: null,
-    });
-  };
-
-  const handleDeleteEmployee = async (id) => {
-    const deleted = await deleteEmployeeById(id);
+  const handleDeleteExpense = async (id) => {
+    const deleted = await deleteExpenseById(id);
     if (deleted) {
-      // Recarrega os funcionários após a exclusão
-      const loadEmployees = async () => {
-        const employeesData = await fetchedEmployeesByCompany(company.name); // Passe o nome da empresa
-        // Filtra os funcionários que não têm a data de exclusão (soft delete)
-        const activeEmployees = employeesData.filter(
-          (employee) => !employee.deletedAt
-        );
-        setEmployees(activeEmployees);
-        setFilteredEmployess(activeEmployees);
-      };
-
-      loadEmployees();
-      toast.success("Funcionário deletado com sucesso!");
-    } else {
-      toast.error("Erro ao deletar o funcionário!");
+      setExpenses((prevItem) => prevItem.filter((item) => item.id !== id));
+      setFilteredExpenses((prevExpense) =>
+        prevExpense.filter((expense) => expense.id !== id)
+      );
+      toast.success("Despesa excluída com sucesso.");
     }
   };
+
+  function formatDateToDDMMYYYY(dateString) {
+    const date = new Date(dateString); // Cria um objeto Date
+    const day = String(date.getDate()).padStart(2, "0"); // Obtém o dia com dois dígitos
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Obtém o mês com dois dígitos (0-11, por isso +1)
+    const year = date.getFullYear(); // Obtém o ano completo
+    return `${day}/${month}/${year}`; // Retorna no formato dd/mm/aaaa
+  }
 
   const generatePdf = () => {
     const doc = new jsPDF();
@@ -239,7 +204,7 @@ export default function Employees() {
     // Título principal
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
-    doc.text("Relatório Financeiro", 10, 10);
+    doc.text("Relatório Financeiro - Férias", 10, 10);
 
     // Nome da empresa
     doc.setFont("helvetica", "normal");
@@ -253,12 +218,11 @@ export default function Employees() {
 
     // Colunas do relatório
     const tableColumn = [
-      "Tipo",
+      "Funcionário",
       "Descrição",
-      "Data Evento",
-      "Data Pagamento",
+      "Data Início",
+      "Data Fim",
       "Valor",
-      "Forma Pag.",
       "Situação",
       "Criado por",
     ];
@@ -266,17 +230,16 @@ export default function Employees() {
     const tableRows = [];
 
     // Preencher as linhas da tabela
-    filteredEmployess.forEach((expense) => {
+    filteredExpenses.forEach((expense) => {
       const planData = [
-        expense?.type,
-        expense?.description || "-",
-        formatDateToDDMMYYYY(expense?.eventDate),
-        formatDateToDDMMYYYY(expense?.paymentDate),
+        expense?.employee?.name,
+        expense?.type == "Vacation" ? "Férias" : "-" || "-",
+        formatDateToDDMMYYYY(expense?.startDate),
+        formatDateToDDMMYYYY(expense?.endDate),
         expense?.amount.toLocaleString("pt-br", {
           style: "currency",
           currency: "BRL",
         }),
-        expense?.paymentMethod,
         expense?.status,
         expense?.createdBy,
       ];
@@ -284,7 +247,7 @@ export default function Employees() {
     });
 
     // Calcular o total da coluna "Valor"
-    const totalAmount = filteredEmployess?.reduce(
+    const totalAmount = filteredExpenses?.reduce(
       (sum, expense) => sum + expense.amount,
       0
     );
@@ -308,7 +271,7 @@ export default function Employees() {
     doc.save("relatorio_itens.pdf");
   };
 
-  console.log(employees);
+  const theme = useTheme()
 
   return (
     <Box className={styles.plans}>
@@ -323,7 +286,7 @@ export default function Employees() {
           typography="h4"
           style={{ fontWeight: "bold", color: "#1E3932" }}
         >
-          Funcionários
+          Férias
         </Typography>
         <Typography
           typography="label"
@@ -333,11 +296,9 @@ export default function Employees() {
             fontSize: ".875rem",
           }}
         >
-          Gerencie todos os funcionários da sua empresa
+          Gerencie as férias de seus funcionários
         </Typography>
       </Box>
-
-     
 
       <TableContainer className={styles.plans__table__container}>
         <Box className={styles.plans__table__actions_download_new}>
@@ -347,114 +308,109 @@ export default function Employees() {
             className={styles.plans__search__input}
             onClick={generatePdf}
           >
-            <ArticleIcon />
+            <DescriptionIcon sx={{ color: theme.palette.grey[600], width: "20px" }} />
             Gerar Relatório
           </Button>
           <Button
             variant="contained"
-            style={{ background: "#fff", color: "#000", borderRadius: "2px" }}
+            style={{ background: "#fff", color: "black", borderRadius: "2px" }}
             className={styles.plans__search__input}
             onClick={() => handleOpenPlanModal()}
           >
-            <AddIcon />
-            Novo Item
+            <AddCircleIcon sx={{ color:  theme.palette.grey[600], width: "20px" }} />
+            Criar
           </Button>
         </Box>
         <Table className={styles.plans__table}>
           <TableHead>
             <TableRow>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Nome
-              </TableCell>
-             
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Equipe
+                Funcionário
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Empresa
+                Descrição
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Cargo
+                Data Início
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Departamento
+                Data Fim
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Status
+                Valor
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Avaliação
+                Situação
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                Anexo
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
                 Ações
               </TableCell>
             </TableRow>
           </TableHead>
-          
           <TableBody>
-            
-            {employees
-              ?.filter(
-                (employee) => employee?.codigoRegional && employee?.codigoLocal
-              )
-              .map((employee) => (
-                <TableRow key={employee._id}>
-                  <TableCell align="center">{employee?.name}</TableCell>
-                  <TableCell align="center">{employee?.codigoEquipe}</TableCell>
-                  <TableCell align="center">{employee?.company}</TableCell>
-                  <TableCell align="center">{employee?.position}</TableCell>
-                  <TableCell align="center">{employee?.department}</TableCell>
-                  
+            {filteredExpenses.map((expense) => {
+              let statusBgColor = "";
+              if (expense.status === "Paga") {
+                statusBgColor = "#8BE78B";
+              } else if (expense.status === "Pendente") {
+                statusBgColor = "#F6F794";
+              } else if (expense.status === "Atrasada") {
+                statusBgColor = "red";
+              } else if (expense.status === "Cancelada") {
+                statusBgColor = "red";
+              }
 
-                 
+              return (
+                <TableRow key={expense._id}>
+                  <TableCell align="center">
+                    {expense?.employee?.name}
+                  </TableCell>
+                  <TableCell align="center">
+                    {expense?.type == "Vacation" ? "Férias" : ""}
+                  </TableCell>
+                  <TableCell align="center">
+                    {formatDate(expense?.startDate)}
+                  </TableCell>
+                  <TableCell align="center">
+                    {formatDate(expense?.endDate)}
+                  </TableCell>
+                  <TableCell align="center">
+                    {expense?.amount?.toLocaleString("pt-br", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                  </TableCell>
                   <TableCell align="center">
                     <Box
                       style={{
-                        backgroundColor: (() => {
-                          switch (employee?.status) {
-                            case "Ativo":
-                              return "#C8E6C9"; // Verde claro
-                            case "Inativo":
-                              return "#FFCDD2"; // Vermelho claro
-                            case "Afastado":
-                              return "#BBDEFB"; // Azul claro
-                            default:
-                              return "#FFFFFF"; // Branco, caso não tenha status
-                          }
-                        })(),
-                        color: "#000", // Cor do texto para garantir contraste
-                        height: "35px",
-                        borderRadius: "9px",
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        backgroundColor: statusBgColor,
+                        borderRadius: "8px",
+                        padding: ".28rem",
+                        color: statusBgColor === "#F6F794" ? "black" : "white",
                       }}
                     >
-                      {employee?.status}
+                      {expense.status}
                     </Box>
                   </TableCell>
-                  <TableCell align="center">{employee?.rankings}</TableCell>
-
-                  {ranking.map((item, index) => (
-        <Box key={index} style={{ marginBottom: '10px' }}>
-          <Typography variant="h4">{`${item.mes} ${item.ano}`}</Typography>
-          <Rating
-            name={`avaliacao-${index}`}
-            value={item.nota / 2} // O componente Rating do MUI vai de 0 a 5 estrelas
-            precision={0.5} // Para uma precisão de meia estrela
-            readOnly // Torna as estrelas somente leitura (apenas para exibição)
-          />
-          <Typography variant="p">{item.observacao}</Typography>
-        </Box>
-      ))}
+                  <TableCell align="center">
+                    {expense.attachment ? (
+                      <a href={`${expense.attachment}`} target="_blank">
+                        Ver Anexo
+                      </a>
+                    ) : (
+                      "Nenhum"
+                    )}
+                  </TableCell>
                   <TableCell align="center">
                     <Box className={styles.plans__table__actions}>
                       <Tooltip title="Editar Item">
                         <span>
                           <FaEdit
                             style={{ cursor: "pointer" }}
-                            onClick={() => handleOpenPlanModal(employee)} // Passando 'employee' ao invés de 'expense'
+                            onClick={() => handleOpenPlanModal(expense)}
                           />
                         </span>
                       </Tooltip>
@@ -463,21 +419,22 @@ export default function Employees() {
                           <FaTrash
                             style={{ cursor: "pointer" }}
                             color="red"
-                            onClick={() => handleDeleteEmployee(employee._id)} // Corrigido para 'employee._id'
+                            onClick={() => handleDeleteExpense(expense.id)}
                           />
                         </span>
                       </Tooltip>
                     </Box>
                   </TableCell>
                 </TableRow>
-              ))}
+              );
+            })}
           </TableBody>
           <TableFooter>
             <TableRow>
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: "Todos", value: -1 }]}
                 colSpan={5}
-                count={filteredEmployess.length}
+                count={filteredExpenses.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 slotProps={{
@@ -497,7 +454,7 @@ export default function Employees() {
         </Table>
       </TableContainer>
       {/* Modal para criar ou editar plano */}
-      <EmployeeModal
+      <FeriasModal
         open={isPlanModalOpen}
         onClose={handleClosePlanModal}
         onSave={handleSaveExpense}

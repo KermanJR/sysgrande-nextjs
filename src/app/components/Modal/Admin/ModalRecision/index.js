@@ -25,6 +25,9 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
 
   const [terminationDate, setTerminationDate] = useState("");
   const [reason, setReason] = useState("");
+  const [statusSendWarning, setStatusSendWarning] = useState("");
+  const [statusASO, setStatusASO] = useState("");
+  const [statusPaymentTermination, setStatusPaymentTermination] = useState("");
   const [severancePay, setSeverancePay] = useState("");
   const [noticePeriod, setNoticePeriod] = useState("");
   const [remainingVacations, setRemainingVacations] = useState("");
@@ -34,7 +37,7 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
   const [incomeTaxDeduction, setIncomeTaxDeduction] = useState("");
   const [otherDeductions, setOtherDeductions] = useState("");
   const [totalAmount, setTotalAmount] = useState("");
-  const [paymentDeadline, setPaymentDeadline] = useState("");
+  const [paymentDeadlineTermination, setPaymentDeadlineTermination] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [status, setStatus] = useState("Pendente");
   const [description, setDescription] = useState("");
@@ -47,7 +50,7 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
 
   useEffect(() => {
     if (item) {
-        setAmount(item?.amount || "");
+      setAmount(item?.amount || "");
       setTerminationDate(item?.terminationDate || "");
       setReason(item?.reason || "");
       setSeverancePay(item?.severancePay || "");
@@ -59,7 +62,6 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
       setIncomeTaxDeduction(item?.incomeTaxDeduction || "");
       setOtherDeductions(item?.otherDeductions || "");
       setTotalAmount(item?.totalAmount || "");
-      setPaymentDeadline(item?.paymentDeadline || "");
       setPaymentMethod(item?.paymentMethod || "");
       setStatus(item?.status || "Pendente");
       setDescription(item?.description || "");
@@ -67,6 +69,11 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
       setSelectedEmployee(item?.employee || "");
       setCreatedBy(item?.createdBy || user?.name || "");
       setUpdatedBy(item?.updatedBy || user?.name || "");
+      setStatusASO(item?.statusASO || "");
+      setStatusPaymentTermination(item?.statusPaymentTermination || "");
+      setStatusSendWarning(item?.statusSendWarning || "")
+      setTerminationDate(item?.terminationDate || null)
+      setPaymentDeadlineTermination(item?.paymentDeadlineTermination || null)
     } else {
       resetForm();
     }
@@ -83,6 +90,9 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
   const resetForm = () => {
     setTerminationDate("");
     setReason("");
+    setStatusASO("");
+    setStatusPaymentTermination("");
+    setStatusSendWarning("");
     setSeverancePay("");
     setNoticePeriod("");
     setRemainingVacations("");
@@ -92,7 +102,6 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
     setIncomeTaxDeduction("");
     setOtherDeductions("");
     setTotalAmount("");
-    setPaymentDeadline("");
     setPaymentMethod("");
     setStatus("Pendente");
     setDescription("");
@@ -102,29 +111,22 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
     setUpdatedBy(user?.name || "");
   };
 
-  console.log(item)
+  const handleTypeChange = (event) => {
+    setSelectedEmployee(event.target.value);
+  };
+
 
   const handleSaveExpense = async () => {
     const expenseData = new FormData();
 
-    expenseData.append("amount", totalAmount);
     expenseData.append("employee", selectedEmployee);
     expenseData.append("type", "Termination");
+    expenseData.append("paymentDeadlineTermination", paymentDeadlineTermination);
     expenseData.append("terminationDate", terminationDate);
     expenseData.append("reason", reason);
-    expenseData.append("severancePay", severancePay);
-    expenseData.append("noticePeriod", noticePeriod);
-    expenseData.append("remainingVacations", remainingVacations);
-    expenseData.append("FGTSBalance", FGTSBalance);
-    expenseData.append("fineFGTS", fineFGTS);
-    expenseData.append("INSSDeduction", INSSDeduction);
-    expenseData.append("incomeTaxDeduction", incomeTaxDeduction);
-    expenseData.append("otherDeductions", otherDeductions);
-    expenseData.append("totalAmount", totalAmount);
-    expenseData.append("paymentDeadline", paymentDeadline);
-    expenseData.append("paymentMethod", paymentMethod);
-    expenseData.append("status", status);
-    expenseData.append("description", description);
+    expenseData.append("statusPaymentTermination", statusPaymentTermination);
+    expenseData.append("statusASO", statusASO);
+    expenseData.append("statusSendWarning", statusSendWarning);
     expenseData.append("createdBy", user?.name); // Adicionando o usuário que criou
     expenseData.append("updateBy", user?.name); // Inicialmente, o usuário de criação é o mesmo para a atualização
     expenseData.append("company", company?.name);
@@ -183,16 +185,16 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
         >
           <IoMdCloseCircleOutline />
         </IconButton>
-        <Typography variant="h6" component="h2" gutterBottom>
-          {item ? "Editar Despesa de Rescisão" : "Nova Despesa de Rescisão"}
+        <Typography variant="h6" component="h2" gutterBottom sx={{fontWeight: 'bold'}}>
+          {item ? "Editar Rescisão" : "Nova Rescisão"}
         </Typography>
 
-        <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem'}}>
-        <FormControl fullWidth margin="normal">
+        <Box sx={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
+          <FormControl fullWidth margin="normal">
             <InputLabel>Funcionário</InputLabel>
             <Select
               value={selectedEmployee}
-              onChange={(e) => setSelectedEmployee(e.target.value)}
+              onChange={handleTypeChange}
             >
               {employees.map((employee) => (
                 <MenuItem key={employee._id} value={employee._id}>
@@ -201,8 +203,8 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
               ))}
             </Select>
           </FormControl>
-        <TextField
-            label="Data de Rescisão"
+          <TextField
+            label="Data da Demissão"
             type="date"
             value={terminationDate}
             onChange={(e) => setTerminationDate(e.target.value)}
@@ -210,16 +212,12 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
             margin="normal"
             InputLabelProps={{ shrink: true }}
           />
-
         </Box>
-       
-        <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem'}}>
-        <FormControl fullWidth margin="normal">
+
+        <Box sx={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
+          <FormControl fullWidth margin="normal">
             <InputLabel>Motivo</InputLabel>
-            <Select
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-            >
+            <Select value={reason} onChange={(e) => setReason(e.target.value)}>
               <MenuItem value="Demissão sem justa causa">
                 Demissão sem justa causa
               </MenuItem>
@@ -231,134 +229,74 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
                 Término de contrato
               </MenuItem>
               <MenuItem value="Aposentadoria">Aposentadoria</MenuItem>
-              <MenuItem value="Outros">Outros</MenuItem>
+              <MenuItem value="Baixa Produtividade">
+                Baixa Produtividade
+              </MenuItem>
             </Select>
           </FormControl>
-          <TextField
-            label="Valor Rescisão"
-            type="number"
-            value={severancePay}
-            onChange={(e) => setSeverancePay(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Status Envio Aviso</InputLabel>
+            <Select value={statusSendWarning} onChange={(e) => setStatusSendWarning(e.target.value)}>
+              <MenuItem value="Enviado">Enviado</MenuItem>
+              <MenuItem value="Programado">Programado</MenuItem>
+              <MenuItem value="Cancelado">Cancelado</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
-          
 
-          <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem'}}>
-            <TextField
-                label="Aviso Prévio (dias)"
-                type="number"
-                value={noticePeriod}
-                onChange={(e) => setNoticePeriod(e.target.value)}
-                fullWidth
-                margin="normal"
-            />
-            <TextField
-                label="Férias Restantes"
-                type="number"
-                value={remainingVacations}
-                onChange={(e) => setRemainingVacations(e.target.value)}
-                fullWidth
-                margin="normal"
-            />
-          </Box>
-          
-          <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem'}}>
-            <TextField
-                label="Saldo FGTS"
-                type="number"
-                value={FGTSBalance}
-                onChange={(e) => setFGTSBalance(e.target.value)}
-                fullWidth
-                margin="normal"
-            />
-            <TextField
-                label="Multa FGTS"
-                type="number"
-                value={fineFGTS}
-                onChange={(e) => setFineFGTS(e.target.value)}
-                fullWidth
-                margin="normal"
-            />
-          </Box>
-          
-          <Box sx={{display: 'flex', flexDirection: 'row', gap: '1rem'}}>
-            <TextField
-                label="Dedução INSS"
-                type="number"
-                value={INSSDeduction}
-                onChange={(e) => setINSSDeduction(e.target.value)}
-                fullWidth
-                margin="normal"
-            />
-            <TextField
-                label="Dedução IR"
-                type="number"
-                value={incomeTaxDeduction}
-                onChange={(e) => setIncomeTaxDeduction(e.target.value)}
-                fullWidth
-                margin="normal"
-            />
+        <Box sx={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Status ASO</InputLabel>
+            <Select value={statusASO} onChange={(e) => setStatusASO(e.target.value)}>
+              <MenuItem value="Realizado">Realizado</MenuItem>
+              <MenuItem value="Agendado">Agendado</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
 
-          </Box>
-          
-          <TextField
-            label="Outras Deduções"
-            type="number"
-            value={otherDeductions}
-            onChange={(e) => setOtherDeductions(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Valor Total"
-            type="number"
-            value={totalAmount}
-            onChange={(e) => setTotalAmount(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Prazo para Pagamento"
-            type="date"
-            value={paymentDeadline}
-            onChange={(e) => setPaymentDeadline(e.target.value)}
-            fullWidth
-            margin="normal"
-            InputLabelProps={{ shrink: true }}
-          />
+        <TextField
+          label="Data do Pagamento Rescisão"
+          type="date"
+          value={paymentDeadlineTermination}
+          onChange={(e) => setPaymentDeadlineTermination(e.target.value)}
+          fullWidth
+          margin="normal"
+          InputLabelProps={{ shrink: true }}
+        />
 
-          <Button
-            variant="contained"
-            component="label"
-            sx={{ mt: 2 }}
-          >
-            {attachment ? "Alterar Anexo" : "Adicionar Anexo"}
-            <input
-              type="file"
-              hidden
-              onChange={(e) => setAttachment(e.target.files[0])}
-            />
-          </Button>
-          {attachment && (
-            <Typography
-              variant="body2"
-              sx={{ mt: 1, textAlign: "center" }}
-            >
-              Arquivo: {attachment.name}
-            </Typography>
-          )}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSaveExpense}
-            fullWidth
-            sx={{ mt: 3}}
-          >
-            Salvar
-          </Button>
-          </Box>
+        <Box sx={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Status Pagamento Rescisão</InputLabel>
+            <Select value={statusPaymentTermination} onChange={(e) => setStatusPaymentTermination(e.target.value)}>
+              <MenuItem value="Realizado">Realizado</MenuItem>
+              <MenuItem value="Agendado">Agendado</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+
+        <Button variant="contained" component="label" sx={{ mt: 2 }}>
+          {attachment ? "Alterar Anexo" : "Adicionar Anexo"}
+          <input
+            type="file"
+            hidden
+            onChange={(e) => setAttachment(e.target.files[0])}
+          />
+        </Button>
+        {attachment && (
+          <Typography variant="body2" sx={{ mt: 1, textAlign: "center" }}>
+            Arquivo: {attachment.name}
+          </Typography>
+        )}
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSaveExpense}
+          fullWidth
+          sx={{ mt: 3 }}
+        >
+          Salvar
+        </Button>
+      </Box>
     </Modal>
   );
 };

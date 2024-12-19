@@ -1,10 +1,11 @@
 const URL = 'https://sysgrande-nodejs.onrender.com/api/'
+const URL_LOCAL = 'http://localhost:5000/api/'
 
 
 export const fetchedEmployeesByCompany = async (companyName) => {
     try {
       const response = await fetch(
-        `${URL}employees?company=${companyName}`,
+        `${URL_LOCAL}employees?company=${companyName}`,
         {
           method: "GET",
           headers: {
@@ -26,7 +27,7 @@ export const fetchedEmployeesByCompany = async (companyName) => {
   export const createExpense = async (expenseData) => {
     try {
       const response = await fetch(
-        `${URL}expenses/vacation`,
+        `${URL_LOCAL}expenses/vacation`,
         {
           method: "POST",
           body: expenseData,
@@ -48,7 +49,7 @@ export const fetchedEmployeesByCompany = async (companyName) => {
   export const updateExpense = async (expenseData, id) => {
     try {
       const response = await fetch(
-        `${URL}expenses/vacation/${id}`,
+        `${URL_LOCAL}expenses/vacation/${id}`,
         {
           method: "PUT",
           body: expenseData, // Passando o FormData diretamente como body

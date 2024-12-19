@@ -5,9 +5,13 @@ import Init from "./layouts/initDashboard/init";
 import SidebarAdmin from "@/app/components/Sidebar/admin";
 import ProfileAdmin from "./layouts/profile/ProfileAdmin";
 import Inventory from "./layouts/Inventory/Inventory";
-import Finances from "./layouts/finances/Finances";
+import Finances from "./layouts/humansrec/HumansRec";
 import Employees from "./layouts/employees/Employees";
 import Termination from "./layouts/termination/Termination";
+import Tasks from "./layouts/Tasks/Tasks";
+import TaskBoard from "./layouts/Tasks/Tasks";
+import HumansRec from "./layouts/humansrec/HumansRec";
+import VacancyCheck from "./layouts/vacancyCheck/VacancyCheck";
 
 export default function ScreenDashboardAdmin() {
   const [selectedComponent, setSelectedComponent] = useState("init");
@@ -20,6 +24,9 @@ export default function ScreenDashboardAdmin() {
   const components = {
     Início: <Init />,
     Férias: <Finances />,
+    VacancyCheck: <VacancyCheck />,
+    RecursosHumanos: <HumansRec />,
+    Tarefas: <TaskBoard/>,
     Inventário: <Inventory />,
     Funcionário: <Employees />,
     Perfil: <ProfileAdmin />,

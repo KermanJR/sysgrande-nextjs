@@ -13,8 +13,12 @@ import {
   TableRow,
   Typography,
   Tooltip,
+  DialogActions,
+  TextField,
+  DialogContent,
+  DialogTitle,
+  Dialog,
 } from "@mui/material";
-
 import { useTheme } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
@@ -23,16 +27,16 @@ import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 import ReportModal from "@/app/components/Modal/Admin/ReportModal";
 import { deleteExpenseById, fetchedExpensesByCompany } from "./API";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import styles from "./Termination.module.css";
-import DescriptionIcon from '@mui/icons-material/Description';
+import styles from "./VacancyCheck.module.css";
+import DescriptionIcon from "@mui/icons-material/Description";
 import { useCompany } from "@/app/context/CompanyContext";
 import FeriasModal from "@/app/components/Modal/Admin/ModalVacancy";
-import AddCircleIcon from '@mui/icons-material/AddCircle';
-import RescisaoModal from "@/app/components/Modal/Admin/ModalRecision";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 
 function TablePaginationActions(props) {
   const theme = useTheme();
@@ -96,7 +100,7 @@ function TablePaginationActions(props) {
   );
 }
 
-export default function Termination() {
+export default function VacancyCheck() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(4);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
@@ -104,43 +108,100 @@ export default function Termination() {
   const [currentExpense, setCurrentExpense] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [filteredExpenses, setFilteredExpenses] = useState([]);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false); // Estado para controle do modal de pagamento
+  const [paymentDate, setPaymentDate] = useState(""); // Estado para controlar a data do pagamento
   const [selectedExpense, setSelectedExpense] = useState("");
-  const [newExpense, setNewExpense] = useState({
-    type: "",
-    description: "",
-    eventDate: "",
-    paymentDate: "",
-    status: "",
-    attachment: null,
-  });
+  // No estado do componente, modifique para um array de objetos
+  const [checkedItems, setCheckedItems] = useState(
+    filteredExpenses.map((expense) => ({
+      employee: false,
+      description: false,
+      startDate: false,
+      endDate: false,
+      amount: false,
+      attachment: false,
+    }))
+  );
+
+  // Função para fechar o modal de agendar pagamento
+  const handleClosePaymentModal = () => {
+    setIsPaymentModalOpen(false);
+    setPaymentDate(""); // Limpa a data ao fechar o modal
+  };
+
+
+  // Função para salvar a data do pagamento
+  const handleSavePayment = () => {
+    // Aqui você pode adicionar a lógica de salvar a data do pagamento
+    console.log("Pagamento agendado para:", paymentDate);
+    setIsPaymentModalOpen(false); // Fecha o modal
+  };
+
+
+  // Função para abrir o modal de agendar pagamento
+  const handleOpenPaymentModal = () => {
+    setIsPaymentModalOpen(true);
+  };
+
 
   const { company } = useCompany(); // Acessando a empresa selecionada do contexto
 
   const formatDate = (date) => {
     const newDate = new Date(date);
-    return newDate.toLocaleDateString("pt-BR", {timeZone: "UTC"}); // Ajuste o idioma conforme necessário
+    return newDate.toLocaleDateString("pt-BR", { timeZone: "UTC" }); // Ajuste o idioma conforme necessário
   };
-  
 
   useEffect(() => {
-    // Carrega despesas ao selecionar uma empresa ou editar uma despesa
     if (company) {
       const loadExpenses = async () => {
         const expensesData = await fetchedExpensesByCompany(company.name);
         setExpenses(expensesData);
-        console.log(expensesData)
-        // Filtra despesas com type == "Termination"
-        const filtered = expensesData.filter(expense => expense.type == "Termination");
-        console.log(filtered)
+        const filtered = expensesData.filter(
+          (expense) => expense.type == "Vacation"
+        );
         setFilteredExpenses(filtered);
+
+        // Inicializa checkedItems com um objeto para cada linha
+        setCheckedItems(
+          filtered.map(() => ({
+            employee: false,
+            description: false,
+            startDate: false,
+            endDate: false,
+            amount: false,
+            attachment: false,
+          }))
+        );
       };
-  
+
       loadExpenses();
     }
-  }, [company, currentExpense]); // Adicione currentExpense para recarregar após edição
-  
-  
+  }, [company]);
 
+  const handleCheck = (rowIndex, column) => {
+    setCheckedItems((prevCheckedItems) => {
+      // Cria uma cópia profunda do array de checkedItems
+      const newCheckedItems = prevCheckedItems.map((item) => ({ ...item }));
+
+      // Verifica se o objeto existe no índice
+      if (!newCheckedItems[rowIndex]) {
+        // Se não existir, inicializa com um objeto padrão
+        newCheckedItems[rowIndex] = {
+          employee: false,
+          description: false,
+          startDate: false,
+          endDate: false,
+          amount: false,
+          attachment: false,
+        };
+      }
+
+      // Alterna o estado do checkbox
+      newCheckedItems[rowIndex][column] = !newCheckedItems[rowIndex][column];
+
+      return newCheckedItems;
+    });
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -162,13 +223,8 @@ export default function Termination() {
     setCurrentExpense(null);
   };
 
-
   const handleCloseReportModal = () => {
     setIsReportModalOpen(false);
-  };
-
-  const handleFileChange = (e) => {
-    setNewExpense((prev) => ({ ...prev, attachment: e.target.files[0] }));
   };
 
   const handleSaveExpense = (updatedExpense) => {
@@ -277,6 +333,27 @@ export default function Termination() {
     doc.save("relatorio_itens.pdf");
   };
 
+  const areAllChecked = () => {
+    const result =
+      checkedItems.length > 0 &&
+      checkedItems.every(
+        (row) =>
+          row.employee === true &&
+          row.description === true &&
+          row.startDate === true &&
+          row.endDate === true &&
+          row.amount === true &&
+          row.attachment === true
+      );
+
+    console.log("Current checkedItems:", checkedItems);
+    console.log("All checked result:", result);
+
+    return result;
+  };
+
+  const theme = useTheme();
+
   return (
     <Box className={styles.plans}>
       <Box
@@ -290,7 +367,7 @@ export default function Termination() {
           typography="h4"
           style={{ fontWeight: "bold", color: "#1E3932" }}
         >
-          Rescisão
+          Férias
         </Typography>
         <Typography
           typography="label"
@@ -300,14 +377,11 @@ export default function Termination() {
             fontSize: ".875rem",
           }}
         >
-          Gerencie as rescisões de seus funcionários
+          Gerencie as férias de seus funcionários
         </Typography>
       </Box>
 
-      <TableContainer
-
-        className={styles.plans__table__container}
-      >
+      <TableContainer className={styles.plans__table__container}>
         <Box className={styles.plans__table__actions_download_new}>
           <Button
             variant="contained"
@@ -315,17 +389,21 @@ export default function Termination() {
             className={styles.plans__search__input}
             onClick={generatePdf}
           >
-            <DescriptionIcon  sx={{color: '#0F548C', width: '20px'}}/>
+            <DescriptionIcon
+              sx={{ color: theme.palette.grey[600], width: "20px" }}
+            />
             Gerar Relatório
           </Button>
           <Button
             variant="contained"
-            style={{ background: "#fff", color: "#000", borderRadius: "2px" }}
+            style={{ background: "#fff", color: "black", borderRadius: "2px" }}
             className={styles.plans__search__input}
             onClick={() => handleOpenPlanModal()}
           >
-            <AddCircleIcon  sx={{color: '#0F548C', width: '20px'}}/>
-            Novo Item
+            <AddCircleIcon
+              sx={{ color: theme.palette.grey[600], width: "20px" }}
+            />
+            Criar
           </Button>
         </Box>
         <Table className={styles.plans__table}>
@@ -335,36 +413,22 @@ export default function Termination() {
                 Funcionário
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Data Demissão
+                Descrição
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Motivo Demissão
+                Data Início
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Regional
+                Data Fim
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Município
+                Valor
               </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Localidade
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Data Pagamento Rescisão
-              </TableCell>
-              
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Status Pagamento Rescisão
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Status Envio Aviso
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Status ASO
-              </TableCell>
-              
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
                 Anexo
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                Situação
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
                 Ações
@@ -372,152 +436,127 @@ export default function Termination() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredExpenses.map((expense) => {
-              let statusBgColorAviso = "";
-              if (expense.statusSendWarning === "Enviado") {
-                statusBgColorAviso = "#8BE78B";
-              } else if (expense.statusSendWarning === "Agendado") {
-                statusBgColorAviso = "#F6F794";
-              } else if (expense.statusSendWarning === "Atrasado") {
-                statusBgColorAviso = "red";
-              } else if (expense.statusSendWarning === "Cancelado") {
-                statusBgColorAviso = "red";
-              }
-
-              let statusBgColorASO = "";
-              if (expense.statusASO === "Realizado") {
-                statusBgColorASO = "#8BE78B";
-              } else if (expense.statusASO === "Programado") {
-                statusBgColorASO = "#F6F794";
-              } else if (expense.statusASO === "Atrasado") {
-                statusBgColorASO = "red";
-              } else if (expense.statusASO === "Cancelado") {
-                statusBgColorASO = "red";
-              }
-              
-              let statusBgColorPayment = "";
-              if (expense.statusPaymentTermination === "Realizado") {
-                statusBgColorPayment = "#8BE78B";
-              } else if (expense.statusPaymentTermination === "Agendado") {
-                statusBgColorPayment = "#F6F794";
-              } else if (expense.statusPaymentTermination === "Atrasada") {
-                statusBgColorPayment = "red";
-              } else if (expense.statusPaymentTermination === "Cancelada") {
-                statusBgColorPayment = "red";
+            {filteredExpenses.map((expense, index) => {
+              let statusBgColor = "";
+              if (expense.status === "Paga") {
+                statusBgColor = "#8BE78B";
+              } else if (expense.status === "Pendente") {
+                statusBgColor = "#F6F794";
+              } else if (expense.status === "Atrasada") {
+                statusBgColor = "red";
+              } else if (expense.status === "Cancelada") {
+                statusBgColor = "red";
               }
 
               return (
                 <TableRow key={expense._id}>
-
                   <TableCell align="center">
+                    <input
+                      type="checkbox"
+                      checked={checkedItems[index]?.employee || false} // Acessa o estado do checkbox baseado no 'id' do item
+                      onChange={() => handleCheck(index, "employee")}
+                    />
                     {expense?.employee?.name}
                   </TableCell>
-
                   <TableCell align="center">
-                    {formatDate(expense?.terminationDate)}
+                    <input
+                      type="checkbox"
+                      checked={checkedItems[index]?.description || false} // Acessa o estado do checkbox baseado no 'id' do item
+                      onChange={() => handleCheck(index, "description")}
+                    />
+                    {expense?.type == "Vacation" ? "Férias" : ""}
                   </TableCell>
                   <TableCell align="center">
-                    
-                      {expense?.reason}
-                    
+                    <input
+                      type="checkbox"
+                      checked={checkedItems[index]?.startDate || false} // Acessa o estado do checkbox baseado no 'id' do item
+                      onChange={() => handleCheck(index, "startDate")}
+                    />
+                    {formatDate(expense?.startDate)}
                   </TableCell>
-                
                   <TableCell align="center">
-                    {expense?.employee?.codigoRegional?.nome}
+                    <input
+                      type="checkbox"
+                      checked={checkedItems[index]?.endDate || false} // Acessa o estado do checkbox baseado no 'id' do item
+                      onChange={() => handleCheck(index, "endDate")}
+                    />
+                    {formatDate(expense?.endDate)}
                   </TableCell>
-
                   <TableCell align="center">
-                    {expense?.employee?.codigoMunicipio?.nome}
+                    <input
+                      type="checkbox"
+                      checked={checkedItems[index]?.amount || false} // Acessa o estado do checkbox baseado no 'id' do item
+                      onChange={() => handleCheck(index, "amount")}
+                    />
+                    {expense?.amount?.toLocaleString("pt-br", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
                   </TableCell>
-
-
                   <TableCell align="center">
-                    {expense?.employee?.codigoLocal?.nome}
-                  </TableCell>
-
-                  <TableCell align="center">
-                    <Box
-                    >
-                      {formatDate(expense?.paymentDeadlineTermination)}
-                    </Box>
-                  </TableCell>
-
-                  
-                  <TableCell align="center">
-                    <Box
-                      style={{
-                        backgroundColor: statusBgColorPayment,
-                        borderRadius: "8px",
-                        padding: ".28rem",
-                        color: statusBgColorPayment === "#F6F794" ? "black" : "white",
-                      }}
-                    >
-                      {expense?.statusPaymentTermination}
-                    </Box>
-                  </TableCell>
-  
-                  <TableCell align="center">
-                    <Box
-                      style={{
-                        backgroundColor: statusBgColorAviso,
-                        borderRadius: "8px",
-                        padding: ".28rem",
-                        color: statusBgColorAviso === "#F6F794" ? "black" : "white",
-                      }}
-                    >
-                      {expense?.statusSendWarning}
-                    </Box>
-                  </TableCell>
-
-                  <TableCell align="center">
-                    <Box
-                      style={{
-                        backgroundColor: statusBgColorASO,
-                        borderRadius: "8px",
-                        padding: ".28rem",
-                        color: statusBgColorASO === "#F6F794" ? "black" : "white",
-                      }}
-                    >
-                      {expense?.statusASO}
-                    </Box>
-                  </TableCell>
-
-                  
-
-                
-
-                  <TableCell align="center">
+                    <input
+                      type="checkbox"
+                      checked={checkedItems[index]?.attachment || false} // Acessa o estado do checkbox baseado no 'id' do item
+                      onChange={() => handleCheck(index, "attachment")}
+                    />
                     {expense.attachment ? (
                       <a href={`${expense.attachment}`} target="_blank">
-                        Ver Anexo
+                        Conferir Anexo
                       </a>
                     ) : (
                       "Nenhum"
                     )}
                   </TableCell>
-
                   <TableCell align="center">
-                    <Box className={styles.plans__table__actions}>
-                      <Tooltip title="Editar Item">
-                        <span>
-                          <FaEdit
-                            style={{ cursor: "pointer" }}
-                            onClick={() => handleOpenPlanModal(expense)}
-                          />
-                        </span>
-                      </Tooltip>
-                      <Tooltip title="Excluir">
-                        <span>
-                          <FaTrash
-                            style={{ cursor: "pointer" }}
-                            color="red"
-                            onClick={() => handleDeleteExpense(expense.id)}
-                          />
-                        </span>
-                      </Tooltip>
+                    <Box
+                      style={{
+                        backgroundColor: statusBgColor,
+                        borderRadius: "8px",
+                        padding: ".28rem",
+                        color: statusBgColor === "#F6F794" ? "black" : "white",
+                      }}
+                    >
+                      {expense.status}
                     </Box>
                   </TableCell>
-                  
+
+                  <TableCell align="center">
+                    <AnimatePresence>
+                      {areAllChecked() && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 260,
+                            damping: 20,
+                          }}
+                        >
+                          <Button
+                            variant="contained"
+                            color="success"
+                            disabled={!areAllChecked()}
+                            onClick={handleOpenPaymentModal}
+                            sx={{
+                              backgroundColor: !areAllChecked()
+                                ? "#e0e0e0"
+                                : undefined, // Cor cinza quando desabilitado
+                              color: !areAllChecked() ? "#9e9e9e" : undefined, // Texto em tom de cinza
+                              cursor: !areAllChecked()
+                                ? "not-allowed"
+                                : "pointer",
+                              opacity: !areAllChecked() ? 0.6 : 1,
+                              transition: "all 0.3s ease",
+                            }}
+                            
+                          >
+                            Programar pagamento
+                          </Button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </TableCell>
                 </TableRow>
               );
             })}
@@ -545,17 +584,34 @@ export default function Termination() {
             </TableRow>
           </TableFooter>
         </Table>
+        <Dialog open={isPaymentModalOpen} onClose={handleClosePaymentModal} sx={{width: '200px'}}>
+        <DialogTitle>Agendar Pagamento</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Data do Pagamento"
+            type="date"
+            fullWidth
+            value={paymentDate}
+            onChange={(e) => setPaymentDate(e.target.value)}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePaymentModal} color="secondary">
+            Cancelar
+          </Button>
+          <Button onClick={handleSavePayment} color="primary">
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
       </TableContainer>
-      {/* Modal para criar ou editar plano */}
-      <RescisaoModal
-        open={isPlanModalOpen}
-        onClose={handleClosePlanModal}
-        onSave={handleSaveExpense}
-        item={currentExpense}
-      />
+         {/* Modal para agendar o pagamento */}
+       
+        
 
-      {/* Modal para gerar relatório */}
-      <ReportModal open={isReportModalOpen} onClose={handleCloseReportModal} />
     </Box>
   );
 }
