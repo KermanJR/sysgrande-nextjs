@@ -37,7 +37,7 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
   const [incomeTaxDeduction, setIncomeTaxDeduction] = useState("");
   const [otherDeductions, setOtherDeductions] = useState("");
   const [totalAmount, setTotalAmount] = useState("");
-  const [paymentDeadlineTermination, setPaymentDeadlineTermination] = useState("");
+  const [paymentDeadlineTermination, setPaymentDeadlineTermination] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("");
   const [status, setStatus] = useState("Pendente");
   const [description, setDescription] = useState("");
@@ -47,9 +47,25 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
   const [createdBy, setCreatedBy] = useState(user?.name || "");
   const [updatedBy, setUpdatedBy] = useState(user?.name || "");
   const [amount, setAmount] = useState("");
+  const [placaMoto, setPlacaMoto] = useState("");
+
+  const formatDate = (date) => {
+    const newDate = new Date(date);
+    return newDate.toLocaleDateString("pt-BR", {timeZone: "UTC"}); // Ajuste o idioma conforme necessário
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]; // Pega o primeiro arquivo
+    console.log(file);
+    if (file) {
+      setAttachment(file); // Atualiza o estado com o nome do arquivo
+    }
+  };
 
   useEffect(() => {
     if (item) {
+      console.log(item)
+      setPlacaMoto(item?.placaMoto || "")
       setAmount(item?.amount || "");
       setTerminationDate(item?.terminationDate || "");
       setReason(item?.reason || "");
@@ -66,14 +82,14 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
       setStatus(item?.status || "Pendente");
       setDescription(item?.description || "");
       setAttachment(item?.attachment || null);
-      setSelectedEmployee(item?.employee || "");
+      setSelectedEmployee(item?.employee?._id || "");
       setCreatedBy(item?.createdBy || user?.name || "");
       setUpdatedBy(item?.updatedBy || user?.name || "");
       setStatusASO(item?.statusASO || "");
       setStatusPaymentTermination(item?.statusPaymentTermination || "");
       setStatusSendWarning(item?.statusSendWarning || "")
-      setTerminationDate(item?.terminationDate || null)
-      setPaymentDeadlineTermination(item?.paymentDeadlineTermination || null)
+      setTerminationDate(item?.terminationDate?.split("T")[0] || null)
+      setPaymentDeadlineTermination(item?.paymentDeadlineTermination?.split("T")[0] || null)
     } else {
       resetForm();
     }
@@ -90,6 +106,7 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
   const resetForm = () => {
     setTerminationDate("");
     setReason("");
+    setPlacaMoto("")
     setStatusASO("");
     setStatusPaymentTermination("");
     setStatusSendWarning("");
@@ -118,7 +135,8 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
 
   const handleSaveExpense = async () => {
     const expenseData = new FormData();
-
+    console.log(selectedEmployee)
+    expenseData.append("placaMoto", placaMoto);
     expenseData.append("employee", selectedEmployee);
     expenseData.append("type", "Termination");
     expenseData.append("paymentDeadlineTermination", paymentDeadlineTermination);
@@ -138,13 +156,14 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
     try {
       let response;
       if (item) {
-        expenseData.append("id", item.id);
-        response = await createExpense(expenseData);
+        console.log(item?.id)
+        expenseData.append("id", item?.id);
+        response = await updateExpense(expenseData, item?.id);
         if (response) {
           onSave(response);
-          toast.success("Despesa de rescisão atualizada com sucesso");
+          toast.success("Rescisão atualizada com sucesso");
         } else {
-          toast.error("Erro ao atualizar item");
+          toast.error("Erro ao atualizar rescisão");
         }
       } else {
         response = await createExpense(expenseData);
@@ -237,8 +256,9 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
           <FormControl fullWidth margin="normal">
             <InputLabel>Status Envio Aviso</InputLabel>
             <Select value={statusSendWarning} onChange={(e) => setStatusSendWarning(e.target.value)}>
-              <MenuItem value="Enviado">Enviado</MenuItem>
-              <MenuItem value="Programado">Programado</MenuItem>
+            <MenuItem value="Programado">Programado</MenuItem>
+              <MenuItem value="Realizado">Realizado</MenuItem>
+              <MenuItem value="Pendente">Pendente</MenuItem>
               <MenuItem value="Cancelado">Cancelado</MenuItem>
             </Select>
           </FormControl>
@@ -248,10 +268,21 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
           <FormControl fullWidth margin="normal">
             <InputLabel>Status ASO</InputLabel>
             <Select value={statusASO} onChange={(e) => setStatusASO(e.target.value)}>
+            <MenuItem value="Programado">Programado</MenuItem>
               <MenuItem value="Realizado">Realizado</MenuItem>
-              <MenuItem value="Agendado">Agendado</MenuItem>
+              <MenuItem value="Pendente">Pendente</MenuItem>
+              <MenuItem value="Cancelado">Cancelado</MenuItem>
             </Select>
           </FormControl>
+          <TextField
+          label="Placa Moto"
+          type="string"
+          value={placaMoto}
+          onChange={(e) => setPlacaMoto(e.target.value)}
+          fullWidth
+          margin="normal"
+          InputLabelProps={{ shrink: true }}
+        />
         </Box>
 
         <TextField
@@ -268,25 +299,33 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
           <FormControl fullWidth margin="normal">
             <InputLabel>Status Pagamento Rescisão</InputLabel>
             <Select value={statusPaymentTermination} onChange={(e) => setStatusPaymentTermination(e.target.value)}>
+              <MenuItem value="Programado">Programado</MenuItem>
               <MenuItem value="Realizado">Realizado</MenuItem>
-              <MenuItem value="Agendado">Agendado</MenuItem>
+              <MenuItem value="Pendente">Pendente</MenuItem>
+              <MenuItem value="Cancelado">Cancelado</MenuItem>
             </Select>
           </FormControl>
         </Box>
 
-        <Button variant="contained" component="label" sx={{ mt: 2 }}>
-          {attachment ? "Alterar Anexo" : "Adicionar Anexo"}
-          <input
-            type="file"
-            hidden
-            onChange={(e) => setAttachment(e.target.files[0])}
-          />
-        </Button>
-        {attachment && (
-          <Typography variant="body2" sx={{ mt: 1, textAlign: "center" }}>
-            Arquivo: {attachment.name}
-          </Typography>
-        )}
+         {/* Exibe o nome do arquivo ou link para download se houver um arquivo */}
+                {attachment ? (
+                  <Box>
+                    <Typography variant="body2">
+                      Arquivo:{" "}
+                      {attachment?.name
+                        ? attachment?.name
+                        : attachment.split("/").pop()}
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Typography variant="body2">Nenhum arquivo anexado.</Typography>
+                )}
+        
+                {/* Campo de upload de arquivo */}
+                <Button variant="contained" component="label" sx={{ marginTop: 2 }}>
+                  {attachment ? "Substituir Arquivo" : "Adicionar Arquivo"}
+                  <input type="file" hidden onChange={handleFileChange} />
+                </Button>
         <Button
           variant="contained"
           color="primary"

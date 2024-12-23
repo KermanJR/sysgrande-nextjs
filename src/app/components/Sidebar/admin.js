@@ -123,7 +123,7 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
   return isMenuOpen ? (
     <Box
       color="primary.contrastText"
-      className={styles.sidebar}
+     
       sx={{
         backgroundColor: theme.palette.background.paper,
         height: "auto",
@@ -134,6 +134,7 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
       }}
     >
       <Box
+      
         sx={{
           display: "flex",
           flexDirection: "row",

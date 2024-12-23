@@ -33,6 +33,7 @@ import { useCompany } from "@/app/context/CompanyContext";
 import FeriasModal from "@/app/components/Modal/Admin/ModalVacancy";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import RescisaoModal from "@/app/components/Modal/Admin/ModalRecision";
+import Theme from "@/app/theme/theme";
 
 function TablePaginationActions(props) {
   const theme = useTheme();
@@ -113,6 +114,8 @@ export default function Termination() {
     status: "",
     attachment: null,
   });
+
+  const theme = useTheme()
 
   const { company } = useCompany(); // Acessando a empresa selecionada do contexto
 
@@ -290,7 +293,7 @@ export default function Termination() {
           typography="h4"
           style={{ fontWeight: "bold", color: "#1E3932" }}
         >
-          Rescisão
+          Controle de Rescisões
         </Typography>
         <Typography
           typography="label"
@@ -335,6 +338,9 @@ export default function Termination() {
                 Funcionário
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                Placa Moto
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: "bold" }}>
                 Data Demissão
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
@@ -374,43 +380,47 @@ export default function Termination() {
           <TableBody>
             {filteredExpenses.map((expense) => {
               let statusBgColorAviso = "";
-              if (expense.statusSendWarning === "Enviado") {
-                statusBgColorAviso = "#8BE78B";
-              } else if (expense.statusSendWarning === "Agendado") {
-                statusBgColorAviso = "#F6F794";
-              } else if (expense.statusSendWarning === "Atrasado") {
-                statusBgColorAviso = "red";
+              if (expense.statusSendWarning === "Realizado") {
+                statusBgColorAviso = theme.palette.success.main;
+              } else if (expense.statusSendWarning === "Programado") {
+                statusBgColorAviso = theme.palette.info.main;
+              } else if (expense.statusSendWarning === "Pendente") {
+                statusBgColorAviso =  theme.palette.warning.main;
               } else if (expense.statusSendWarning === "Cancelado") {
                 statusBgColorAviso = "red";
               }
 
               let statusBgColorASO = "";
               if (expense.statusASO === "Realizado") {
-                statusBgColorASO = "#8BE78B";
+                statusBgColorASO = theme.palette.success.main;
               } else if (expense.statusASO === "Programado") {
-                statusBgColorASO = "#F6F794";
-              } else if (expense.statusASO === "Atrasado") {
-                statusBgColorASO = "red";
+                statusBgColorASO = theme.palette.info.main;
+              } else if (expense.statusASO === "Pendente") {
+                statusBgColorASO = theme.palette.warning.main;
               } else if (expense.statusASO === "Cancelado") {
                 statusBgColorASO = "red";
               }
               
               let statusBgColorPayment = "";
               if (expense.statusPaymentTermination === "Realizado") {
-                statusBgColorPayment = "#8BE78B";
-              } else if (expense.statusPaymentTermination === "Agendado") {
-                statusBgColorPayment = "#F6F794";
-              } else if (expense.statusPaymentTermination === "Atrasada") {
-                statusBgColorPayment = "red";
-              } else if (expense.statusPaymentTermination === "Cancelada") {
+                statusBgColorPayment = theme.palette.success.main;
+              }  else if (expense.statusPaymentTermination === "Programado") {
+                statusBgColorPayment = theme.palette.info.main;
+              } else if (expense.statusPaymentTermination === "Pendente") {
+                statusBgColorPayment =  theme.palette.warning.main;
+              }
+              else if (expense.statusPaymentTermination === "Cancelado") {
                 statusBgColorPayment = "red";
               }
-
               return (
                 <TableRow key={expense._id}>
 
                   <TableCell align="center">
                     {expense?.employee?.name}
+                  </TableCell>
+
+                  <TableCell align="center">
+                    {expense?.placaMoto}
                   </TableCell>
 
                   <TableCell align="center">

@@ -47,11 +47,12 @@ export const fetchedEmployeesByCompany = async (companyName) => {
   };
   
   export const updateExpense = async (expenseData, id) => {
+    console.log(id)
     try {
       const response = await fetch(
         `${URL_LOCAL}expenses/vacation/${id}`,
         {
-          method: "PUT",
+          method: "PATCH",
           body: expenseData, // Passando o FormData diretamente como body
         }
       );
