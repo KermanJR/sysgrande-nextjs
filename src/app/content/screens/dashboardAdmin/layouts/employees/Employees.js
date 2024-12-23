@@ -147,7 +147,7 @@ export default function Employees() {
             (employee) => !employee.deletedAt
           );
           setEmployees(activeEmployees);
-          setFilteredEmployees(activeEmployees);
+          setFilteredEmployess(activeEmployees);
         } catch (error) {
           console.error("Erro ao carregar funcionários", error);
         } finally {
@@ -368,9 +368,6 @@ export default function Employees() {
               </TableCell>
              
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Equipe
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
                 Empresa
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
@@ -400,7 +397,6 @@ export default function Employees() {
               .map((employee) => (
                 <TableRow key={employee._id}>
                   <TableCell align="center">{employee?.name}</TableCell>
-                  <TableCell align="center">{employee?.codigoEquipe}</TableCell>
                   <TableCell align="center">{employee?.company}</TableCell>
                   <TableCell align="center">{employee?.position}</TableCell>
                   <TableCell align="center">{employee?.department}</TableCell>
@@ -436,7 +432,7 @@ export default function Employees() {
                   </TableCell>
                   <TableCell align="center">{employee?.rankings}</TableCell>
 
-                  {ranking.map((item, index) => (
+                  {employee?.rankings?.map((item, index) => (
         <Box key={index} style={{ marginBottom: '10px' }}>
           <Typography variant="h4">{`${item.mes} ${item.ano}`}</Typography>
           <Rating

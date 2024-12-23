@@ -212,6 +212,7 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
           <FormControl fullWidth margin="normal">
             <InputLabel>Funcionário</InputLabel>
             <Select
+            required={true}
               value={selectedEmployee}
               onChange={handleTypeChange}
             >
@@ -229,6 +230,7 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
             onChange={(e) => setTerminationDate(e.target.value)}
             fullWidth
             margin="normal"
+            required={true}
             InputLabelProps={{ shrink: true }}
           />
         </Box>
@@ -236,7 +238,7 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
         <Box sx={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
           <FormControl fullWidth margin="normal">
             <InputLabel>Motivo</InputLabel>
-            <Select value={reason} onChange={(e) => setReason(e.target.value)}>
+            <Select required={true} value={reason} onChange={(e) => setReason(e.target.value)}>
               <MenuItem value="Demissão sem justa causa">
                 Demissão sem justa causa
               </MenuItem>
@@ -255,7 +257,7 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
           </FormControl>
           <FormControl fullWidth margin="normal">
             <InputLabel>Status Envio Aviso</InputLabel>
-            <Select value={statusSendWarning} onChange={(e) => setStatusSendWarning(e.target.value)}>
+            <Select required={true} value={statusSendWarning} onChange={(e) => setStatusSendWarning(e.target.value)}>
             <MenuItem value="Programado">Programado</MenuItem>
               <MenuItem value="Realizado">Realizado</MenuItem>
               <MenuItem value="Pendente">Pendente</MenuItem>
@@ -267,7 +269,7 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
         <Box sx={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
           <FormControl fullWidth margin="normal">
             <InputLabel>Status ASO</InputLabel>
-            <Select value={statusASO} onChange={(e) => setStatusASO(e.target.value)}>
+            <Select required={true} value={statusASO} onChange={(e) => setStatusASO(e.target.value)}>
             <MenuItem value="Programado">Programado</MenuItem>
               <MenuItem value="Realizado">Realizado</MenuItem>
               <MenuItem value="Pendente">Pendente</MenuItem>
@@ -280,6 +282,7 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
           value={placaMoto}
           onChange={(e) => setPlacaMoto(e.target.value)}
           fullWidth
+          required={true}
           margin="normal"
           InputLabelProps={{ shrink: true }}
         />
@@ -288,6 +291,7 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
         <TextField
           label="Data do Pagamento Rescisão"
           type="date"
+          required={true}
           value={paymentDeadlineTermination}
           onChange={(e) => setPaymentDeadlineTermination(e.target.value)}
           fullWidth
@@ -298,7 +302,7 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
         <Box sx={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
           <FormControl fullWidth margin="normal">
             <InputLabel>Status Pagamento Rescisão</InputLabel>
-            <Select value={statusPaymentTermination} onChange={(e) => setStatusPaymentTermination(e.target.value)}>
+            <Select required={true} value={statusPaymentTermination} onChange={(e) => setStatusPaymentTermination(e.target.value)}>
               <MenuItem value="Programado">Programado</MenuItem>
               <MenuItem value="Realizado">Realizado</MenuItem>
               <MenuItem value="Pendente">Pendente</MenuItem>

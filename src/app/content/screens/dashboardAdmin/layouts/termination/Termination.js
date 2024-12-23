@@ -433,16 +433,16 @@ export default function Termination() {
                   </TableCell>
                 
                   <TableCell align="center">
-                    {expense?.employee?.codigoRegional?.nome}
+                    {expense?.employee?.codigoRegional?.name}
                   </TableCell>
 
                   <TableCell align="center">
-                    {expense?.employee?.codigoMunicipio?.nome}
+                    {expense?.employee?.codigoMunicipio?.name}
                   </TableCell>
 
 
                   <TableCell align="center">
-                    {expense?.employee?.codigoLocal?.nome}
+                    {expense?.employee?.codigoLocal?.name}
                   </TableCell>
 
                   <TableCell align="center">
