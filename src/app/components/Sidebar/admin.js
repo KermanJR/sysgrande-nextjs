@@ -14,18 +14,23 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import SpaceDashboardIcon from "@mui/icons-material/SpaceDashboard";
 import LogoSanegrande from "../../../../public/icons/logo-sanegrande.png";
 import LogoEnterHome from "../../../../public/icons/logo-enterhome.png";
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import GroupIcon from "@mui/icons-material/Group";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import Image from "next/image";
 import { useCompany } from "@/app/context/CompanyContext";
 import AuthContext from "@/app/context/AuthContext";
-import EventIcon from '@mui/icons-material/Event';
+import EventIcon from "@mui/icons-material/Event";
 import LogoutIcon from "@mui/icons-material/Logout";
-import DirectionsCarFilledIcon from '@mui/icons-material/DirectionsCarFilled';
-import TaskIcon from '@mui/icons-material/Task';
-import styles from './Sidebar.module.css'
+import DirectionsCarFilledIcon from "@mui/icons-material/DirectionsCarFilled";
+import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
+import InventoryOutlinedIcon from "@mui/icons-material/InventoryOutlined";
+import AssignmentTurnedInOutlinedIcon from "@mui/icons-material/AssignmentTurnedInOutlined";
+import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
+import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+import DirectionsCarFilledOutlinedIcon from "@mui/icons-material/DirectionsCarFilledOutlined";
 
 const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
   const theme = useTheme(); // Aqui acessamos o tema
@@ -85,7 +90,7 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
     alignItems: "center",
     color:
       selectedMenuItem === menuOption
-        ? theme.palette.grey[700]
+        ? theme.palette.primary.main
         : theme.palette.grey[500],
   });
 
@@ -123,7 +128,6 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
   return isMenuOpen ? (
     <Box
       color="primary.contrastText"
-     
       sx={{
         backgroundColor: theme.palette.background.paper,
         height: "auto",
@@ -134,14 +138,12 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
       }}
     >
       <Box
-      
         sx={{
           display: "flex",
           flexDirection: "row",
           alignItems: "center",
-          borderBottom: `1px solid ${theme.palette.grey[300]}`,
           padding: "1rem",
-          position: "sticky"
+          position: "sticky",
         }}
       >
         {company?.name == "Sanegrande" && (
@@ -191,9 +193,11 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
               border: "none", // Remove a borda no estado de foco
             },
-            fontSize: "1.2rem",
+            fontSize: "1.6rem",
             fontWeight: "600",
-            color: theme.palette.grey[600],
+            color: "#1E3932",
+            textTransform: "uppercase"
+            
           }}
         >
           {companies.map((comp) => (
@@ -204,12 +208,16 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
         </Select>
       </Box>
 
-      <Box sx={{padding: '.5rem 1rem', borderBottom: `1px solid ${theme.palette.grey[300]}`}}>
-         <Typography>
-                    Usuário: {user ? user.name : "Minha Conta"}
-                  </Typography>
-        </Box>
-      
+      <Box
+        sx={{
+          padding: ".5rem 1rem",
+          border: `1px solid ${theme.palette.grey[300]}`,
+          borderRadius: '7px'
+        }}
+      >
+        <Typography>Usuário: {user ? user.name : "Minha Conta"}</Typography>
+      </Box>
+
       <List>
         <ListItem
           button
@@ -220,7 +228,7 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
           }}
         >
           <Box style={getIconStyle("Início")}>
-            <SpaceDashboardIcon sx={{ width: "20px" }} />
+            <SpaceDashboardOutlinedIcon sx={{ width: "20px" }} />
           </Box>
           <ListItemText primary="Início" style={getTextStyle("Início")} />
         </ListItem>
@@ -235,7 +243,10 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
           <Box style={getIconStyle("Calendário")}>
             <EventIcon sx={{ width: "20px" }} />
           </Box>
-          <ListItemText primary="Calendário" style={getTextStyle("Calendário")} />
+          <ListItemText
+            primary="Calendário"
+            style={getTextStyle("Calendário")}
+          />
         </ListItem>
         <ListItem
           button
@@ -246,7 +257,7 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
           }}
         >
           <Box style={getIconStyle("Tarefas")}>
-            <TaskIcon sx={{ width: "20px" }} />
+            <AssignmentTurnedInOutlinedIcon sx={{ width: "20px" }} />
           </Box>
           <ListItemText primary="Tarefas" style={getTextStyle("Tarefas")} />
         </ListItem>
@@ -257,7 +268,7 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
           onClick={() => handleToggle()}
         >
           <Box style={getIconStyle("RecursosHumanos")}>
-            <GroupIcon sx={{ width: "20px" }} />
+            <PersonOutlineOutlinedIcon sx={{ width: "20px" }} />
           </Box>
           <ListItemText
             primary="Recursos Humanos"
@@ -269,8 +280,8 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
             <ExpandMore sx={{ fill: theme.palette.primary.main }} />
           )}
         </ListItem>
-         {/* Submenu */}
-         <Collapse in={open} timeout="auto" unmountOnExit>
+        {/* Submenu */}
+        <Collapse in={open} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             <ListItemButton
               style={{ paddingLeft: 55, color: theme.palette.text.primary }}
@@ -317,17 +328,16 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
             >
               <ListItemText primary="Funcionário" />
             </ListItemButton>
-            
           </List>
         </Collapse>
-      
+
         <ListItem
           button
           style={getListItemStyle("Financeiro")}
           onClick={() => handleToggle()}
         >
           <Box style={getIconStyle("Financeiro")}>
-            <GroupIcon sx={{ width: "20px" }} />
+            <AccountBalanceWalletOutlinedIcon sx={{ width: "20px" }} />
           </Box>
           <ListItemText
             primary="Financeiro"
@@ -390,14 +400,11 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
           }}
         >
           <Box style={getIconStyle("Compras")}>
-            <ShoppingCartIcon sx={{ width: "20px" }} />
+            <ShoppingCartOutlinedIcon sx={{ width: "20px" }} />
           </Box>
-          <ListItemText
-            primary="Compras"
-            style={getTextStyle("Compras")}
-          />
+          <ListItemText primary="Compras" style={getTextStyle("Compras")} />
         </ListItem>
-        
+
         <ListItem
           button
           style={getListItemStyle("Veículos")}
@@ -407,12 +414,9 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
           }}
         >
           <Box style={getIconStyle("Veículos")}>
-            <DirectionsCarFilledIcon sx={{ width: "20px" }} />
+            <DirectionsCarFilledOutlinedIcon sx={{ width: "20px" }} />
           </Box>
-          <ListItemText
-            primary="Veículos"
-            style={getTextStyle("Veículos")}
-          />
+          <ListItemText primary="Veículos" style={getTextStyle("Veículos")} />
         </ListItem>
         <ListItem
           button
@@ -423,7 +427,7 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
           }}
         >
           <Box style={getIconStyle("Inventário")}>
-            <InventoryIcon sx={{ width: "20px" }} />
+            <InventoryOutlinedIcon sx={{ width: "20px" }} />
           </Box>
           <ListItemText
             primary="Inventário"

@@ -7,12 +7,32 @@
 }
 
 .sidebar {
-    width: 300px; /* Largura fixa para o sidebar */
-    min-width: 250px;
-    background-color: #f4f4f4; /* Cor de fundo para diferenciar */
+    width: 320px; /* Largura fixa para o sidebar */
+    min-width: 280px;
+    background-color: #ffffff; /* Cor de fundo para diferenciar */
     height: auto; /* Ocupar toda a altura */
     overflow-y: auto; /* Permitir rolagem caso o conteúdo seja longo */
 }
+
+.sidebar::-webkit-scrollbar {
+    width: 4px; 
+    height: 20px;
+    background-color: rgb(212, 212, 212);
+}
+
+ 
+.sidebar::-webkit-scrollbar-thumb {
+    background-color: #3A8DFF; 
+    border-radius: 9px; 
+    height: 20px;
+}
+  
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background-color: white; /* cor de fundo do botão ao passar o mouse */
+}
+  
+
 
 .content {
     flex: 1; /* Ocupar todo o espaço restante */

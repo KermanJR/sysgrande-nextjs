@@ -8,10 +8,11 @@ import Inventory from "./layouts/Inventory/Inventory";
 import Finances from "./layouts/humansrec/HumansRec";
 import Employees from "./layouts/employees/Employees";
 import Termination from "./layouts/termination/Termination";
-import Tasks from "./layouts/Tasks/Tasks";
+import { UserProfile } from "@/app/components/UserProfileIcon";
 import TaskBoard from "./layouts/Tasks/Tasks";
 import HumansRec from "./layouts/humansrec/HumansRec";
 import VacancyCheck from "./layouts/vacancyCheck/VacancyCheck";
+import NotificationBadge from "@/app/components/Notification";
 
 export default function ScreenDashboardAdmin() {
   const [selectedComponent, setSelectedComponent] = useState("init");
@@ -46,6 +47,7 @@ export default function ScreenDashboardAdmin() {
       
       {/* Content */}
       <Box className={styles.content}>
+       <NotificationBadge/>
         {components[selectedComponent] ? (
           components[selectedComponent]
         ) : (
