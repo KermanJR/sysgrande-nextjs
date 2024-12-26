@@ -4,6 +4,8 @@ import Cookies from 'js-cookie';
 import { CompanyProvider, useCompany } from './CompanyContext'; // Importando o contexto de empresa
 
 const URL = 'https://sysgrande-nodejs.onrender.com/api/'
+const URL_LOCAL = 'http://localhost:5000/api/'
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -26,7 +28,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserDetails = async (userId, token) => {
     try {
-      const response = await fetch(`${URL}user/${userId}`, {
+      const response = await fetch(`${URL_LOCAL}user/${userId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

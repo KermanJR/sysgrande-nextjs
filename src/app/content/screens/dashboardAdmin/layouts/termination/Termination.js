@@ -14,7 +14,8 @@ import {
   Typography,
   Tooltip,
 } from "@mui/material";
-
+import ArticleIcon from "@mui/icons-material/Article";
+import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
@@ -131,10 +132,8 @@ export default function Termination() {
       const loadExpenses = async () => {
         const expensesData = await fetchedExpensesByCompany(company.name);
         setExpenses(expensesData);
-        console.log(expensesData)
         // Filtra despesas com type == "Termination"
         const filtered = expensesData.filter(expense => expense.type == "Termination");
-        console.log(filtered)
         setFilteredExpenses(filtered);
       };
   
@@ -155,7 +154,6 @@ export default function Termination() {
   };
 
   const handleOpenPlanModal = (expense) => {
-    console.log(expense);
     setCurrentExpense(expense);
     setIsPlanModalOpen(true);
   };
@@ -170,9 +168,6 @@ export default function Termination() {
     setIsReportModalOpen(false);
   };
 
-  const handleFileChange = (e) => {
-    setNewExpense((prev) => ({ ...prev, attachment: e.target.files[0] }));
-  };
 
   const handleSaveExpense = (updatedExpense) => {
     setExpenses((prevExpenses) =>
@@ -200,6 +195,16 @@ export default function Termination() {
     const year = date.getFullYear(); // Obtém o ano completo
     return `${day}/${month}/${year}`; // Retorna no formato dd/mm/aaaa
   }
+
+
+  const buttonStyles = {
+    backgroundColor: "#3A8DFF",
+    color: "#ffffff",
+    borderRadius: '8px',
+    "&:hover": {
+      backgroundColor: "#3A8DFF",
+    },
+  };
 
   const generatePdf = () => {
     const doc = new jsPDF();
@@ -236,6 +241,8 @@ export default function Termination() {
       "Criado por",
     ];
 
+
+    
     const tableRows = [];
 
     // Preencher as linhas da tabela
@@ -284,9 +291,9 @@ export default function Termination() {
     <Box className={styles.plans}>
       <Box
         sx={{
-          border: "1px solid #d9d9d9",
-          borderRadius: "10px",
-          padding: ".5rem",
+          borderBottom: "1px solid #d9d9d9",
+          padding: ".0",
+          marginTop: "-1rem",
         }}
       >
         <Typography
@@ -303,7 +310,7 @@ export default function Termination() {
             fontSize: ".875rem",
           }}
         >
-          Gerencie as rescisões de seus funcionários
+          Gerencie as rescisões dos funcionários da <Typography variant="p" sx={{fontWeight: 'bold'}}>{company?.name}</Typography>
         </Typography>
       </Box>
 
@@ -311,34 +318,29 @@ export default function Termination() {
 
         className={styles.plans__table__container}
       >
-        <Box className={styles.plans__table__actions_download_new}>
-          <Button
-            variant="contained"
-            style={{ background: "#fff", color: "black", borderRadius: "2px" }}
-            className={styles.plans__search__input}
-            onClick={generatePdf}
-          >
-            <DescriptionIcon  sx={{color: '#0F548C', width: '20px'}}/>
-            Gerar Relatório
-          </Button>
-          <Button
-            variant="contained"
-            style={{ background: "#fff", color: "#000", borderRadius: "2px" }}
-            className={styles.plans__search__input}
-            onClick={() => handleOpenPlanModal()}
-          >
-            <AddCircleIcon  sx={{color: '#0F548C', width: '20px'}}/>
-            Novo Item
-          </Button>
-        </Box>
+           <Box display="flex" gap={2} p={2}>
+            <Button
+              variant="contained"
+              sx={buttonStyles}
+              onClick={generatePdf}
+              startIcon={<ArticleIcon />}
+            >
+              Gerar Relatório
+            </Button>
+            <Button
+              variant="contained"
+              sx={buttonStyles}
+              onClick={handleOpenPlanModal}
+              startIcon={<AddIcon />}
+            >
+              Nova Rescisão
+            </Button>
+          </Box>
         <Table className={styles.plans__table}>
           <TableHead>
             <TableRow>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
                 Funcionário
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Placa Moto
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
                 Data Demissão
@@ -419,9 +421,6 @@ export default function Termination() {
                     {expense?.employee?.name}
                   </TableCell>
 
-                  <TableCell align="center">
-                    {expense?.placaMoto}
-                  </TableCell>
 
                   <TableCell align="center">
                     {formatDate(expense?.terminationDate)}
@@ -459,6 +458,8 @@ export default function Termination() {
                         backgroundColor: statusBgColorPayment,
                         borderRadius: "8px",
                         padding: ".28rem",
+                        width:'90px',
+                        margin: '0 auto',
                         color: statusBgColorPayment === "#F6F794" ? "black" : "white",
                       }}
                     >
@@ -492,9 +493,6 @@ export default function Termination() {
                     </Box>
                   </TableCell>
 
-                  
-
-                
 
                   <TableCell align="center">
                     {expense.attachment ? (
@@ -561,7 +559,7 @@ export default function Termination() {
         open={isPlanModalOpen}
         onClose={handleClosePlanModal}
         onSave={handleSaveExpense}
-        item={currentExpense}
+        item={selectedExpense}
       />
 
       {/* Modal para gerar relatório */}

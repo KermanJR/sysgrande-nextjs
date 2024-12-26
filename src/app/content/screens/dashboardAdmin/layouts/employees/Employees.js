@@ -18,7 +18,7 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
-  Rating,
+  Stack,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
@@ -29,22 +29,21 @@ import LastPageIcon from "@mui/icons-material/LastPage";
 import ArticleIcon from "@mui/icons-material/Article";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
-import { Toaster } from "react-hot-toast";
+import { CircularProgress } from '@mui/material';
 import AddIcon from "@mui/icons-material/Add";
-import PlanModal from "@/app/components/Modal/Admin/InventoryModal";
+import FilterListIcon from "@mui/icons-material/FilterList";
 import ReportModal from "@/app/components/Modal/Admin/ReportModal";
 import {
-  fetchedExpenses,
-  deleteExpenseById,
   fetchedEmployeesByCompany,
   deleteEmployeeById,
 } from "./API";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import styles from "./Employees.module.css";
-import ExpenseModal from "@/app/components/Modal/Admin/CreateFinances";
 import { useCompany } from "@/app/context/CompanyContext";
 import EmployeeModal from "@/app/components/Modal/Admin/ModalEmployee";
+import DeleteConfirmationModal from "@/app/components/DeleteConfirmationModal";
+import { EmployeeDetailView } from "@/app/components/DetailsUser";
 
 function TablePaginationActions(props) {
   const theme = useTheme();
@@ -113,7 +112,7 @@ export default function Employees() {
   const [rowsPerPage, setRowsPerPage] = useState(4);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const [currentExpense, setCurrentExpense] = useState([]);
+  const [currentEmployee, setCurrentEmployee] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [filteredEmployess, setFilteredEmployess] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState("");
@@ -125,22 +124,41 @@ export default function Employees() {
     status: "",
     attachment: null,
   });
-  const [isLoading, setIsLoading] = useState(true); // Estado para controlar o loading
+  const [isLoading, setIsLoading] = useState(true);
+  const { company } = useCompany();
 
-  const { company } = useCompany(); // Acessando a empresa selecionada do contexto
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, "0"); // Adiciona 0 à esquerda, se necessário
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Meses começam em 0
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+  const handleDeleteClick = (e, employee) => {
+    e.stopPropagation();
+    setEmployeeToDelete(employee);
+    setIsDeleteModalOpen(true);
   };
+
+  const buttonStyles = {
+    backgroundColor: "#3A8DFF",
+    color: "#ffffff",
+    borderRadius: '8px',
+    "&:hover": {
+      backgroundColor: "#3A8DFF",
+    },
+  };
+
+  // New state for enhanced features
+  const [advancedFilters, setAdvancedFilters] = useState({
+    department: "",
+    position: "",
+    status: "",
+    location: "",
+  });
+  const [viewMode, setViewMode] = useState("list");
+
 
   useEffect(() => {
     if (company) {
       const loadEmployees = async () => {
-        setIsLoading(true); // Ativa o loading
+        setIsLoading(true);
         try {
           const employeesData = await fetchedEmployeesByCompany(company.name);
           const activeEmployees = employeesData.filter(
@@ -151,12 +169,12 @@ export default function Employees() {
         } catch (error) {
           console.error("Erro ao carregar funcionários", error);
         } finally {
-          setIsLoading(false); // Desativa o loading após a requisição
+          setIsLoading(false);
         }
       };
       loadEmployees();
     }
-  }, [company]);
+  }, [company, currentEmployee]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -168,51 +186,28 @@ export default function Employees() {
   };
 
   const handleOpenPlanModal = (expense) => {
-    console.log(expense);
-    setCurrentExpense(expense);
+    setCurrentEmployee(expense);
     setIsPlanModalOpen(true);
   };
 
   const handleClosePlanModal = () => {
     setIsPlanModalOpen(false);
-    setCurrentExpense(null);
-  };
-
-  const handleOpenReportModal = () => {
-    setIsReportModalOpen(true);
+    setCurrentEmployee(null);
   };
 
   const handleCloseReportModal = () => {
     setIsReportModalOpen(false);
   };
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewExpense((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e) => {
-    setNewExpense((prev) => ({ ...prev, attachment: e.target.files[0] }));
-  };
 
   const handleSaveExpense = () => {
-    setPlans((prev) => [...prev, newExpense]);
-    setNewExpense({
-      type: "",
-      description: "",
-      eventDate: "",
-      paymentDate: "",
-      status: "",
-      attachment: null,
-    });
+    setEmployees((prev) => [...prev, newEmployee]);
   };
 
   const handleDeleteEmployee = async (id) => {
     const deleted = await deleteEmployeeById(id);
     if (deleted) {
-      // Recarrega os funcionários após a exclusão
       const loadEmployees = async () => {
-        const employeesData = await fetchedEmployeesByCompany(company.name); // Passe o nome da empresa
-        // Filtra os funcionários que não têm a data de exclusão (soft delete)
+        const employeesData = await fetchedEmployeesByCompany(company.name);
         const activeEmployees = employeesData.filter(
           (employee) => !employee.deletedAt
         );
@@ -227,96 +222,167 @@ export default function Employees() {
     }
   };
 
+  // New functions for enhanced features
+  const handleAdvancedFilter = () => {
+    const filtered = employees.filter((emp) => {
+      return (
+        (!advancedFilters.department ||
+          emp.department === advancedFilters.department) &&
+        (!advancedFilters.position ||
+          emp.position === advancedFilters.position) &&
+        (!advancedFilters.status || emp.status === advancedFilters.status) &&
+        (!advancedFilters.location ||
+          emp.codigoLocal?.name === advancedFilters.location)
+      );
+    });
+    setFilteredEmployess(filtered);
+  };
+
+  const handleViewEmployeeDetails = (employee) => {
+    setSelectedEmployee(employee);
+    setViewMode("detail");
+  };
+
   const generatePdf = () => {
     const doc = new jsPDF();
-
-    // Obter a data e hora atual no formato desejado
     const now = new Date();
     const reportDate = `${now.toLocaleDateString(
       "pt-BR"
     )} ${now.toLocaleTimeString("pt-BR")}`;
 
-    // Título principal
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
-    doc.text("Relatório Financeiro", 10, 10);
+    doc.text("Relatório Funcionários", 10, 10);
 
-    // Nome da empresa
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
     doc.text(`Empresa: ${company.name}`, 10, 20);
 
-    // Data e hora de geração do relatório
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.text(`Gerado em: ${reportDate}`, 10, 30);
 
-    // Colunas do relatório
     const tableColumn = [
-      "Tipo",
-      "Descrição",
-      "Data Evento",
-      "Data Pagamento",
-      "Valor",
-      "Forma Pag.",
-      "Situação",
-      "Criado por",
+      "Nome",
+      "Equipe",
+      "Telefone",
+      "Regional",
+      "Município",
+      "Localidade",
+      "Placa Moto",
+      "Departamento",
+      "Cargo",
+      "Status",
     ];
 
-    const tableRows = [];
+    const tableRows = filteredEmployess.map((emp) => [
+      `${emp.name} ${emp.surname}`,
+      emp.codigoEquipe,
+      emp.phone,
+      emp.codigoRegional?.name,
+      emp.codigoMunicipio?.name,
+      emp.codigoLocal?.name,
+      emp.placaMoto,
+      emp.department,
+      emp.position,
+      emp.status,
+    ]);
 
-    // Preencher as linhas da tabela
-    filteredEmployess.forEach((expense) => {
-      const planData = [
-        expense?.type,
-        expense?.description || "-",
-        formatDateToDDMMYYYY(expense?.eventDate),
-        formatDateToDDMMYYYY(expense?.paymentDate),
-        expense?.amount.toLocaleString("pt-br", {
-          style: "currency",
-          currency: "BRL",
-        }),
-        expense?.paymentMethod,
-        expense?.status,
-        expense?.createdBy,
-      ];
-      tableRows.push(planData);
-    });
-
-    // Calcular o total da coluna "Valor"
-    const totalAmount = filteredEmployess?.reduce(
-      (sum, expense) => sum + expense.amount,
-      0
-    );
-
-    // Gera a tabela no PDF
     doc.autoTable(tableColumn, tableRows, { startY: 40 });
-
-    // Adicionar o total ao final
-    const finalY = doc.lastAutoTable.finalY + 10; // Posição logo abaixo da tabela
-    doc.setFont("helvetica", "bold");
-    doc.text(
-      `Total: ${totalAmount.toLocaleString("pt-br", {
-        style: "currency",
-        currency: "BRL",
-      })}`,
-      10,
-      finalY
-    );
-
-    // Salva o PDF com o nome especificado
-    doc.save("relatorio_itens.pdf");
+    doc.save("relatorio_funcionarios.pdf");
   };
 
-  console.log(employees);
+  // Advanced Filters Section
+  const AdvancedFiltersSection = () => (
+    <Box
+      sx={{
+        mb: 2,
+        mt: 4,
+        bgcolor: "background.paper",
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "right",
+      }}
+    >
+      <Stack direction="row" spacing={2}>
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>Departamento</InputLabel>
+          <Select
+            value={advancedFilters.department}
+            onChange={(e) =>
+              setAdvancedFilters({
+                ...advancedFilters,
+                department: e.target.value,
+              })
+            }
+          >
+            <MenuItem value="">Todos</MenuItem>
+            {Array.from(new Set(employees.map((emp) => emp.department))).map(
+              (dept) => (
+                <MenuItem key={dept} value={dept}>
+                  {dept}
+                </MenuItem>
+              )
+            )}
+          </Select>
+        </FormControl>
+
+        <FormControl sx={{ minWidth: 120 }}>
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={advancedFilters.status}
+            onChange={(e) =>
+              setAdvancedFilters({ ...advancedFilters, status: e.target.value })
+            }
+          >
+            <MenuItem value="">Todos</MenuItem>
+            <MenuItem value="Ativo">Ativo</MenuItem>
+            <MenuItem value="Inativo">Inativo</MenuItem>
+            <MenuItem value="Afastado">Afastado</MenuItem>
+          </Select>
+        </FormControl>
+
+        <FormControl sx={{ minWidth: 120 }}>
+          <InputLabel>Regional</InputLabel>
+          <Select
+            value={advancedFilters.location}
+            onChange={(e) =>
+              setAdvancedFilters({
+                ...advancedFilters,
+                location: e.target.value,
+              })
+            }
+          >
+            <MenuItem value="">Todas</MenuItem>
+            {Array.from(
+              new Set(employees.map((emp) => emp.codigoRegional?.name))
+            ).map((location) => (
+              <MenuItem key={location} value={location}>
+                {location}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <Button
+          variant="contained"
+          startIcon={<FilterListIcon />}
+          onClick={handleAdvancedFilter}
+        >
+          Aplicar Filtros
+        </Button>
+      </Stack>
+    </Box>
+  );
 
   return (
     <Box className={styles.plans}>
       <Box
         sx={{
-          border: "1px solid #d9d9d9",
-          borderRadius: "10px",
-          padding: ".5rem",
+          borderBottom: "1px solid #d9d9d9",
+          borderRadius: "0",
+          padding: ".0",
+          marginTop: "-1rem",
         }}
       >
         <Typography
@@ -333,174 +399,237 @@ export default function Employees() {
             fontSize: ".875rem",
           }}
         >
-          Gerencie todos os funcionários da sua empresa
+          Gerencie todos os funcionários da <Typography variant="p" fontWeight={'bold'}> {company?.name}</Typography>
         </Typography>
       </Box>
 
-     
+      {/* Add Advanced Filters */}
+      <AdvancedFiltersSection />
 
-      <TableContainer className={styles.plans__table__container}>
-        <Box className={styles.plans__table__actions_download_new}>
-          <Button
-            variant="contained"
-            style={{ background: "#fff", color: "black", borderRadius: "2px" }}
-            className={styles.plans__search__input}
-            onClick={generatePdf}
-          >
-            <ArticleIcon />
-            Gerar Relatório
-          </Button>
-          <Button
-            variant="contained"
-            style={{ background: "#fff", color: "#000", borderRadius: "2px" }}
-            className={styles.plans__search__input}
-            onClick={() => handleOpenPlanModal()}
-          >
-            <AddIcon />
-            Novo Item
-          </Button>
-        </Box>
-        <Table className={styles.plans__table}>
-          <TableHead>
-            <TableRow>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Nome
-              </TableCell>
-             
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Empresa
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Cargo
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Departamento
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Status
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Avaliação
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                Ações
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          
-          <TableBody>
-            
-            {employees
-              ?.filter(
-                (employee) => employee?.codigoRegional && employee?.codigoLocal
-              )
-              .map((employee) => (
-                <TableRow key={employee._id}>
-                  <TableCell align="center">{employee?.name}</TableCell>
-                  <TableCell align="center">{employee?.company}</TableCell>
-                  <TableCell align="center">{employee?.position}</TableCell>
-                  <TableCell align="center">{employee?.department}</TableCell>
-                  
-
-                 
-                  <TableCell align="center">
-                    <Box
-                      style={{
-                        backgroundColor: (() => {
-                          switch (employee?.status) {
-                            case "Ativo":
-                              return "#C8E6C9"; // Verde claro
-                            case "Inativo":
-                              return "#FFCDD2"; // Vermelho claro
-                            case "Afastado":
-                              return "#BBDEFB"; // Azul claro
-                            default:
-                              return "#FFFFFF"; // Branco, caso não tenha status
-                          }
-                        })(),
-                        color: "#000", // Cor do texto para garantir contraste
-                        height: "35px",
-                        borderRadius: "9px",
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {employee?.status}
-                    </Box>
-                  </TableCell>
-                  <TableCell align="center">{employee?.rankings}</TableCell>
-
-                  {employee?.rankings?.map((item, index) => (
-        <Box key={index} style={{ marginBottom: '10px' }}>
-          <Typography variant="h4">{`${item.mes} ${item.ano}`}</Typography>
-          <Rating
-            name={`avaliacao-${index}`}
-            value={item.nota / 2} // O componente Rating do MUI vai de 0 a 5 estrelas
-            precision={0.5} // Para uma precisão de meia estrela
-            readOnly // Torna as estrelas somente leitura (apenas para exibição)
-          />
-          <Typography variant="p">{item.observacao}</Typography>
-        </Box>
-      ))}
-                  <TableCell align="center">
-                    <Box className={styles.plans__table__actions}>
-                      <Tooltip title="Editar Item">
-                        <span>
-                          <FaEdit
-                            style={{ cursor: "pointer" }}
-                            onClick={() => handleOpenPlanModal(employee)} // Passando 'employee' ao invés de 'expense'
-                          />
-                        </span>
-                      </Tooltip>
-                      <Tooltip title="Excluir">
-                        <span>
-                          <FaTrash
-                            style={{ cursor: "pointer" }}
-                            color="red"
-                            onClick={() => handleDeleteEmployee(employee._id)} // Corrigido para 'employee._id'
-                          />
-                        </span>
-                      </Tooltip>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TablePagination
-                rowsPerPageOptions={[5, 10, 25, { label: "Todos", value: -1 }]}
-                colSpan={5}
-                count={filteredEmployess.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                slotProps={{
-                  select: {
-                    inputProps: {
-                      "aria-label": "Linhas por página",
+      {viewMode === "list" ? (
+        <TableContainer className={styles.plans__table__container}>
+          <Box display="flex" gap={2} p={2}>
+            <Button
+              variant="contained"
+              sx={buttonStyles}
+              onClick={generatePdf}
+              startIcon={<ArticleIcon />}
+            >
+              Gerar Relatório
+            </Button>
+            <Button
+              variant="contained"
+              sx={buttonStyles}
+              onClick={handleOpenPlanModal}
+              startIcon={<AddIcon />}
+            >
+              Novo Funcionário
+            </Button>
+          </Box>
+          <Table className={styles.plans__table}>
+            <TableHead>
+              <TableRow>
+                <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                  Nome
+                </TableCell>
+                <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                  Equipe
+                </TableCell>
+                <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                  Telefone
+                </TableCell>
+                <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                  Regional
+                </TableCell>
+                <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                  Município
+                </TableCell>
+                <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                  Localidade
+                </TableCell>
+                <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                  Placa Moto
+                </TableCell>
+                <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                  Departamento
+                </TableCell>
+                <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                  Cargo
+                </TableCell>
+                <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                  Status
+                </TableCell>
+                <TableCell align="center" sx={{ fontWeight: "bold" }}>
+                  Ações
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {!isLoading ? filteredEmployess
+                ?.filter(
+                  (employee) =>
+                    employee?.codigoRegional && employee?.codigoLocal
+                )
+                .map((employee) => (
+                  <TableRow
+                    key={employee._id}
+                    onClick={() => handleViewEmployeeDetails(employee)}
+                    sx={{
+                      cursor: "pointer",
+                      "&:hover": { bgcolor: "action.hover" },
+                    }}
+                  >
+                    <TableCell align="center">
+                      {employee?.name} {employee?.surname}
+                    </TableCell>
+                    <TableCell align="center">
+                      {employee?.codigoEquipe}
+                    </TableCell>
+                    <TableCell align="center">{employee?.phone}</TableCell>
+                    <TableCell align="center">
+                      {employee?.codigoRegional?.name}
+                    </TableCell>
+                    <TableCell align="center">
+                      {employee?.codigoMunicipio?.name}
+                    </TableCell>
+                    <TableCell align="center">
+                      {employee?.codigoLocal?.name}
+                    </TableCell>
+                    <TableCell align="center">{employee?.placaMoto}</TableCell>
+                    <TableCell align="center">{employee?.department}</TableCell>
+                    <TableCell align="center">{employee?.position}</TableCell>
+                    <TableCell align="center">
+                      <Box
+                        style={{
+                          backgroundColor: (() => {
+                            switch (employee?.status) {
+                              case "Ativo":
+                                return "#C8E6C9";
+                              case "Inativo":
+                                return "#FFCDD2";
+                              case "Afastado":
+                                return "#FBBC04";
+                              default:
+                                return "#FFFFFF";
+                            }
+                          })(),
+                          color: "#000",
+                          height: "35px",
+                          borderRadius: "9px",
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        {employee?.status}
+                      </Box>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Box className={styles.plans__table__actions}>
+                        <Tooltip title="Editar Funcionário">
+                          <span>
+                            <FaEdit
+                              style={{ cursor: "pointer" }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenPlanModal(employee);
+                              }}
+                            />
+                          </span>
+                        </Tooltip>
+                        <Tooltip title="Excluir">
+                          <span>
+                            <FaTrash
+                              style={{ cursor: "pointer" }}
+                              color="red"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(e, employee);
+                              }}
+                            />
+                          </span>
+                        </Tooltip>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                )) : <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: 100,
+                    height: '400px',
+                   
+                  }}
+                >
+                <CircularProgress
+                  size={30}
+                  thickness={5}
+                  sx={{// use a cor que combina com seu tema
+                  }}
+                />
+              </Box>}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TablePagination
+                  rowsPerPageOptions={[
+                    5,
+                    10,
+                    25,
+                    { label: "Todos", value: -1 },
+                  ]}
+                  colSpan={11}
+                  count={filteredEmployess.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  slotProps={{
+                    select: {
+                      inputProps: {
+                        "aria-label": "Linhas por página",
+                      },
+                      native: true,
                     },
-                    native: true,
-                  },
-                }}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                ActionsComponent={TablePaginationActions}
-              />
-            </TableRow>
-          </TableFooter>
-        </Table>
-      </TableContainer>
-      {/* Modal para criar ou editar plano */}
+                  }}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  ActionsComponent={TablePaginationActions}
+                />
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </TableContainer>
+      ) : (
+        <Box sx={{ mt: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={() => setViewMode("list")}
+            sx={{ mb: 2 }}
+          >
+            Voltar para lista
+          </Button>
+          <EmployeeDetailView employee={selectedEmployee} />
+        </Box>
+      )}
+
       <EmployeeModal
         open={isPlanModalOpen}
         onClose={handleClosePlanModal}
         onSave={handleSaveExpense}
-        item={currentExpense}
+        employee={currentEmployee}
       />
 
-      {/* Modal para gerar relatório */}
+      <DeleteConfirmationModal
+        open={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setEmployeeToDelete(null);
+        }}
+        onConfirm={() => handleDeleteEmployee(employeeToDelete._id)}
+        employeeName={`${employeeToDelete?.name} ${employeeToDelete?.surname}`}
+      />
+
       <ReportModal open={isReportModalOpen} onClose={handleCloseReportModal} />
     </Box>
   );

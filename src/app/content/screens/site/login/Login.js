@@ -17,6 +17,7 @@ const Ms = Montserrat({
   });
 
 const URL = 'https://sysgrande-nodejs.onrender.com/api/'
+const URL_LOCAL = 'http://localhost:5000/api/'
   
 
 const LoginPage = () => {
@@ -59,7 +60,7 @@ const LoginPage = () => {
     const handleLogin = async (e) => {
         e.preventDefault()
         try {
-            const response = await fetch(`${URL}login`, {
+            const response = await fetch(`${URL_LOCAL}login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

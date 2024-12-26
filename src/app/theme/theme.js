@@ -1,10 +1,10 @@
 import React from "react";
 import { ThemeProvider, createTheme } from "@mui/material";
-import { Montserrat } from "next/font/google"; // Usando a fonte Montserrat
+import { Kanit } from "next/font/google"; // Usando a fonte Montserrat
 import colors from "./color"; // Importando as cores definidas
 
 // Configuração da fonte Montserrat
-const montserrat = Montserrat({
+const montserrat = Kanit({
   weight: ["300", "400", "700"],
   subsets: ["latin"],
 });

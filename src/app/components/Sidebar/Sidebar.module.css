@@ -1,9 +1,3 @@
-.sidebar{
-    background-color: white;
-    padding: 0rem .4rem;
-    z-index: 100;
-    transition: width 0.3s ease;
-}
 
 .menu__hamburguer{
     width: 25px;
@@ -33,7 +27,7 @@
 }
 
 .icon__text{
-    color: #000000;
+    color: #ffffff;
     margin-left: .5rem;
 }
 
