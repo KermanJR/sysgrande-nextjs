@@ -1,9 +1,11 @@
 .plans{
     margin: 0 auto;
     height: auto;
-    overflow-y: hidden;
+    overflow-y: none;
     padding: 2rem;
     overflow-x: hidden;
+    overflow-y: none;
+    border-radius: 8px;
 }
 
 .plans__table{
@@ -46,4 +48,20 @@
     height: 35px;
 }
 
+.scrollColumn::-webkit-scrollbar {
+    width: 5px; 
+    background-color: rgb(212, 212, 212);
+}
+
+ 
+.scrollColumn::-webkit-scrollbar-thumb {
+    background-color: rgb(99, 103, 107); 
+    border-radius: 4px; 
+}
+  
+
+.scrollColumn::-webkit-scrollbar-thumb:hover {
+    background-color: white; /* cor de fundo do botão ao passar o mouse */
+}
+  
   

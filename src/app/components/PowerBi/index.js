@@ -3,14 +3,14 @@ import { Box, Typography, Card } from '@mui/material';
 
 const PowerBIEmbed = ({ title, width, height, src }) => {
   return (
-    <Card sx={{boxShadow: 3, width: '100%', height: "420px", borderRadius: '8px'}}>
+    <Card sx={{boxShadow: 3, width: '40%', height: "350px", borderRadius: '0'}}>
       <Box
         sx={{
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           border: '1px solid #ddd',
-          borderRadius: 2,
+          borderRadius: 0,
           overflow: 'hidden',
         }}
       >

@@ -34,6 +34,6 @@
     flex: 1; /* Ocupar todo o espaço restante */
     background-color: white;
     padding: 16px; /* Espaço interno */
-    overflow-y: auto; /* Caso o conteúdo precise rolar */
+    overflow-y: hidden; /* Caso o conteúdo precise rolar */
     height: 100%;
 }

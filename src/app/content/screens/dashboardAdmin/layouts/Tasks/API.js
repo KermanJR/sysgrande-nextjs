@@ -44,10 +44,11 @@ export const createTasks = async (task) => {
 export const updateTasks = async (task, id) => {
   try {
     const response = await fetch(`${URL_LOCAL}tasks/${id}`, { 
-      method: 'PUT',
+      method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify(task), 
     });
     if (!response.ok) {
       throw new Error('Erro ao atualizar tarefa');
@@ -57,6 +58,27 @@ export const updateTasks = async (task, id) => {
   } catch (error) {
     console.error('Erro:', error);
     return [];
+  }
+};
+
+// API.js
+export const updateTaskStatus = async (taskId, newStatus) => {
+  try {
+    const response = await fetch(`${URL_LOCAL}tasks/${taskId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: newStatus }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao atualizar status');
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw error;
   }
 };
 

@@ -6,6 +6,7 @@ import {
 import styles from "./Init.module.css";
 import { useContext } from "react";
 import AuthContext from "@/app/context/AuthContext";
+import PowerBIEmbed from "@/app/components/PowerBi";
 export default function Init() {
 
   const { user, logout } = useContext(AuthContext);
@@ -46,6 +47,14 @@ export default function Init() {
       <Typography sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Olá, {user?.name} !</Typography>
     </Box>
   </Box>
+  <Box sx={{
+    display: 'flex',
+    flexDirection: 'row',
+    marginTop: '1.5rem'
+  }}>
+ <PowerBIEmbed src={'https://app.powerbi.com/reportEmbed?reportId=f404ec3e-8c21-4f67-876d-28b6fcb79e7b&autoAuth=true&ctid=06738f6b-6721-49b2-908b-ddeed51824ff'}/>
+  </Box>
+ 
 </Box>
 
   );
