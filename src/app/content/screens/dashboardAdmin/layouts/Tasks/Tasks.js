@@ -1,7 +1,7 @@
-// Updated TaskBoard.js
+
 import React, { useContext, useEffect, useState } from "react";
 import { DragDropContext } from "react-beautiful-dnd";
-import { Box, Paper, Typography, useTheme } from "@mui/material";
+import { Box, Paper} from "@mui/material";
 import styles from "./Tasks.module.css";
 import {
   createTasks,
@@ -16,11 +16,13 @@ import { useCompany } from "@/app/context/CompanyContext";
 import TaskModal from "../../../../../components/Modal/Admin/ModalTasks/index";
 import { TaskColumn } from "./TaskColumn";
 import AssignUserDialog from "./AssignUserTaks";
-
+import TitleDashboardComponent from "@/app/components/TitleDashboardComponent/TitleDashboardComponent";
+import { theme } from "@/app/theme";
+import HeaderDashboard from "@/app/components/HeaderDashboard";
 export default function TaskBoard() {
   const { company } = useCompany();
   const { user } = useContext(AuthContext);
-  const theme = useTheme();
+ 
 
   // States
   const [newTaskDialog, setNewTaskDialog] = useState(false);
@@ -39,59 +41,65 @@ export default function TaskBoard() {
     company: "",
   });
 
-  // Column state
-  const [columns, setColumns] = useState({
+   // Updated columns with new styling
+   const [columns, setColumns] = useState({
     todo: {
-      name: "À Fazer",
+      name: "Pendente",
       tasks: [],
-      color: "#e3f2fd",
+      color: theme.palette.primary.dark,
+      icon: "🎯"
     },
     inProgress: {
-      name: "Fazendo",
+      name: "Em Progresso",
       tasks: [],
-      color: "#fff3e0",
+      color: theme.palette.warning.main,
+      icon: "⚡"
     },
     review: {
       name: "Em Revisão",
       tasks: [],
-      color: "#e8f5e9",
+      color: theme.palette.info.main,
+      icon: "👀"
     },
     done: {
       name: "Concluído",
       tasks: [],
-      color: "#f3e5f5",
+      color: theme.palette.success.main,
+      icon: "✅"
     },
   });
 
-  // Priority color helper
-  const getPriorityColor = (priority) => {
-    const colors = {
-      high: "#ef5350",
-      medium: "#ffa726",
-      low: "#66bb6a",
-      default: "#78909c",
-    };
-    return colors[priority.toLowerCase()] || colors.default;
-  };
+  const getPriorityColor = (priority) => ({
+    high: theme.palette.error.main,
+    medium: theme.palette.warning.main,
+    low: theme.palette.success.main,
+    default: theme.palette.grey[500]
+  }[priority?.toLowerCase()] || theme.palette.grey[500]);
 
-  // Fetch tasks
+  // Fetch tasks e filtra no frontend por company
   const fetchAndSetTasks = async () => {
     try {
-      const tasks = await fetchTasks();
+      const allTasks = await fetchTasks(); // Buscar todas as tarefas
+      console.log(allTasks)
+
+      // Filtra as tarefas com base na variável `company`
+      const filteredTasks = allTasks.filter(task => task.company === company?.name);
+
       const updatedColumns = { ...columns };
 
+      // Inicializando as tarefas nas colunas
       Object.keys(updatedColumns).forEach((key) => {
         updatedColumns[key].tasks = [];
       });
 
-      tasks.forEach((task) => {
-        const status = task.status || "todo";
+      filteredTasks.forEach((task) => {
+        const status = task.status || "todo"; // Status padrão "todo"
         if (updatedColumns[status]) {
           updatedColumns[status].tasks.push(task);
         }
       });
 
-      setColumns(updatedColumns);
+      setColumns(updatedColumns); // Atualiza as colunas com as tarefas filtradas
     } catch (error) {
       console.error("Erro ao buscar tarefas:", error);
       toast.error("Erro ao carregar tarefas");
@@ -99,8 +107,10 @@ export default function TaskBoard() {
   };
 
   useEffect(() => {
-    fetchAndSetTasks();
-  }, []);
+    if (company) {
+      fetchAndSetTasks(); // Chama a função para buscar e filtrar as tarefas
+    }
+  }, [company]); // A função será chamada sempre que a empresa mudar
 
   const onDragEnd = async (result) => {
     const { source, destination, draggableId } = result;
@@ -149,6 +159,7 @@ export default function TaskBoard() {
       console.error("Erro ao atualizar status:", error);
     }
   };
+
   // Task handlers
   const handleAddOrUpdateTask = async (taskData) => {
     if (taskData.title.trim()) {
@@ -170,10 +181,10 @@ export default function TaskBoard() {
       try {
         let response;
         if (taskData.id) {
-          response = await updateTasks(taskPayload, taskData.id);
+          response = await updateTasks(taskPayload, taskData.id)
           if (response) {
             await fetchAndSetTasks(); // Refresh all tasks
-            toast.success("Tarefa atualizada com sucesso");
+            toast.success("Tarefa atualizada com sucesso")
             const updatedTasks = column.tasks.map((task) =>
               task.id === taskData.id ? { ...response, id: taskData.id } : task
             );
@@ -269,65 +280,63 @@ export default function TaskBoard() {
     setIsEditing(false);
     setNewTaskDialog(true);
   };
-
   return (
-    <Box className={styles.plans}>
-      {/* Header */}
-      <Box
-        sx={{
-          borderBottom: "1px solid #d9d9d9",
-          borderRadius: "0",
-          padding: ".0",
-          marginTop: "-1rem",
+    <Box sx={{ 
+      height: '100vh',
+      backgroundColor: theme.palette.background.default,
+      p: 2,
+      mt: -6
+    }}>
+      <Paper 
+        elevation={0}
+        sx={{ 
+          backgroundColor: 'transparent',
+          borderRadius: 2
         }}
       >
-        <Typography
-          typography="h4"
-          style={{ fontWeight: "bold", color: "#1E3932" }}
-        >
-          Quadro de Tarefas
-        </Typography>
-        <Typography
-          typography="label"
-          style={{
-            padding: "0 0 1rem 0",
-            color: "#1E3932",
-            fontSize: ".875rem",
-          }}
-        >
-          Gerencie todas as tarefas da <Typography variant="p" >{company?.name}</Typography>
-          <Typography variant="p" fontWeight={"bold"}>
-            {" "}
-            {company?.name}
-          </Typography>
-        </Typography>
-      </Box>
-
-      {/* Task Board */}
-      <DragDropContext onDragEnd={onDragEnd} >
-        <Box display="flex" gap={2} justifyContent="space-between" mt={4} sx={{
-          borderRadius: '8px',
-          height: '70vh'
+        <HeaderDashboard 
+          subtitle="Gerencie as tarefas da"
+          title="Quadro de Tarefas"
+          
+        />
+        
+        <Box sx={{ 
+          display: 'flex',
+          gap: '1rem',
+       
+          '::-webkit-scrollbar': {
+            height: '8px',
+          },
+          '::-webkit-scrollbar-track': {
+            background: theme.palette.background.paper,
+            borderRadius: '4px',
+          },
+          '::-webkit-scrollbar-thumb': {
+            background: theme.palette.primary.main,
+            borderRadius: '4px',
+          },
         }}>
-          {Object.entries(columns).map(([columnId, column]) => (
-            <TaskColumn
-              key={columnId}
-              columnId={columnId}
-              column={column}
-              onAddTask={handleAddNewTask}
-              onEditTask={handleEditTask}
-              onDeleteTask={handleDeleteTask}
-              onAssignUser={(task) => {
-                setSelectedTask(task);
-                setAssignUserDialog(true);
-              }}
-              getPriorityColor={getPriorityColor}
-            />
-          ))}
+          <DragDropContext onDragEnd={onDragEnd}>
+            {Object.entries(columns).map(([columnId, column]) => (
+              <TaskColumn
+                key={columnId}
+                columnId={columnId}
+                column={column}
+                onAddTask={handleAddNewTask}
+                onEditTask={handleEditTask}
+                onDeleteTask={handleDeleteTask}
+                onAssignUser={(task) => {
+                  setSelectedTask(task);
+                  setAssignUserDialog(true);
+                }}
+                getPriorityColor={getPriorityColor}
+                theme={theme}
+              />
+            ))}
+          </DragDropContext>
         </Box>
-      </DragDropContext>
+      </Paper>
 
-      {/* Task Modal */}
       <TaskModal
         open={newTaskDialog}
         onClose={handleCloseDialog}

@@ -146,7 +146,7 @@ return(
             <Grid item xs={12} md={6} key={index}>
               <Paper sx={{ p: 2 }}>
                 <Typography variant="subtitle1">{training.name}</Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color={theme.palette.text.secondary}>
                   Concluído em: {training.completionDate}
                 </Typography>
                 <LinearProgress

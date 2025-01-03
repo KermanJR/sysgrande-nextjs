@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import {
@@ -22,8 +22,10 @@ import {
   Chip,
   Checkbox,
   Typography,
+  useTheme,
 } from '@mui/material';
 import { AttachFile } from '@mui/icons-material';
+import AuthContext from '@/app/context/AuthContext';
 
 const defaultData = {
   title: '',
@@ -55,6 +57,12 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) 
   const [checklistItem, setChecklistItem] = useState('');
   const [newLabel, setNewLabel] = useState('');
 
+  const {
+    user
+  } = useContext(AuthContext)
+
+  const theme = useTheme()
+
   useEffect(() => {
     setTaskData(initialData || defaultData);
   }, [initialData]);
@@ -73,7 +81,7 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) 
       history: [
         ...(taskData?.history || []), // Garante que `history` seja um array vazio se estiver undefined
         {
-          user: 'Usuário Atual', // Substitua pelo usuário autenticado
+          user: user?.name, // Substitua pelo usuário autenticado
           event,
           details,
           date: new Date().toISOString()
@@ -136,7 +144,7 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) 
       <DialogContent>
         <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)}>
           <Tab label="Detalhes" />
-          <Tab label="Comentários" />
+          <Tab label="Atividade" />
           <Tab label="Checklist" />
           <Tab label="Etiquetas" />
           <Tab label="Anexos" />
@@ -200,11 +208,11 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) 
             primary={`${entry.user} - ${entry.event}`}
             secondary={
               <>
-                <Typography component="span" variant="body2" color="text.primary">
+                <Typography component="span" variant="body2" color={theme.palette.text.primary}>
                   {new Date(entry.date).toLocaleString()}
                 </Typography>
                 {entry.details && (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color={theme.palette.text.secondary}>
                     {JSON.stringify(entry.details)}
                   </Typography>
                 )}

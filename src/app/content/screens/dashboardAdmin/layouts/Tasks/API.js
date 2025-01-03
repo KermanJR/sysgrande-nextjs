@@ -99,5 +99,24 @@ export const deleteTaskById = async (taskId) => {
   }
 };
 
+export const fetchUsers = async () => {
+  try {
+    const response = await fetch(`${URL_LOCAL}user`, { 
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Erro ao buscar os usuários');
+    }
+    const data = await response.json();
+    return data; // Retorna os dados dos usuários
+  } catch (error) {
+    console.error('Erro:', error);
+    return [];
+  }
+};
+
 
 

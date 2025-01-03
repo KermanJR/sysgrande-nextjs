@@ -1,49 +1,74 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
   Box,
+  Button,
   Collapse,
+  Divider,
   List,
   ListItem,
   ListItemButton,
+  ListItemIcon,
   ListItemText,
-  MenuItem,
   Select,
+  MenuItem,
   Typography,
+  Avatar,
 } from "@mui/material";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import SpaceDashboardIcon from "@mui/icons-material/SpaceDashboard";
-import LogoSanegrande from "../../../../public/icons/logo-sanegrande.png";
-import LogoEnterHome from "../../../../public/icons/logo-enterhome.png";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import GroupIcon from "@mui/icons-material/Group";
-import { ExpandLess, ExpandMore } from "@mui/icons-material";
-import { useTheme } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import { useCompany } from "@/app/context/CompanyContext";
 import AuthContext from "@/app/context/AuthContext";
-import EventIcon from "@mui/icons-material/Event";
-import LogoutIcon from "@mui/icons-material/Logout";
-import DirectionsCarFilledIcon from "@mui/icons-material/DirectionsCarFilled";
-import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
-import InventoryOutlinedIcon from "@mui/icons-material/InventoryOutlined";
-import AssignmentTurnedInOutlinedIcon from "@mui/icons-material/AssignmentTurnedInOutlined";
-import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
-import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
-import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
-import DirectionsCarFilledOutlinedIcon from "@mui/icons-material/DirectionsCarFilledOutlined";
+import {
+  KeyboardArrowDown as ExpandMoreIcon,
+  KeyboardArrowRight as ChevronRightIcon,
+  Dashboard as DashboardIcon,
+  EventNote as CalendarIcon,
+  AssignmentTurnedIn as TasksIcon,
+  Group as UsersIcon,
+  AccountBalanceWallet as WalletIcon,
+  ShoppingCart as CartIcon,
+  DirectionsCarFilled as CarIcon,
+  Inventory as InventoryIcon,
+  Logout as LogoutIcon,
+} from "@mui/icons-material";
 
-const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
-  const theme = useTheme(); // Aqui acessamos o tema
+import { theme } from "@/app/theme";
+
+// Componentes estilizados
+const StyledListItemButton = styled(ListItemButton)(({ theme, active }) => ({
+  borderRadius: '8px',
+  margin: '4px 0',
+  '&:hover': {
+    backgroundColor: theme.palette.grey[100],
+  },
+  ...(active && {
+    backgroundColor: theme.palette.primary.light,
+    '& .MuiListItemIcon-root': {
+      color: theme.palette.primary.main,
+    },
+    '& .MuiListItemText-primary': {
+      color: theme.palette.primary.main,
+      fontWeight: 600,
+    },
+  }),
+}));
+
+const StyledListItemIcon = styled(ListItemIcon)(({ theme }) => ({
+  minWidth: '40px',
+  color: theme.palette.grey[700],
+}));
+
+const SidebarAdmin = ({ onMenuClick, isMenuOpen }) => {
   const [selectedMenuItem, setSelectedMenuItem] = useState("");
-  const [open, setOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState({});
+  const { user, logout } = useContext(AuthContext);
+  const { company, setSelectedCompany } = useCompany();
 
-  const handleToggle = () => {
-    setOpen(!open);
-  };
 
-  const handleMenuClick = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const companies = [
+    { name: "Sanegrande", id: "1", logo: "/icons/logo-sanegrande.png" },
+    { name: "Enter Home", id: "2", logo: "/icons/logo-enterhome.png" }
+  ];
 
   const updateURL = (menuOption) => {
     if (typeof window !== "undefined") {
@@ -52,397 +77,303 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
     setSelectedMenuItem(menuOption);
   };
 
+  const toggleSubmenu = (menu) => {
+    setOpenMenus(prev => ({ ...prev, [menu]: !prev[menu] }));
+  };
+
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const currentPath = window?.location.hash.substring(1);
-      setSelectedMenuItem(
-        currentPath.charAt(0).toUpperCase() + currentPath.slice(1)
-      );
-    }
-  }, []);
-
-  // Estilização para o item selecionado
-  const getListItemStyle = (menuOption) => ({
-    backgroundColor:
-      selectedMenuItem === menuOption ? theme.palette.grey[300] : "transparent",
-    color:
-      selectedMenuItem === menuOption
-        ? theme.palette.primary.contrastText
-        : theme.palette.text.primary,
-    borderRadius: "8px",
-    marginBottom: "8px",
-    height: "50px",
-    display: "flex",
-    alignItems: "center",
-  });
-
-  // Estilização para o ícone
-  const getIconStyle = (menuOption) => ({
-    width: "25px",
-    height: "25px",
-    borderRadius: "50%",
-    backgroundColor:
-      selectedMenuItem === menuOption
-        ? theme.palette.primary.contrastText
-        : "transparent",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    color:
-      selectedMenuItem === menuOption
-        ? theme.palette.primary.main
-        : theme.palette.grey[500],
-  });
-
-  // Estilização para o texto
-  const getTextStyle = (menuOption) => ({
-    color:
-      selectedMenuItem === menuOption
-        ? theme.palette.primary.contrastText
-        : theme.palette.text.primary,
-    marginLeft: ".2rem",
-  });
-
-  const { user, logout } = useContext(AuthContext);
-  const { company, setSelectedCompany } = useCompany();
-
-  // Definir empresa padrão caso não exista
-  useEffect(() => {
-    if (!company || !company.name) {
-      setSelectedCompany({ name: "Sanegrande", id: 1 });
+    if (!company?.name) {
+      setSelectedCompany({ name: "Sanegrande", id: "1" });
     }
   }, [company, setSelectedCompany]);
 
-  // Lista de empresas
-  const companies = [
-    { name: "Sanegrande", id: 1 },
-    { name: "Enter Home", id: 2 },
-  ];
+  if (!isMenuOpen) return null;
 
-  // Alterar empresa selecionada
-  const handleCompanyChange = (event) => {
-    const selectedCompany = companies.find((c) => c.id === event.target.value);
-    setSelectedCompany(selectedCompany);
-  };
-
-  return isMenuOpen ? (
+  return (
     <Box
-      color="primary.contrastText"
       sx={{
-        backgroundColor: theme.palette.background.paper,
-        height: "auto",
-        padding: "1rem",
-        borderRight: `1px solid ${theme.palette.grey[300]}`,
-        transition: "transform 0.3s",
-        transform: isMenuOpen ? "translateX(0)" : "translateX(-100%)",
+        width: 300,
+        height: '100vh',
+        bgcolor: 'background.paper',
+        borderRight: 1,
+        borderColor: 'divider',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* Header com Logo e Seletor de Empresa */}
+<Box
+  sx={{
+    p: 3,
+    borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+    background: 'white',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.02)',
+    position: 'sticky',
+    top: 0,
+    zIndex: 1000,
+  }}
+>
+  <Box
+    sx={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      maxWidth: '1400px',
+      margin: '0 auto',
+    }}
+  >
+    {/* Container da Esquerda - Logo e Select */}
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 3,
       }}
     >
       <Box
         sx={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          padding: "1rem",
-          position: "sticky",
+          position: 'relative',
+          width: 50,
+          height: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '12px',
+          background: 'rgba(0, 0, 0, 0.02)',
+          padding: '8px',
         }}
       >
-        {company?.name == "Sanegrande" && (
-          <Image
-            alt="Logo - Sanegrande"
-            src={LogoSanegrande.src}
-            width={40}
-            height={40}
-            style={{
-              objectFit: "contain",
-              marginTop: "0rem",
-              width: "40px",
-              height: "50px",
-            }}
-          />
-        )}
-
-        {company?.name == "Enter Home" && (
-          <Image
-            alt="Logo - Enter Home"
-            src={LogoEnterHome.src}
-            width={70}
-            height={70}
-            style={{
-              objectFit: "contain",
-              marginTop: "0rem",
-              width: "40px",
-              height: "50px",
-            }}
-          />
-        )}
-        <Select
-          value={company?.id || ""}
-          onChange={handleCompanyChange}
-          displayEmpty
-          disableUnderline // Remove a underline padrão
-          sx={{
-            "& .MuiSelect-icon": {
-              color: theme.palette.primary.main, // Cor da setinha
-            },
-            "& .MuiOutlinedInput-notchedOutline": {
-              border: "none", // Remove a borda no estado normal
-            },
-            "&:hover .MuiOutlinedInput-notchedOutline": {
-              border: "none", // Remove a borda no estado de hover
-            },
-            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              border: "none", // Remove a borda no estado de foco
-            },
-            fontSize: "1.6rem",
-            fontWeight: "600",
-            color: "#1E3932",
-            textTransform: "uppercase"
-            
+        <Image
+          src={company?.name === "Sanegrande" ? "/icons/logo-sanegrande.png" : "/icons/logo-enterhome.png"}
+          alt={`Logo - ${company?.name}`}
+          width={40}
+          height={40}
+          style={{
+            objectFit: "contain",
+            width: "100%",
+            height: "100%",
           }}
-        >
-          {companies.map((comp) => (
-            <MenuItem key={comp.id} value={comp.id}>
-              {comp.name}
-            </MenuItem>
-          ))}
-        </Select>
+        />
       </Box>
 
-      <Box
+      <Select
+        value={company?.id || ""}
+        onChange={(e) => {
+          const selectedCompany = companies.find(c => c.id === e.target.value);
+          setSelectedCompany(selectedCompany);
+        }}
+        displayEmpty
+        variant="standard"
         sx={{
-          padding: ".5rem 1rem",
-          border: `1px solid ${theme.palette.grey[300]}`,
-          borderRadius: '7px'
+          '& .MuiSelect-select': {
+            paddingRight: '32px',
+            fontSize: '1.25rem',
+            fontWeight: 600,
+            color: '#1E2432',
+            letterSpacing: '-0.01em',
+          },
+          '& .MuiSelect-icon': {
+            color: '#1E2432',
+            right: 0,
+            transition: 'transform 0.2s ease-in-out',
+          },
+          '&:hover .MuiSelect-icon': {
+            transform: 'translateY(2px)',
+          },
+          '& .MuiInput-underline:before': {
+            borderBottom: 'none',
+          },
+          '& .MuiInput-underline:after': {
+            borderBottom: 'none',
+          },
+          '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+            borderBottom: 'none',
+          },
+          minWidth: '200px',
+        }}
+        MenuProps={{
+          PaperProps: {
+            sx: {
+              mt: 1,
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+              borderRadius: '12px',
+              '& .MuiMenuItem-root': {
+                padding: '12px 16px',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                },
+              },
+            },
+          },
         }}
       >
-        <Typography>Usuário: {user ? user.name : "Minha Conta"}</Typography>
-      </Box>
+        {companies.map((comp) => (
+          <MenuItem 
+            key={comp.id} 
+            value={comp.id}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: '0.95rem',
+                fontWeight: 500,
+                color: '#1E2432',
+              }}
+            >
+              {comp.name}
+            </Typography>
+          </MenuItem>
+        ))}
+      </Select>
+    </Box>
 
-      <List>
-        <ListItem
-          button
-          style={getListItemStyle("Início")}
+    {/* Você pode adicionar elementos à direita aqui se necessário */}
+  </Box>
+</Box>
+
+      {/* Menu Principal */}
+      <List sx={{ flex: 1, overflow: 'auto', px: 2 }}>
+        {/* Item Início */}
+        <StyledListItemButton
+          active={selectedMenuItem === "Início"}
           onClick={() => {
             onMenuClick("Início");
             updateURL("Início");
           }}
         >
-          <Box style={getIconStyle("Início")}>
-            <SpaceDashboardOutlinedIcon sx={{ width: "20px" }} />
-          </Box>
-          <ListItemText primary="Início" style={getTextStyle("Início")} />
-        </ListItem>
-        <ListItem
-          button
-          style={getListItemStyle("Calendário")}
+          <StyledListItemIcon>
+            <DashboardIcon />
+          </StyledListItemIcon>
+          <ListItemText primary="Início" />
+        </StyledListItemButton>
+
+        {/* Item Calendário */}
+        <StyledListItemButton
+          active={selectedMenuItem === "Calendário"}
           onClick={() => {
             onMenuClick("Calendário");
             updateURL("Calendário");
           }}
         >
-          <Box style={getIconStyle("Calendário")}>
-            <EventIcon sx={{ width: "20px" }} />
-          </Box>
-          <ListItemText
-            primary="Calendário"
-            style={getTextStyle("Calendário")}
-          />
-        </ListItem>
-        <ListItem
-          button
-          style={getListItemStyle("Tarefas")}
+          <StyledListItemIcon>
+            <CalendarIcon />
+          </StyledListItemIcon>
+          <ListItemText primary="Calendário" />
+        </StyledListItemButton>
+
+        {/* Item Tarefas */}
+        <StyledListItemButton
+          active={selectedMenuItem === "Tarefas"}
           onClick={() => {
             onMenuClick("Tarefas");
             updateURL("Tarefas");
           }}
         >
-          <Box style={getIconStyle("Tarefas")}>
-            <AssignmentTurnedInOutlinedIcon sx={{ width: "20px" }} />
-          </Box>
-          <ListItemText primary="Tarefas" style={getTextStyle("Tarefas")} />
-        </ListItem>
+          <StyledListItemIcon>
+            <TasksIcon />
+          </StyledListItemIcon>
+          <ListItemText primary="Tarefas" />
+        </StyledListItemButton>
 
-        <ListItem
-          button
-          style={getListItemStyle("RecursosHumanos")}
-          onClick={() => handleToggle()}
-        >
-          <Box style={getIconStyle("RecursosHumanos")}>
-            <PersonOutlineOutlinedIcon sx={{ width: "20px" }} />
-          </Box>
-          <ListItemText
-            primary="Recursos Humanos"
-            style={getTextStyle("RecursosHumanos")}
-          />
-          {open ? (
-            <ExpandLess sx={{ fill: theme.palette.primary.main }} />
-          ) : (
-            <ExpandMore sx={{ fill: theme.palette.primary.main }} />
-          )}
-        </ListItem>
-        {/* Submenu */}
-        <Collapse in={open} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            <ListItemButton
-              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
-              onClick={() => {
-                onMenuClick("Férias");
-                updateURL("Férias");
-              }}
-            >
-              <ListItemText primary="Férias" style={getTextStyle("Férias")} />
-            </ListItemButton>
-            <ListItemButton
-              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
-              onClick={() => {
-                onMenuClick("Rescisão");
-                updateURL("Rescisão");
-              }}
-            >
-              <ListItemText primary="Rescisão" />
-            </ListItemButton>
-            <ListItemButton
-              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
-              onClick={() => {
-                onMenuClick("Afastamento");
-                updateURL("Afastamento");
-              }}
-            >
-              <ListItemText primary="Afastamento" />
-            </ListItemButton>
-            <ListItemButton
-              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
-              onClick={() => {
-                onMenuClick("Contratação");
-                updateURL("Contratação");
-              }}
-            >
-              <ListItemText primary="Contratação" />
-            </ListItemButton>
-            <ListItemButton
-              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
-              onClick={() => {
-                onMenuClick("Funcionário");
-                updateURL("Funcionário");
-              }}
-            >
-              <ListItemText primary="Funcionário" />
-            </ListItemButton>
-          </List>
-        </Collapse>
+        {/* Submenu RH */}
+        <Box>
+          <StyledListItemButton
+            onClick={() => toggleSubmenu('rh')}
+            active={selectedMenuItem.startsWith("RH")}
+          >
+            <StyledListItemIcon>
+              <UsersIcon />
+            </StyledListItemIcon>
+            <ListItemText primary="Recursos Humanos" />
+            {openMenus.rh ? <ExpandMoreIcon /> : <ChevronRightIcon />}
+          </StyledListItemButton>
+          <Collapse in={openMenus.rh} timeout="auto">
+            <List component="div" disablePadding>
+              {["Férias", "Rescisão", "Afastamento", "Contratação", "Funcionário"].map((item) => (
+                <StyledListItemButton
+                  key={item}
+                  sx={{ pl: 6 }}
+                  active={selectedMenuItem === item}
+                  onClick={() => {
+                    onMenuClick(item);
+                    updateURL(item);
+                  }}
+                >
+                  <ListItemText primary={item} />
+                </StyledListItemButton>
+              ))}
+            </List>
+          </Collapse>
+        </Box>
 
-        <ListItem
-          button
-          style={getListItemStyle("Financeiro")}
-          onClick={() => handleToggle()}
-        >
-          <Box style={getIconStyle("Financeiro")}>
-            <AccountBalanceWalletOutlinedIcon sx={{ width: "20px" }} />
-          </Box>
-          <ListItemText
-            primary="Financeiro"
-            style={getTextStyle("Financeiro")}
-          />
-          {open ? (
-            <ExpandLess sx={{ fill: theme.palette.primary.main }} />
-          ) : (
-            <ExpandMore sx={{ fill: theme.palette.primary.main }} />
-          )}
-        </ListItem>
+        {/* Submenu Financeiro */}
+        <Box>
+          <StyledListItemButton
+            onClick={() => toggleSubmenu('financeiro')}
+            active={selectedMenuItem.startsWith("Financeiro")}
+          >
+            <StyledListItemIcon>
+              <WalletIcon />
+            </StyledListItemIcon>
+            <ListItemText primary="Financeiro" />
+            {openMenus.financeiro ? <ExpandMoreIcon /> : <ChevronRightIcon />}
+          </StyledListItemButton>
+          <Collapse in={openMenus.financeiro} timeout="auto">
+            <List component="div" disablePadding>
+              {["Contas a Pagar", "Contas a Receber", "Fluxo de Caixa", "Relatórios"].map((item) => (
+                <StyledListItemButton
+                  key={item}
+                  sx={{ pl: 6 }}
+                  active={selectedMenuItem === item}
+                  onClick={() => {
+                    onMenuClick(item);
+                    updateURL(item);
+                  }}
+                >
+                  <ListItemText primary={item} />
+                </StyledListItemButton>
+              ))}
+            </List>
+          </Collapse>
+        </Box>
 
-        {/* Submenu */}
-        <Collapse in={open} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            <ListItemButton
-              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
-              onClick={() => {
-                onMenuClick("VacancyCheck");
-                updateURL("Férias");
-              }}
-            >
-              <ListItemText primary="Férias" style={getTextStyle("Férias")} />
-            </ListItemButton>
-            <ListItemButton
-              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
-              onClick={() => {
-                onMenuClick("Rescisão");
-                updateURL("Rescisão");
-              }}
-            >
-              <ListItemText primary="Rescisão" />
-            </ListItemButton>
-            <ListItemButton
-              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
-              onClick={() => {
-                onMenuClick("Afastamento");
-                updateURL("Afastamento");
-              }}
-            >
-              <ListItemText primary="Afastamento" />
-            </ListItemButton>
-            <ListItemButton
-              style={{ paddingLeft: 55, color: theme.palette.text.primary }}
-              onClick={() => {
-                onMenuClick("Contratação");
-                updateURL("Contratação");
-              }}
-            >
-              <ListItemText primary="Contratação" />
-            </ListItemButton>
-          </List>
-        </Collapse>
-        <ListItem
-          button
-          style={getListItemStyle("Compras")}
-          onClick={() => {
-            onMenuClick("Compras");
-            updateURL("Compras");
-          }}
-        >
-          <Box style={getIconStyle("Compras")}>
-            <ShoppingCartOutlinedIcon sx={{ width: "20px" }} />
-          </Box>
-          <ListItemText primary="Compras" style={getTextStyle("Compras")} />
-        </ListItem>
-
-        <ListItem
-          button
-          style={getListItemStyle("Veículos")}
-          onClick={() => {
-            onMenuClick("Veículos");
-            updateURL("Veículos");
-          }}
-        >
-          <Box style={getIconStyle("Veículos")}>
-            <DirectionsCarFilledOutlinedIcon sx={{ width: "20px" }} />
-          </Box>
-          <ListItemText primary="Veículos" style={getTextStyle("Veículos")} />
-        </ListItem>
-        <ListItem
-          button
-          style={getListItemStyle("Inventário")}
-          onClick={() => {
-            onMenuClick("Inventário");
-            updateURL("Inventário");
-          }}
-        >
-          <Box style={getIconStyle("Inventário")}>
-            <InventoryOutlinedIcon sx={{ width: "20px" }} />
-          </Box>
-          <ListItemText
-            primary="Inventário"
-            style={getTextStyle("Inventário")}
-          />
-        </ListItem>
-        <ListItem button style={getListItemStyle("Sair")} onClick={logout}>
-          <Box style={getIconStyle("Sair")}>
-            <LogoutIcon sx={{ width: "20px" }} />
-          </Box>
-          <ListItemText primary="Sair" style={getTextStyle("Sair")} />
-        </ListItem>
+        {/* Demais itens do menu */}
+        {[
+          { icon: <CartIcon />, label: "Compras" },
+          { icon: <CarIcon />, label: "Veículos" },
+          { icon: <InventoryIcon />, label: "Inventário" },
+        ].map((item) => (
+          <StyledListItemButton
+            key={item.label}
+            active={selectedMenuItem === item.label}
+            onClick={() => {
+              onMenuClick(item.label);
+              updateURL(item.label);
+            }}
+          >
+            <StyledListItemIcon>
+              {item.icon}
+            </StyledListItemIcon>
+            <ListItemText primary={item.label} />
+          </StyledListItemButton>
+        ))}
       </List>
+
+      {/* Footer com botão de Logout */}
+      <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+        <StyledListItemButton onClick={logout}>
+          <StyledListItemIcon>
+            <LogoutIcon />
+          </StyledListItemIcon>
+          <ListItemText primary="Sair" />
+        </StyledListItemButton>
+      </Box>
     </Box>
-  ) : null;
+  );
 };
 
 export default SidebarAdmin;

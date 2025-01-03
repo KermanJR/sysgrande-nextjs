@@ -13,6 +13,7 @@ import {
   TableRow,
   Typography,
   Tooltip,
+  CircularProgress,
 } from "@mui/material";
 import ArticleIcon from "@mui/icons-material/Article";
 import AddIcon from "@mui/icons-material/Add";
@@ -29,12 +30,14 @@ import { deleteExpenseById, fetchedExpensesByCompany } from "./API";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import styles from "./Termination.module.css";
-import DescriptionIcon from '@mui/icons-material/Description';
+import DescriptionIcon from "@mui/icons-material/Description";
 import { useCompany } from "@/app/context/CompanyContext";
 import FeriasModal from "@/app/components/Modal/Admin/ModalVacancy";
-import AddCircleIcon from '@mui/icons-material/AddCircle';
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RescisaoModal from "@/app/components/Modal/Admin/ModalRecision";
 import Theme from "@/app/theme/theme";
+import TerminationStats from "./Cards/StatsCardTermination";
+import HeaderDashboard from "@/app/components/HeaderDashboard";
 
 function TablePaginationActions(props) {
   const theme = useTheme();
@@ -116,15 +119,14 @@ export default function Termination() {
     attachment: null,
   });
 
-  const theme = useTheme()
+  const theme = useTheme();
 
   const { company } = useCompany(); // Acessando a empresa selecionada do contexto
 
   const formatDate = (date) => {
     const newDate = new Date(date);
-    return newDate.toLocaleDateString("pt-BR", {timeZone: "UTC"}); // Ajuste o idioma conforme necessário
+    return newDate.toLocaleDateString("pt-BR", { timeZone: "UTC" }); // Ajuste o idioma conforme necessário
   };
-  
 
   useEffect(() => {
     // Carrega despesas ao selecionar uma empresa ou editar uma despesa
@@ -133,16 +135,15 @@ export default function Termination() {
         const expensesData = await fetchedExpensesByCompany(company.name);
         setExpenses(expensesData);
         // Filtra despesas com type == "Termination"
-        const filtered = expensesData.filter(expense => expense.type == "Termination");
+        const filtered = expensesData.filter(
+          (expense) => expense.type == "Termination"
+        );
         setFilteredExpenses(filtered);
       };
-  
+
       loadExpenses();
     }
   }, [company, currentExpense]); // Adicione currentExpense para recarregar após edição
-  
-  
-
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -154,6 +155,7 @@ export default function Termination() {
   };
 
   const handleOpenPlanModal = (expense) => {
+    console.log(expense)
     setCurrentExpense(expense);
     setIsPlanModalOpen(true);
   };
@@ -163,11 +165,9 @@ export default function Termination() {
     setCurrentExpense(null);
   };
 
-
   const handleCloseReportModal = () => {
     setIsReportModalOpen(false);
   };
-
 
   const handleSaveExpense = (updatedExpense) => {
     setExpenses((prevExpenses) =>
@@ -196,11 +196,10 @@ export default function Termination() {
     return `${day}/${month}/${year}`; // Retorna no formato dd/mm/aaaa
   }
 
-
   const buttonStyles = {
     backgroundColor: "#3A8DFF",
     color: "#ffffff",
-    borderRadius: '8px',
+    borderRadius: "8px",
     "&:hover": {
       backgroundColor: "#3A8DFF",
     },
@@ -241,8 +240,6 @@ export default function Termination() {
       "Criado por",
     ];
 
-
-    
     const tableRows = [];
 
     // Preencher as linhas da tabela
@@ -287,55 +284,48 @@ export default function Termination() {
     doc.save("relatorio_itens.pdf");
   };
 
+
+  // Função para obter apenas os itens da página atual
+  const paginatedExpenses = filteredExpenses.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
   return (
-    <Box className={styles.plans}>
-      <Box
-        sx={{
-          borderBottom: "1px solid #d9d9d9",
-          padding: ".0",
-          marginTop: "-1rem",
-        }}
-      >
-        <Typography
-          typography="h4"
-          style={{ fontWeight: "bold", color: "#1E3932" }}
-        >
-          Controle de Rescisões
-        </Typography>
-        <Typography
-          typography="label"
-          style={{
-            padding: "0 0 1rem 0",
-            color: "#1E3932",
-            fontSize: ".875rem",
-          }}
-        >
-          Gerencie as rescisões dos funcionários da <Typography variant="p" sx={{fontWeight: 'bold'}}>{company?.name}</Typography>
-        </Typography>
+    <Box sx={{ 
+          height: '100vh',
+          backgroundColor: theme.palette.background.default,
+          p: 2,
+          mt: -6
+        }}>
+        <HeaderDashboard
+          subtitle="Gerencie as rescisões da"
+          title="Rescisões"
+          
+        />
+
+      <Box sx={{ padding: 0, mt: 3 }}>
+        
+            <TerminationStats terminations={filteredExpenses} />
+      
       </Box>
 
-      <TableContainer
-
-        className={styles.plans__table__container}
-      >
-           <Box display="flex" gap={2} p={2}>
-            <Button
-              variant="contained"
-              sx={buttonStyles}
-              onClick={generatePdf}
-              startIcon={<ArticleIcon />}
-            >
-              Gerar Relatório
-            </Button>
-            <Button
-              variant="contained"
-              sx={buttonStyles}
-              onClick={handleOpenPlanModal}
-              startIcon={<AddIcon />}
-            >
-              Nova Rescisão
-            </Button>
-          </Box>
+      <TableContainer className={styles.plans__table__container}>
+        <Box display="flex" gap={2} p={2}>
+          <Button
+            variant="contained"
+            sx={buttonStyles}
+            onClick={generatePdf}
+            startIcon={<ArticleIcon />}
+          >
+            Gerar Relatório
+          </Button>
+          <Button
+            variant="contained"
+            sx={buttonStyles}
+            onClick={handleOpenPlanModal}
+            startIcon={<AddIcon />}
+          >
+            Nova Rescisão
+          </Button>
+        </Box>
         <Table className={styles.plans__table}>
           <TableHead>
             <TableRow>
@@ -360,7 +350,7 @@ export default function Termination() {
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
                 Data Pagamento Rescisão
               </TableCell>
-              
+
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
                 Status Pagamento Rescisão
               </TableCell>
@@ -370,7 +360,7 @@ export default function Termination() {
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
                 Status ASO
               </TableCell>
-              
+
               <TableCell align="center" sx={{ fontWeight: "bold" }}>
                 Anexo
               </TableCell>
@@ -387,7 +377,7 @@ export default function Termination() {
               } else if (expense.statusSendWarning === "Programado") {
                 statusBgColorAviso = theme.palette.info.main;
               } else if (expense.statusSendWarning === "Pendente") {
-                statusBgColorAviso =  theme.palette.warning.main;
+                statusBgColorAviso = theme.palette.warning.main;
               } else if (expense.statusSendWarning === "Cancelado") {
                 statusBgColorAviso = "red";
               }
@@ -402,35 +392,28 @@ export default function Termination() {
               } else if (expense.statusASO === "Cancelado") {
                 statusBgColorASO = "red";
               }
-              
+
               let statusBgColorPayment = "";
               if (expense.statusPaymentTermination === "Realizado") {
                 statusBgColorPayment = theme.palette.success.main;
-              }  else if (expense.statusPaymentTermination === "Programado") {
+              } else if (expense.statusPaymentTermination === "Programado") {
                 statusBgColorPayment = theme.palette.info.main;
               } else if (expense.statusPaymentTermination === "Pendente") {
-                statusBgColorPayment =  theme.palette.warning.main;
-              }
-              else if (expense.statusPaymentTermination === "Cancelado") {
+                statusBgColorPayment = theme.palette.warning.main;
+              } else if (expense.statusPaymentTermination === "Cancelado") {
                 statusBgColorPayment = "red";
               }
               return (
                 <TableRow key={expense._id}>
-
                   <TableCell align="center">
                     {expense?.employee?.name}
                   </TableCell>
 
-
                   <TableCell align="center">
                     {formatDate(expense?.terminationDate)}
                   </TableCell>
-                  <TableCell align="center">
-                    
-                      {expense?.reason}
-                    
-                  </TableCell>
-                
+                  <TableCell align="center">{expense?.reason}</TableCell>
+
                   <TableCell align="center">
                     {expense?.employee?.codigoRegional?.name}
                   </TableCell>
@@ -439,41 +422,40 @@ export default function Termination() {
                     {expense?.employee?.codigoMunicipio?.name}
                   </TableCell>
 
-
                   <TableCell align="center">
                     {expense?.employee?.codigoLocal?.name}
                   </TableCell>
 
                   <TableCell align="center">
-                    <Box
-                    >
-                      {formatDate(expense?.paymentDeadlineTermination)}
-                    </Box>
+                    <Box>{formatDate(expense?.paymentDeadlineTermination)}</Box>
                   </TableCell>
 
-                  
                   <TableCell align="center">
                     <Box
                       style={{
                         backgroundColor: statusBgColorPayment,
                         borderRadius: "8px",
                         padding: ".28rem",
-                        width:'90px',
-                        margin: '0 auto',
-                        color: statusBgColorPayment === "#F6F794" ? "black" : "white",
+                        width: "90px",
+                        margin: "0 auto",
+                        color:
+                          statusBgColorPayment === "#F6F794"
+                            ? "black"
+                            : "white",
                       }}
                     >
                       {expense?.statusPaymentTermination}
                     </Box>
                   </TableCell>
-  
+
                   <TableCell align="center">
                     <Box
                       style={{
                         backgroundColor: statusBgColorAviso,
                         borderRadius: "8px",
                         padding: ".28rem",
-                        color: statusBgColorAviso === "#F6F794" ? "black" : "white",
+                        color:
+                          statusBgColorAviso === "#F6F794" ? "black" : "white",
                       }}
                     >
                       {expense?.statusSendWarning}
@@ -486,13 +468,13 @@ export default function Termination() {
                         backgroundColor: statusBgColorASO,
                         borderRadius: "8px",
                         padding: ".28rem",
-                        color: statusBgColorASO === "#F6F794" ? "black" : "white",
+                        color:
+                          statusBgColorASO === "#F6F794" ? "black" : "white",
                       }}
                     >
                       {expense?.statusASO}
                     </Box>
                   </TableCell>
-
 
                   <TableCell align="center">
                     {expense.attachment ? (
@@ -525,7 +507,6 @@ export default function Termination() {
                       </Tooltip>
                     </Box>
                   </TableCell>
-                  
                 </TableRow>
               );
             })}
@@ -559,7 +540,7 @@ export default function Termination() {
         open={isPlanModalOpen}
         onClose={handleClosePlanModal}
         onSave={handleSaveExpense}
-        item={selectedExpense}
+        item={currentExpense}
       />
 
       {/* Modal para gerar relatório */}

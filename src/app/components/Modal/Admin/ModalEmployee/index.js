@@ -121,18 +121,28 @@ const EmployeeModal = ({ open, onClose, onSave, employee }) => {
           fetchMunicipios(),
           fetchLocals(),
         ]);
-
-        setRegionals(regionalData);
-        setMunicipalities(municipioData);
-        setLocations(localData);
+  
+        // Colocar "Matriz" no início e ordenar o restante
+        const prioritizeMatriz = (data) =>
+          data.sort((a, b) => a.name.localeCompare(b.name)).sort((a, b) => {
+            if (a.name === "Matriz") return -1; // "Matriz" vai para o início
+            if (b.name === "Matriz") return 1;
+            return 0;
+          });
+  
+        setRegionals(prioritizeMatriz(regionalData));
+        setMunicipalities(prioritizeMatriz(municipioData));
+        setLocations(prioritizeMatriz(localData));
       } catch (error) {
         toast.error("Erro ao carregar dados iniciais");
         console.error("Erro ao carregar dados:", error);
       }
     };
-
+  
     fetchData();
   }, []);
+  
+  
 
   
 
@@ -484,7 +494,10 @@ const EmployeeModal = ({ open, onClose, onSave, employee }) => {
               disabled={isSubmitting}
             >
               {regionals.map((regional) => (
-                <MenuItem key={regional._id} value={regional._id}>
+                <MenuItem key={regional._id} value={regional._id} style={{
+                  backgroundColor: regional.name === "Matriz" ? "#f0f8ff" : "inherit", // Fundo destacado para "Matriz"
+                  fontWeight: regional.name === "Matriz" ? "bold" : "normal", // Texto em negrito
+                }}>
                   {regional.name}
                 </MenuItem>
               ))}

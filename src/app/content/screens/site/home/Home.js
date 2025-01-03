@@ -110,10 +110,10 @@ const CoffeeCode = () => {
                   <Typography gutterBottom variant="h6" component="div">
                     {product.name}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color={theme.palette.text.secondary}>
                     R$ {product.price}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color={theme.palette.text.secondary}>
                     {truncateText(product.description, 60)}
                   </Typography>
                   <IconButton className={styles.addToCartButton} onClick={() => handleAddToCart(product)}>
@@ -145,10 +145,10 @@ const CoffeeCode = () => {
                   <Typography gutterBottom variant="h6" component="div">
                     {product.name}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color={theme.palette.text.secondary}>
                     R$ {product.price}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color={theme.palette.text.secondary}>
                     {truncateText(product.description, 60)}
                   </Typography>
                   <IconButton className={styles.addToCartButton} onClick={() => handleAddToCart(product)}>
@@ -181,10 +181,10 @@ const CoffeeCode = () => {
                   <Typography gutterBottom variant="h6" component="div">
                     {plan.name}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color={theme.palette.text.secondary}>
                     {truncateText(plan.description, 60)}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color={theme.palette.text.secondary}>
                     R$ {plan.price}
                   </Typography>
                 </CardContent>

@@ -356,30 +356,33 @@ export default function VacancyCheck() {
 
   return (
     <Box className={styles.plans}>
-      <Box
-        sx={{
-          border: "1px solid #d9d9d9",
-          borderRadius: "10px",
-          padding: ".5rem",
-        }}
-      >
-        <Typography
-          typography="h4"
-          style={{ fontWeight: "bold", color: "#1E3932" }}
-        >
-          Férias
-        </Typography>
-        <Typography
-          typography="label"
-          style={{
-            padding: "0 0 1rem 0",
-            color: "#1E3932",
-            fontSize: ".875rem",
-          }}
-        >
-          Gerencie as férias de seus funcionários
-        </Typography>
-      </Box>
+     <Box
+             sx={{
+               borderBottom: "1px solid #d9d9d9",
+               padding: ".0",
+               marginTop: "-1rem",
+             }}
+           >
+             <Typography
+               typography="h4"
+               style={{ fontWeight: "bold", color: "#1E3932" }}
+             >
+               Controle de Férias
+             </Typography>
+             <Typography
+               typography="label"
+               style={{
+                 padding: "0 0 1rem 0",
+                 color: "#1E3932",
+                 fontSize: ".875rem",
+               }}
+             >
+               Gerencie as férias dos funcionários da{" "}
+               <Typography variant="p" sx={{ fontWeight: "bold" }}>
+                 {company?.name}
+               </Typography>
+             </Typography>
+           </Box>
 
       <TableContainer className={styles.plans__table__container}>
         <Box className={styles.plans__table__actions_download_new}>

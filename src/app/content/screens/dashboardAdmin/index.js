@@ -12,7 +12,8 @@ import { UserProfile } from "@/app/components/UserProfileIcon";
 import TaskBoard from "./layouts/Tasks/Tasks";
 import HumansRec from "./layouts/humansrec/HumansRec";
 import VacancyCheck from "./layouts/vacancyCheck/VacancyCheck";
-import NotificationBadge from "@/app/components/Notification";
+import NotificationBadge from "@/app/components/HeaderDashboard";
+import HeaderDashboard from "@/app/components/HeaderDashboard";
 
 export default function ScreenDashboardAdmin() {
   const [selectedComponent, setSelectedComponent] = useState("init");
@@ -47,7 +48,6 @@ export default function ScreenDashboardAdmin() {
       
       {/* Content */}
       <Box className={styles.content}>
-       <NotificationBadge/>
         {components[selectedComponent] ? (
           components[selectedComponent]
         ) : (
