@@ -22,7 +22,8 @@ import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
-
+import ArticleIcon from "@mui/icons-material/Article";
+import AddIcon from "@mui/icons-material/Add";
 import ReportModal from "@/app/components/Modal/Admin/ReportModal";
 import { deleteExpenseById, fetchedExpensesByCompany } from "./API";
 import jsPDF from "jspdf";
@@ -32,6 +33,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import { useCompany } from "@/app/context/CompanyContext";
 import FeriasModal from "@/app/components/Modal/Admin/ModalVacancy";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
+import HeaderDashboard from "@/app/components/HeaderDashboard";
 
 function TablePaginationActions(props) {
   const theme = useTheme();
@@ -192,6 +194,16 @@ export default function HumansRec() {
     return `${day}/${month}/${year}`; // Retorna no formato dd/mm/aaaa
   }
 
+  const buttonStyles = {
+    backgroundColor: "#3A8DFF",
+    color: "#ffffff",
+    borderRadius: "8px",
+    "&:hover": {
+      backgroundColor: "#3A8DFF",
+    },
+  };
+
+
   const generatePdf = () => {
     const doc = new jsPDF();
 
@@ -274,51 +286,35 @@ export default function HumansRec() {
   const theme = useTheme()
 
   return (
-    <Box className={styles.plans}>
-      <Box
-        sx={{
-          border: "1px solid #d9d9d9",
-          borderRadius: "10px",
-          padding: ".5rem",
-        }}
-      >
-        <Typography
-          typography="h4"
-          style={{ fontWeight: "bold", color: "#1E3932" }}
-        >
-          Férias
-        </Typography>
-        <Typography
-          typography="label"
-          style={{
-            padding: "0 0 1rem 0",
-            color: "#1E3932",
-            fontSize: ".875rem",
-          }}
-        >
-          Gerencie as férias de seus funcionários
-        </Typography>
-      </Box>
+    <Box sx={{ 
+      height: '100vh',
+      backgroundColor: theme.palette.background.default,
+      p: 2,
+      mt: -6
+    }}>
+    <HeaderDashboard
+          subtitle="Gerencie as férias da"
+          title="Férias"
+          
+        />
 
       <TableContainer className={styles.plans__table__container}>
-        <Box className={styles.plans__table__actions_download_new}>
+      <Box display="flex" gap={2} p={2}>
           <Button
             variant="contained"
-            style={{ background: "#fff", color: "black", borderRadius: "2px" }}
-            className={styles.plans__search__input}
+            sx={buttonStyles}
             onClick={generatePdf}
+            startIcon={<ArticleIcon />}
           >
-            <DescriptionIcon sx={{ color: theme.palette.grey[600], width: "20px" }} />
             Gerar Relatório
           </Button>
           <Button
             variant="contained"
-            style={{ background: "#fff", color: "black", borderRadius: "2px" }}
-            className={styles.plans__search__input}
-            onClick={() => handleOpenPlanModal()}
+            sx={buttonStyles}
+            onClick={handleOpenPlanModal}
+            startIcon={<AddIcon />}
           >
-            <AddCircleIcon sx={{ color:  theme.palette.grey[600], width: "20px" }} />
-            Criar
+            Nova Rescisão
           </Button>
         </Box>
         <Table className={styles.plans__table}>

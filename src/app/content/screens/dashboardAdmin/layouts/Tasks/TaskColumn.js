@@ -11,7 +11,6 @@ import {
   Avatar,
   AvatarGroup,
   Tooltip,
-  useTheme,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -27,81 +26,125 @@ export const TaskColumn = ({
   onDeleteTask,
   onAssignUser,
   getPriorityColor,
+  theme,
 }) => {
-  const theme = useTheme();
-
   return (
-    <Paper
+    <Box
       sx={{
-        width: 350,
-        p: 2,
-        borderRadius: "10px",
-        overflowY: "scroll",
+        width: 320,
+        minWidth: 320,
+        height: 'calc(100vh - 250px)',
+        backgroundColor: theme.palette.background.paper,
+        borderRadius: 2,
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        display: 'flex',
+        flexDirection: 'column',
       }}
-      className={styles.scrollColumn}
     >
       <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
+        sx={{
+          p: 2,
+          borderBottom: `2px solid ${column.color}`,
+          backgroundColor: theme.palette.background.default,
+          borderTopLeftRadius: 8,
+          borderTopRightRadius: 8,
+        }}
       >
-        <Typography variant="p" fontSize={".875rem"} fontWeight={"600"}>
-          {column?.name}
-        </Typography>
-        <Chip label={column.tasks.length} size="small" color="primary" />
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              {column.icon} {column.name}
+            </Typography>
+            <Chip
+              label={column.tasks.length}
+              size="small"
+              sx={{
+                backgroundColor: column.color,
+                color: '#fff',
+                fontWeight: 500,
+                minWidth: 28,
+              }}
+            />
+          </Box>
+        </Box>
       </Box>
 
       <Droppable droppableId={columnId}>
-        {(provided) => (
+        {(provided, snapshot) => (
           <Box
             {...provided.droppableProps}
             ref={provided.innerRef}
             sx={{
-              minHeight: 200,
-              backgroundColor: column.color,
-              borderRadius: "8px",
-              p: 1,
+              flex: 1,
+              p: 2,
+              overflowY: 'auto',
+              backgroundColor: snapshot.isDraggingOver ? 
+                theme.palette.action.hover : 
+                theme.palette.background.paper,
+              transition: 'background-color 0.2s ease',
+              '::-webkit-scrollbar': {
+                width: '6px',
+              },
+              '::-webkit-scrollbar-track': {
+                background: theme.palette.background.paper,
+              },
+              '::-webkit-scrollbar-thumb': {
+                background: theme.palette.primary.main,
+                borderRadius: '3px',
+              },
             }}
           >
             {column.tasks.map((task, index) => (
               <Draggable
                 key={task._id}
-                draggableId={task?.id?.toString()}
+                draggableId={task._id?.toString()}
                 index={index}
               >
-                {(provided) => (
+                {(provided, snapshot) => (
                   <Paper
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
                     onClick={() => onEditTask(task, columnId)}
+                    elevation={snapshot.isDragging ? 8 : 1}
                     sx={{
                       p: 2,
-                      mb: 1,
-                      backgroundColor: "#fff",
-                      boxShadow: 2,
-                      "&:hover": {
-                        boxShadow: 4,
+                      mb: 2,
+                      backgroundColor: theme.palette.background.paper,
+                      border: `1px solid ${theme.palette.divider}`,
+                      borderRadius: 1,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: theme.shadows[4],
                       },
                     }}
                   >
-                    {/* Task Header */}
-                    <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
                       <Typography
-                        variant="p"
-                        fontWeight="400"
-                        fontSize={".875rem"}
+                        variant="subtitle1"
+                        sx={{ 
+                          fontWeight: 500,
+                          color: theme.palette.text.primary,
+                          fontSize: '0.9rem'
+                        }}
                       >
                         {task.title}
                       </Typography>
-                      <Box sx={{ display: "flex", flexDirection: "row" }}>
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
                         <Tooltip title="Atribuir Usuários">
                           <IconButton
                             size="small"
                             onClick={(e) => {
                               e.stopPropagation();
                               onAssignUser(task);
+                            }}
+                            sx={{ 
+                              color: theme.palette.primary.main,
+                              '&:hover': { 
+                                backgroundColor: theme.palette.primary.light + '20'
+                              }
                             }}
                           >
                             <PersonAddIcon fontSize="small" />
@@ -114,6 +157,12 @@ export const TaskColumn = ({
                               e.stopPropagation();
                               onDeleteTask(columnId, task._id);
                             }}
+                            sx={{ 
+                              color: theme.palette.error.main,
+                              '&:hover': { 
+                                backgroundColor: theme.palette.error.light + '20'
+                              }
+                            }}
                           >
                             <DeleteIcon fontSize="small" />
                           </IconButton>
@@ -121,69 +170,64 @@ export const TaskColumn = ({
                       </Box>
                     </Box>
 
-                    {/* Assigned Users */}
                     {task.assignedUsers?.length > 0 && (
-                      <Box mb={1}>
+                      <Box sx={{ mb: 1.5 }}>
                         <AvatarGroup
                           max={3}
-                          sx={{ justifyContent: "flex-start" }}
+                          sx={{
+                            '& .MuiAvatar-root': {
+                              width: 28,
+                              height: 28,
+                              fontSize: '0.875rem',
+                              border: `2px solid ${theme.palette.background.paper}`,
+                            },
+                          }}
                         >
                           {task.assignedUsers.map((user) => (
                             <Tooltip key={user.id} title={user.name}>
-                              <Avatar
-                                sx={{
-                                  width: 24,
-                                  height: 24,
-                                  fontSize: "0.8rem",
-                                }}
-                                alt={user.name}
-                              >
-                                {user.avatar}
-                              </Avatar>
+                              <Avatar alt={user.name}>{user.avatar}</Avatar>
                             </Tooltip>
                           ))}
                         </AvatarGroup>
                       </Box>
                     )}
 
-                    {/* Deadline */}
-                    {task.deadline && (
-                      <Box
-                        display="flex"
-                        alignItems="center"
-                        mb={1}
-                        width={100}
-                        borderRadius={"5px"}
-                        p={0.2}
-                        sx={{ background: theme.palette.warning.main }}
-                      >
-                        <AccessTimeIcon
-                          fontSize="small"
-                          sx={{ mr: 1, color: "text.secondary" }}
-                        />
-                        <Typography variant="caption">
-                          {new Date(task.deadline).toLocaleDateString()}
-                        </Typography>
-                      </Box>
-                    )}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      {task.deadline && (
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            backgroundColor: theme.palette.warning.light + '20',
+                            color: theme.palette.warning.dark,
+                            px: 1,
+                            py: 0.5,
+                            borderRadius: 1,
+                          }}
+                        >
+                          <AccessTimeIcon fontSize="small" />
+                          <Typography variant="caption">
+                            {new Date(task.deadline).toLocaleDateString()}
+                          </Typography>
+                        </Box>
+                      )}
 
-                    {/* Prioridade */}
-                    {/* Prioridade */}
-                    <Box display="flex" gap={1}>
                       <Chip
                         size="small"
                         label={
-                          task.priority?.toLowerCase() === "high"
-                            ? "Alta"
-                            : task.priority?.toLowerCase() === "medium"
-                            ? "Média"
-                            : task.priority?.toLowerCase() === "low"
-                            ? "Baixa"
-                            : task.priority
+                          task.priority?.toLowerCase() === "high" ? "Alta" :
+                          task.priority?.toLowerCase() === "medium" ? "Média" :
+                          task.priority?.toLowerCase() === "low" ? "Baixa" :
+                          task.priority
                         }
                         sx={{
-                          backgroundColor: getPriorityColor(task.priority),
-                          color: "#fff",
+                          backgroundColor: getPriorityColor(task.priority) + '20',
+                          color: getPriorityColor(task.priority),
+                          fontWeight: 500,
+                          '& .MuiChip-label': {
+                            px: 1,
+                          },
                         }}
                       />
                     </Box>
@@ -196,16 +240,25 @@ export const TaskColumn = ({
         )}
       </Droppable>
 
-      {/* Add Task Button */}
-      <Button
-        variant="contained"
-        size="small"
-        startIcon={<AddIcon />}
-        onClick={() => onAddTask(columnId)}
-        sx={{ mt: 2, width: "100%" }}
-      >
-        Adicionar Tarefa
-      </Button>
-    </Paper>
+      <Box sx={{ p: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<AddIcon />}
+          onClick={() => onAddTask(columnId)}
+          fullWidth
+          sx={{
+            borderColor: column.color,
+            color: column.color,
+            '&:hover': {
+              borderColor: column.color,
+              backgroundColor: column.color + '10',
+            },
+          }}
+        >
+          Adicionar Tarefa
+        </Button>
+      </Box>
+    </Box>
   );
 };

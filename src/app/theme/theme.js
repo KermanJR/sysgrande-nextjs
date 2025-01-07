@@ -1,7 +1,7 @@
 import React from "react";
 import { ThemeProvider, createTheme } from "@mui/material";
 import { Kanit } from "next/font/google"; // Usando a fonte Montserrat
-import colors from "./color"; // Importando as cores definidas
+import { palette } from "./palette";
 
 // Configuração da fonte Montserrat
 const montserrat = Kanit({
@@ -11,13 +11,13 @@ const montserrat = Kanit({
 
 const theme = createTheme({
   palette: {
-    primary: colors.primary,
-    secondary: colors.secondary,
-    background: colors.background,
-    success: colors.success,
-    error: colors.error,
-    warning: colors.warning,
-    text: colors.textPrimary,
+    primary: palette.primary,
+    secondary: palette.secondary,
+    background: palette.background,
+    success: palette.success,
+    error: palette.error,
+    warning: palette.warning,
+    text: palette.text,
   },
   typography: {
     fontFamily: montserrat.style.fontFamily,
@@ -41,13 +41,22 @@ const theme = createTheme({
     MuiTypography: {
       styleOverrides: {
         h1: {
-          color: colors.textPrimary.main,
+          color: palette.primary.main,
         },
         h2: {
-          color: colors.textPrimary.main,
+          color: palette.primary.main,
+        },
+        h3: {
+          color: palette.primary.main,
+        },
+        h4: {
+          color: palette.primary.main,
+        },
+        p: {
+          color: palette.grey[600],
         },
         body1: {
-          color: colors.textPrimary.main,
+          color: palette.grey[600],
         },
       },
     },

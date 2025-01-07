@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -9,29 +9,101 @@ import {
   Typography,
   Chip,
   Button,
-  Tooltip
+  Tooltip,
+  CircularProgress,
+  useTheme,
 } from '@mui/material';
+import { assignUserToTask, fetchUsers } from './API'; 
+import AuthContext from '@/app/context/AuthContext';
+import toast from 'react-hot-toast';
 
 const AssignUserDialog = ({ 
   open, 
   onClose, 
   task, 
-  onAssignUser,
-  systemUsers = [
-    { id: 1, name: 'João Silva', email: 'joao@email.com', avatar: 'JS' },
-    { id: 2, name: 'Maria Santos', email: 'maria@email.com', avatar: 'MS' },
-    { id: 3, name: 'Pedro Costa', email: 'pedro@email.com', avatar: 'PC' },
-    { id: 4, name: 'Ana Oliveira', email: 'ana@email.com', avatar: 'AO' }
-  ]  // You can pass this as a prop instead of hardcoding
+  onAssignUser 
 }) => {
-  // Function to check if a user is assigned to the task
+  const [systemUsers, setSystemUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const {user} = useContext(AuthContext);
+  const theme = useTheme();
+
+  useEffect(() => {
+    if (open) {
+      setLoading(true);
+      fetchUsers()
+        .then((data) => {
+          setSystemUsers(data);
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error('Erro ao buscar usuários:', error);
+          toast.error('Erro ao carregar usuários');
+          setLoading(false);
+        });
+    }
+  }, [open]);
+
   const isUserAssigned = (userId) => {
-    return task?.assignedUsers?.some(u => u.id === userId);
+    return task?.assignedUsers?.some((u) => u.id === userId);
   };
 
-  // Function to handle user click
-  const handleUserClick = (userId) => {
-    onAssignUser(userId);
+  const handleUserClick = async (userId) => {
+    try {
+      setLoading(true);
+      
+      // Encontra o usuário selecionado para mostrar o nome na notificação
+      const selectedUser = systemUsers.find(user => user.id === userId);
+      
+      if (!selectedUser) {
+        throw new Error('Usuário não encontrado');
+      }
+  
+      // Chama a API para atribuir/desatribuir o usuário
+      const response = await assignUserToTask(
+        task._id,
+        userId,
+        user._id // usuário atual do AuthContext
+      );
+      
+      // Atualiza a lista de usuários atribuídos no componente pai
+      onAssignUser();
+      
+      // Determina se o usuário foi removido ou adicionado
+      const isRemoving = isUserAssigned(userId);
+      
+      // Mostra notificação de sucesso
+      toast.success(
+        isRemoving 
+          ? `${selectedUser.name} removido da tarefa "${task.title}"`
+          : `${selectedUser.name} atribuído à tarefa "${task.title}"`,
+        {
+          duration: 3000,
+          position: 'top-center',
+          style: {
+            background: '#fff',
+            color: '#333',
+            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+            borderRadius: '8px',
+            padding: '16px',
+          },
+        }
+      );
+  
+      // Se houver informação sobre email enviado na resposta da API
+      if (response.emailSent) {
+        toast.success('Notificação enviada por email', {
+          duration: 3000,
+          position: 'top-center',
+        });
+      }
+  
+    } catch (error) {
+      console.error('Erro ao atribuir usuário:', error);
+      toast.error(error.message || 'Erro ao atribuir usuário à tarefa');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,75 +115,81 @@ const AssignUserDialog = ({
     >
       <DialogTitle>
         <Typography variant="h6">Atribuir Usuários</Typography>
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" color={theme.palette.text.secondary}>
           Tarefa: {task?.title}
         </Typography>
       </DialogTitle>
       
       <DialogContent>
-        <Box sx={{ pt: 2 }}>
-          {systemUsers.map(user => {
-            const isAssigned = isUserAssigned(user.id);
-            
-            return (
-              <Box 
-                key={user.id}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  p: 1.5,
-                  cursor: 'pointer',
-                  borderRadius: 1,
-                  '&:hover': {
-                    backgroundColor: 'action.hover'
-                  },
-                  transition: 'background-color 0.2s ease'
-                }}
-                onClick={() => handleUserClick(user.id)}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Tooltip title={`${user.name} (${user.email})`}>
-                    <Avatar 
-                      sx={{ 
-                        bgcolor: isAssigned ? 'primary.main' : 'grey.400',
-                        width: 40, 
-                        height: 40 
-                      }}
-                    >
-                      {user.avatar}
-                    </Avatar>
-                  </Tooltip>
-                  
-                  <Box>
-                    <Typography variant="subtitle2">
-                      {user.name}
-                    </Typography>
-                    <Typography 
-                      variant="caption" 
-                      color="text.secondary"
-                      sx={{ display: 'block' }}
-                    >
-                      {user.email}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                <Chip
-                  label={isAssigned ? "Atribuído" : "Atribuir"}
-                  size="small"
-                  color={isAssigned ? "primary" : "default"}
-                  sx={{ 
-                    minWidth: 85,
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Box sx={{ pt: 2 }}>
+            {systemUsers.map((user) => {
+              const isAssigned = isUserAssigned(user.id);
+              
+              return (
+                <Box 
+                  key={user.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    p: 1.5,
+                    cursor: 'pointer',
+                    borderRadius: 1,
                     '&:hover': {
-                      backgroundColor: isAssigned ? 'primary.dark' : 'action.hover'
-                    }
+                      backgroundColor: 'action.hover'
+                    },
+                    transition: 'background-color 0.2s ease'
                   }}
-                />
-              </Box>
-            );
-          })}
-        </Box>
+                  onClick={() => handleUserClick(user.id)}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Tooltip title={`${user.name} (${user.email})`}>
+                      <Avatar 
+                        sx={{ 
+                          bgcolor: isAssigned ? 'primary.main' : 'grey.400',
+                          width: 40, 
+                          height: 40 
+                        }}
+                      >
+                        {user.name[0]}{user.name.split(' ')[1]?.[0]}
+                      </Avatar>
+                    </Tooltip>
+                    
+                    <Box>
+                      <Typography variant="subtitle2">
+                        {user.name}
+                      </Typography>
+                      <Typography 
+                        variant="caption" 
+                        color={theme.palette.text.secondary}
+                        sx={{ display: 'block' }}
+                      >
+                        {user.email}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Chip
+                    label={isAssigned ? "Atribuído" : "Atribuir"}
+                    size="small"
+                    color={isAssigned ? "primary" : "default"}
+                    sx={{ 
+                      minWidth: 85,
+                      '&:hover': {
+                        backgroundColor: isAssigned ? 'primary.dark' : 'action.hover'
+                      }
+                    }}
+                  />
+                </Box>
+              );
+            })}
+          </Box>
+        )}
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>

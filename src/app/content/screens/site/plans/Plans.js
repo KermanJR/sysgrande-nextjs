@@ -45,10 +45,10 @@ const PlanDetail = () => {
             <Typography gutterBottom variant="h4" component="div">
               {plan.name}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color={theme.palette.text.secondary}>
               {plan.description}
             </Typography>
-            <Typography variant="h6" color="text.secondary">
+            <Typography variant="h6" color={theme.palette.text.secondary}>
               R$ {plan.price}
             </Typography>
             <Button variant="contained" color="primary" onClick={() => addToCart(plan)}>

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+
 import {
   Dialog,
   DialogTitle,
@@ -22,8 +23,11 @@ import {
   Chip,
   Checkbox,
   Typography,
+  useTheme,
+  Divider,
 } from '@mui/material';
 import { AttachFile } from '@mui/icons-material';
+import AuthContext from '@/app/context/AuthContext';
 
 const defaultData = {
   title: '',
@@ -55,6 +59,14 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) 
   const [checklistItem, setChecklistItem] = useState('');
   const [newLabel, setNewLabel] = useState('');
 
+  const {
+    user
+  } = useContext(AuthContext)
+
+  const theme = useTheme()
+
+
+
   useEffect(() => {
     setTaskData(initialData || defaultData);
   }, [initialData]);
@@ -73,7 +85,7 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) 
       history: [
         ...(taskData?.history || []), // Garante que `history` seja um array vazio se estiver undefined
         {
-          user: 'Usuário Atual', // Substitua pelo usuário autenticado
+          user: user?.name, // Substitua pelo usuário autenticado
           event,
           details,
           date: new Date().toISOString()
@@ -82,7 +94,46 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) 
       
     });
   };
-  
+
+  const formatDetails = (details) => {
+    return Object.entries(details).map(([key, value]) => {
+      if (typeof value === 'object' && value !== null) {
+        return (
+          <Box key={key} sx={{ mt: 1 }}>
+            <Typography variant="caption" color="text.secondary">
+              {key.charAt(0).toUpperCase() + key.slice(1)}:
+            </Typography>
+            <Typography variant="body2" color="primary">
+              {value.old} → {value.new}
+            </Typography>
+          </Box>
+        );
+      }
+      return (
+        <Box key={key} sx={{ mt: 1 }}>
+          <Typography variant="caption" color="text.secondary">
+            {key}:
+          </Typography>
+          <Typography variant="body2">{value}</Typography>
+        </Box>
+      );
+    });
+  };
+
+  const getEventColor = (event) => {
+    switch (event) {
+      case 'Task Created':
+        return 'success';
+      case 'Task Updated':
+        return 'info';
+      case 'User Assigned':
+        return 'primary';
+      case 'User Unassigned':
+        return 'warning';
+      default:
+        return 'default';
+    }
+  };
   
 
   /*useEffect(() => {
@@ -93,6 +144,12 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) 
     }
   }, [isEditing]);*/
   
+  
+  const formatDate = (date) => {
+    const newDate = new Date(date);
+    return newDate.toLocaleDateString("pt-BR", { timeZone: "UTC" }); // Ajuste o idioma conforme necessário
+  };
+
 
   const addComment = () => {
     if (comment.trim()) {
@@ -136,9 +193,7 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) 
       <DialogContent>
         <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)}>
           <Tab label="Detalhes" />
-          <Tab label="Comentários" />
-          <Tab label="Checklist" />
-          <Tab label="Etiquetas" />
+          <Tab label="Atividade" />
           <Tab label="Anexos" />
         </Tabs>
 
@@ -176,118 +231,44 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) 
             </Box>
           )}
 
-          {activeTab === 1 && (
-             <Box>
-             <TextField
-               fullWidth
-               placeholder="Escrever um comentário..."
-               value={comment}
-               onChange={(e) => setComment(e.target.value)}
-               onKeyDown={(e) => {
-                 if (e.key === 'Enter' && comment.trim()) {
-                   addHistoryEvent(comment.trim());
-                   setComment('');
-                 }
-               }}
-               variant="outlined"
-               size="small"
-               sx={{ marginBottom: 2 }}
-             />
-              <List>
-      {taskData?.history?.map((entry, index) => (
-        <ListItem key={index}>
-          <ListItemText
-            primary={`${entry.user} - ${entry.event}`}
-            secondary={
-              <>
-                <Typography component="span" variant="body2" color="text.primary">
-                  {new Date(entry.date).toLocaleString()}
-                </Typography>
-                {entry.details && (
-                  <Typography variant="body2" color="text.secondary">
-                    {JSON.stringify(entry.details)}
-                  </Typography>
-                )}
-              </>
-            }
-          />
+{activeTab === 1 && (
+  <List sx={{ maxWidth: 800, margin: 'auto', p: 2 }}>
+    {taskData?.history?.sort((a, b) => new Date(b.date) - new Date(a.date)).map((entry, index, arr) => (
+      <React.Fragment key={index}>
+        <ListItem sx={{ 
+          flexDirection: 'column', 
+          alignItems: 'flex-start', 
+          py: 2,
+          backgroundColor: index === 0 ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+          borderRadius: index === 0 ? 1 : 0
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, width: '100%' }}>
+            <Chip
+              label={entry.event === 'Task Created' ? 'Tarefa Criada' :
+                    entry.event === 'Task Updated' ? 'Tarefa Atualizada' :
+                    entry.event === 'User Assigned' ? 'Usuário Atribuído' :
+                    entry.event === 'User Unassigned' ? 'Usuário Removido' :
+                    entry.event}
+              color={index === 0 ? 'primary' : getEventColor(entry.event)}
+              variant={index === 0 ? "filled" : "outlined"}
+              size="small"
+            />
+            <Typography variant="caption" color="text.secondary">
+              {new Date(entry.date).toLocaleString('pt-BR')}
+            </Typography>
+          </Box>
+          {entry.details && (
+            <Box sx={{ pl: 2, borderLeft: '2px solid', borderColor: 'divider', width: '100%' }}>
+              {formatDetails(entry.details)}
+            </Box>
+          )}
         </ListItem>
-      ))}
-    </List>
-           </Box>
-          )}
-
-          {activeTab === 2 && (
-            <Box>
-              <Box sx={{ mb: 2 }}>
-                <TextField
-                  fullWidth
-                  value={checklistItem}
-                  onChange={(e) => setChecklistItem(e.target.value)}
-                  placeholder="Novo item do checklist..."
-                />
-                <Button onClick={addChecklistItem} sx={{ mt: 1 }}>
-                  Adicionar
-                </Button>
-              </Box>
-              <List>
-                {taskData.checklist?.map((item, index) => (
-                  <ListItem key={index}>
-                    <ListItemIcon>
-                      <Checkbox
-                        checked={item.completed}
-                        onChange={() => {
-                          const newChecklist = [...taskData.checklist];
-                          newChecklist[index].completed = !newChecklist[index].completed;
-                          setTaskData({ ...taskData, checklist: newChecklist });
-                        }}
-                      />
-                    </ListItemIcon>
-                    <ListItemText primary={item.text} />
-                  </ListItem>
-                ))}
-              </List>
-            </Box>
-          )}
-
-          {activeTab === 3 && (
-            <Box>
-              <Box sx={{ mb: 2 }}>
-                <TextField
-                  value={newLabel}
-                  onChange={(e) => setNewLabel(e.target.value)}
-                  placeholder="Nova etiqueta..."
-                />
-                <Button 
-                  onClick={() => {
-                    if (newLabel.trim()) {
-                      setTaskData({
-                        ...taskData,
-                        labels: [...(taskData.labels || []), newLabel]
-                      });
-                      setNewLabel('');
-                    }
-                  }} 
-                  sx={{ mt: 1 }}
-                >
-                  Adicionar
-                </Button>
-              </Box>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {taskData.labels?.map((label, index) => (
-                  <Chip
-                    key={index}
-                    label={label}
-                    onDelete={() => {
-                      const newLabels = taskData.labels.filter((_, i) => i !== index);
-                      setTaskData({ ...taskData, labels: newLabels });
-                    }}
-                  />
-                ))}
-              </Box>
-            </Box>
-          )}
-
+        {index < arr.length - 1 && <Divider />}
+      </React.Fragment>
+    ))}
+  </List>
+)}
+         
           {activeTab === 4 && (
             <Box>
               <input

@@ -271,22 +271,22 @@ export default function Finances() {
     doc.save("relatorio_itens.pdf");
   };
 
-  const theme = useTheme()
+  const theme = useTheme();
 
   return (
     <Box className={styles.plans}>
       <Box
         sx={{
-          border: "1px solid #d9d9d9",
-          borderRadius: "10px",
-          padding: ".5rem",
+          borderBottom: "1px solid #d9d9d9",
+          padding: ".0",
+          marginTop: "-1rem",
         }}
       >
         <Typography
           typography="h4"
           style={{ fontWeight: "bold", color: "#1E3932" }}
         >
-          Férias
+          Controle de Férias
         </Typography>
         <Typography
           typography="label"
@@ -296,7 +296,10 @@ export default function Finances() {
             fontSize: ".875rem",
           }}
         >
-          Gerencie as férias de seus funcionários
+          Gerencie as férias dos funcionários da{" "}
+          <Typography variant="p" sx={{ fontWeight: "bold" }}>
+            {company?.name}
+          </Typography>
         </Typography>
       </Box>
 
@@ -308,7 +311,9 @@ export default function Finances() {
             className={styles.plans__search__input}
             onClick={generatePdf}
           >
-            <DescriptionIcon sx={{ color: theme.palette.grey[600], width: "20px" }} />
+            <DescriptionIcon
+              sx={{ color: theme.palette.grey[600], width: "20px" }}
+            />
             Gerar Relatório
           </Button>
           <Button
@@ -317,7 +322,9 @@ export default function Finances() {
             className={styles.plans__search__input}
             onClick={() => handleOpenPlanModal()}
           >
-            <AddCircleIcon sx={{ color:  theme.palette.grey[600], width: "20px" }} />
+            <AddCircleIcon
+              sx={{ color: theme.palette.grey[600], width: "20px" }}
+            />
             Criar
           </Button>
         </Box>

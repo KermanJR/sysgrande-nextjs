@@ -139,10 +139,10 @@ const Products = () => {
                       <Typography gutterBottom variant="h6" component="div">
                         {product.name}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color={theme.palette.text.secondary}>
                         R$ {product.price}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color={theme.palette.text.secondary}>
                         {truncateText(product.description, 60)}
                       </Typography>
                     </CardContent>
@@ -183,10 +183,10 @@ const Products = () => {
                   <Typography gutterBottom variant="h6" component="div">
                     {product.name}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color={theme.palette.text.secondary}>
                     R$ {product.price}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color={theme.palette.text.secondary}>
                     {truncateText(product.description, 60)}
                   </Typography>
                 </CardContent>

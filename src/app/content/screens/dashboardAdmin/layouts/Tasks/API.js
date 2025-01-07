@@ -99,5 +99,49 @@ export const deleteTaskById = async (taskId) => {
   }
 };
 
+export const fetchUsers = async () => {
+  try {
+    const response = await fetch(`${URL_LOCAL}user`, { 
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Erro ao buscar os usuários');
+    }
+    const data = await response.json();
+    return data; // Retorna os dados dos usuários
+  } catch (error) {
+    console.error('Erro:', error);
+    return [];
+  }
+};
+
+export const assignUserToTask = async (taskId, userId, currentUser) => {
+  try {
+    const response = await fetch(`${URL_LOCAL}tasks/${taskId}/assign`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId,
+        currentUser
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao atribuir usuário à tarefa');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Erro:', error);
+    throw error; // Propaga o erro para ser tratado no componente
+  }
+};
+
 
 
