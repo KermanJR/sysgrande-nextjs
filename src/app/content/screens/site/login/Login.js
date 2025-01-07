@@ -11,6 +11,7 @@ import LogoSanegrande from '../../../../../../public/icons/logo-sanegrande.png';
 import Wave from "@/app/components/Footer/Wave";
 
 const URL_LOCAL = 'http://localhost:5000/api/';
+const URL = 'https://sysgrande-nodejs.onrender.com/api/'
 
 const LoginPage = () => {
     const { login } = useContext(AuthContext);
@@ -32,7 +33,7 @@ const LoginPage = () => {
         }),
         onSubmit: async (values, { setSubmitting }) => {
             try {
-                const response = await fetch(`${URL_LOCAL}login`, {
+                const response = await fetch(`${URL}login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(values),

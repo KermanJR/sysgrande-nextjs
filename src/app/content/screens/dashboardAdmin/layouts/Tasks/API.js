@@ -3,7 +3,7 @@ const URL_LOCAL = 'http://localhost:5000/api/'
 
 export const fetchTasks = async () => {
   try {
-    const response = await fetch(`${URL_LOCAL}tasks`, { 
+    const response = await fetch(`${URL}tasks`, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -22,7 +22,7 @@ export const fetchTasks = async () => {
 
 export const createTasks = async (task) => {
   try {
-    const response = await fetch(`${URL_LOCAL}tasks`, { 
+    const response = await fetch(`${URL}tasks`, { 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ export const createTasks = async (task) => {
 
 export const updateTasks = async (task, id) => {
   try {
-    const response = await fetch(`${URL_LOCAL}tasks/${id}`, { 
+    const response = await fetch(`${URL}tasks/${id}`, { 
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -64,7 +64,7 @@ export const updateTasks = async (task, id) => {
 // API.js
 export const updateTaskStatus = async (taskId, newStatus) => {
   try {
-    const response = await fetch(`${URL_LOCAL}tasks/${taskId}/status`, {
+    const response = await fetch(`${URL}tasks/${taskId}/status`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ export const updateTaskStatus = async (taskId, newStatus) => {
 
 export const deleteTaskById = async (taskId) => {
   try {
-    const response = await fetch(`${URL_LOCAL}tasks/${taskId}`, {
+    const response = await fetch(`${URL}tasks/${taskId}`, {
       method: "DELETE",
     });
     if (response.ok) {
@@ -101,7 +101,7 @@ export const deleteTaskById = async (taskId) => {
 
 export const fetchUsers = async () => {
   try {
-    const response = await fetch(`${URL_LOCAL}user`, { 
+    const response = await fetch(`${URL}user`, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -120,7 +120,7 @@ export const fetchUsers = async () => {
 
 export const assignUserToTask = async (taskId, userId, currentUser) => {
   try {
-    const response = await fetch(`${URL_LOCAL}tasks/${taskId}/assign`, {
+    const response = await fetch(`${URL}tasks/${taskId}/assign`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
