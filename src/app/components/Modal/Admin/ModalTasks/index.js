@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Link from '@tiptap/extension-link';
 
 import {
   Dialog,
@@ -21,12 +22,11 @@ import {
   ListItemText,
   ListItemIcon,
   Chip,
-  Checkbox,
   Typography,
   useTheme,
   Divider,
 } from '@mui/material';
-import { AttachFile } from '@mui/icons-material';
+import { AttachFile, FormatBold, FormatItalic, FormatListBulleted, FormatListNumbered, Code } from '@mui/icons-material';
 import AuthContext from '@/app/context/AuthContext';
 
 const defaultData = {
@@ -38,18 +38,60 @@ const defaultData = {
   checklist: [],
   labels: [],
   attachments: [],
-  history: [], // Novo campo para o histórico
+  history: [],
 };
 
+const MenuBar = ({ editor }) => {
+  if (!editor) {
+    return null;
+  }
 
-const modules = {
-  toolbar: [
-    [{ 'header': [1, 2, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-    ['link', 'code-block'],
-    ['clean']
-  ],
+  return (
+    <Box sx={{ 
+      display: 'flex', 
+      gap: 1, 
+      mb: 1, 
+      p: 1, 
+      borderBottom: '1px solid', 
+      borderColor: 'divider' 
+    }}>
+      <Button
+        size="small"
+        variant={editor.isActive('bold') ? 'contained' : 'outlined'}
+        onClick={() => editor.chain().focus().toggleBold().run()}
+      >
+        <FormatBold />
+      </Button>
+      <Button
+        size="small"
+        variant={editor.isActive('italic') ? 'contained' : 'outlined'}
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+      >
+        <FormatItalic />
+      </Button>
+      <Button
+        size="small"
+        variant={editor.isActive('bulletList') ? 'contained' : 'outlined'}
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+      >
+        <FormatListBulleted />
+      </Button>
+      <Button
+        size="small"
+        variant={editor.isActive('orderedList') ? 'contained' : 'outlined'}
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+      >
+        <FormatListNumbered />
+      </Button>
+      <Button
+        size="small"
+        variant={editor.isActive('codeBlock') ? 'contained' : 'outlined'}
+        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+      >
+        <Code />
+      </Button>
+    </Box>
+  );
 };
 
 const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) => {
@@ -57,15 +99,29 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) 
   const [activeTab, setActiveTab] = useState(0);
   const [comment, setComment] = useState('');
   const [checklistItem, setChecklistItem] = useState('');
-  const [newLabel, setNewLabel] = useState('');
 
-  const {
-    user
-  } = useContext(AuthContext)
+  const { user } = useContext(AuthContext);
+  const theme = useTheme();
 
-  const theme = useTheme()
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Link,
+    ],
+    content: taskData.description,
+    onUpdate: ({ editor }) => {
+      setTaskData(prev => ({
+        ...prev,
+        description: editor.getHTML()
+      }));
+    },
+  });
 
-
+  useEffect(() => {
+    if (editor && initialData?.description) {
+      editor.commands.setContent(initialData.description);
+    }
+  }, [editor, initialData]);
 
   useEffect(() => {
     setTaskData(initialData || defaultData);
@@ -75,106 +131,28 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) 
     setTaskData({ ...taskData, [field]: event.target.value });
   };
 
-  const handleEditorChange = (content) => {
-    setTaskData({ ...taskData, description: content })
-  };
-
-  const addHistoryEvent = (event) => {
-    setTaskData({
-      ...taskData,
-      history: [
-        ...(taskData?.history || []), // Garante que `history` seja um array vazio se estiver undefined
-        {
-          user: user?.name, // Substitua pelo usuário autenticado
-          event,
-          details,
-          date: new Date().toISOString()
-        }
-      ]
-      
-    });
-  };
-
   const formatDetails = (details) => {
-    return Object.entries(details).map(([key, value]) => {
-      if (typeof value === 'object' && value !== null) {
-        return (
-          <Box key={key} sx={{ mt: 1 }}>
-            <Typography variant="caption" color="text.secondary">
-              {key.charAt(0).toUpperCase() + key.slice(1)}:
-            </Typography>
-            <Typography variant="body2" color="primary">
-              {value.old} → {value.new}
-            </Typography>
-          </Box>
-        );
-      }
-      return (
-        <Box key={key} sx={{ mt: 1 }}>
-          <Typography variant="caption" color="text.secondary">
-            {key}:
-          </Typography>
-          <Typography variant="body2">{value}</Typography>
-        </Box>
-      );
-    });
+    return Object.entries(details).map(([key, value]) => (
+      <Box key={key} sx={{ mt: 1 }}>
+        <Typography variant="caption" color="text.secondary">
+          {key.charAt(0).toUpperCase() + key.slice(1)}:
+        </Typography>
+        <Typography variant="body2" color="primary">
+          {typeof value === 'object' && value !== null 
+            ? `${value.old} → ${value.new}`
+            : value}
+        </Typography>
+      </Box>
+    ));
   };
 
   const getEventColor = (event) => {
     switch (event) {
-      case 'Task Created':
-        return 'success';
-      case 'Task Updated':
-        return 'info';
-      case 'User Assigned':
-        return 'primary';
-      case 'User Unassigned':
-        return 'warning';
-      default:
-        return 'default';
-    }
-  };
-  
-
-  /*useEffect(() => {
-    if (isEditing) {
-      addHistoryEvent('Tarefa editada');
-    } else {
-      addHistoryEvent('Tarefa criada');
-    }
-  }, [isEditing]);*/
-  
-  
-  const formatDate = (date) => {
-    const newDate = new Date(date);
-    return newDate.toLocaleDateString("pt-BR", { timeZone: "UTC" }); // Ajuste o idioma conforme necessário
-  };
-
-
-  const addComment = () => {
-    if (comment.trim()) {
-      setTaskData({
-        ...taskData,
-        comments: [...(taskData.comments || []), {
-          text: comment,
-          user: 'Usuário Atual',
-          date: new Date().toISOString(),
-        }]
-      });
-      setComment('');
-    }
-  };
-
-  const addChecklistItem = () => {
-    if (checklistItem.trim()) {
-      setTaskData({
-        ...taskData,
-        checklist: [...(taskData.checklist || []), {
-          text: checklistItem,
-          completed: false,
-        }]
-      });
-      setChecklistItem('');
+      case 'Task Created': return 'success';
+      case 'Task Updated': return 'info';
+      case 'User Assigned': return 'primary';
+      case 'User Unassigned': return 'warning';
+      default: return 'default';
     }
   };
 
@@ -200,13 +178,17 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) 
         <Box sx={{ mt: 2 }}>
           {activeTab === 0 && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <ReactQuill 
-                theme="snow"
-                value={taskData.description}
-                onChange={handleEditorChange}
-                modules={modules}
-                style={{ height: '200px', marginBottom: '50px' }}
-              />
+              <Box sx={{ 
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1,
+                overflow: 'hidden'
+              }}>
+                <MenuBar editor={editor} />
+                <Box sx={{ p: 2, minHeight: '200px' }}>
+                  <EditorContent editor={editor} />
+                </Box>
+              </Box>
               
               <TextField
                 type="date"
@@ -231,45 +213,47 @@ const TaskModal = ({ open, onClose, onSubmit, initialData, isEditing = false }) 
             </Box>
           )}
 
-{activeTab === 1 && (
-  <List sx={{ maxWidth: 800, margin: 'auto', p: 2 }}>
-    {taskData?.history?.sort((a, b) => new Date(b.date) - new Date(a.date)).map((entry, index, arr) => (
-      <React.Fragment key={index}>
-        <ListItem sx={{ 
-          flexDirection: 'column', 
-          alignItems: 'flex-start', 
-          py: 2,
-          backgroundColor: index === 0 ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
-          borderRadius: index === 0 ? 1 : 0
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, width: '100%' }}>
-            <Chip
-              label={entry.event === 'Task Created' ? 'Tarefa Criada' :
-                    entry.event === 'Task Updated' ? 'Tarefa Atualizada' :
-                    entry.event === 'User Assigned' ? 'Usuário Atribuído' :
-                    entry.event === 'User Unassigned' ? 'Usuário Removido' :
-                    entry.event}
-              color={index === 0 ? 'primary' : getEventColor(entry.event)}
-              variant={index === 0 ? "filled" : "outlined"}
-              size="small"
-            />
-            <Typography variant="caption" color="text.secondary">
-              {new Date(entry.date).toLocaleString('pt-BR')}
-            </Typography>
-          </Box>
-          {entry.details && (
-            <Box sx={{ pl: 2, borderLeft: '2px solid', borderColor: 'divider', width: '100%' }}>
-              {formatDetails(entry.details)}
-            </Box>
+          {activeTab === 1 && (
+            <List sx={{ maxWidth: 800, margin: 'auto', p: 2 }}>
+              {taskData?.history?.sort((a, b) => new Date(b.date) - new Date(a.date)).map((entry, index, arr) => (
+                <React.Fragment key={index}>
+                  <ListItem sx={{ 
+                    flexDirection: 'column', 
+                    alignItems: 'flex-start', 
+                    py: 2,
+                    backgroundColor: index === 0 ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                    borderRadius: index === 0 ? 1 : 0
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, width: '100%' }}>
+                      <Chip
+                        label={
+                          entry.event === 'Task Created' ? 'Tarefa Criada' :
+                          entry.event === 'Task Updated' ? 'Tarefa Atualizada' :
+                          entry.event === 'User Assigned' ? 'Usuário Atribuído' :
+                          entry.event === 'User Unassigned' ? 'Usuário Removido' :
+                          entry.event
+                        }
+                        color={index === 0 ? 'primary' : getEventColor(entry.event)}
+                        variant={index === 0 ? "filled" : "outlined"}
+                        size="small"
+                      />
+                      <Typography variant="caption" color="text.secondary">
+                        {new Date(entry.date).toLocaleString('pt-BR')}
+                      </Typography>
+                    </Box>
+                    {entry.details && (
+                      <Box sx={{ pl: 2, borderLeft: '2px solid', borderColor: 'divider', width: '100%' }}>
+                        {formatDetails(entry.details)}
+                      </Box>
+                    )}
+                  </ListItem>
+                  {index < arr.length - 1 && <Divider />}
+                </React.Fragment>
+              ))}
+            </List>
           )}
-        </ListItem>
-        {index < arr.length - 1 && <Divider />}
-      </React.Fragment>
-    ))}
-  </List>
-)}
-         
-          {activeTab === 4 && (
+
+          {activeTab === 2 && (
             <Box>
               <input
                 type="file"

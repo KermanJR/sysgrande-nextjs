@@ -1,7 +1,6 @@
 const { Dialog, DialogTitle, DialogContent, TextField, Button, DialogActions } = require("@mui/material");
 
-const [openEvalModal, setOpenEvalModal] = useState(false);
-const [currentEval, setCurrentEval] = useState(null);
+
 
 
 // Componente do Modal
