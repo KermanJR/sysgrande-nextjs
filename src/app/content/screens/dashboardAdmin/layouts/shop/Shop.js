@@ -114,7 +114,7 @@ function TablePaginationActions(props) {
 
 export default function Shop() {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(7);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [currentPurchase, setCurrentPurchase] = useState(null);
   const [purchases, setPurchases] = useState([]);
