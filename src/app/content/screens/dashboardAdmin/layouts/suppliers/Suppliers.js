@@ -113,7 +113,7 @@ function TablePaginationActions(props) {
 
 export default function Suppliers() {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(7);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [currentPurchase, setCurrentPurchase] = useState(null);
   const [suppliers, setSuppliers] = useState([]);
@@ -596,7 +596,7 @@ const handleExportPdf = () => {
         employees={suppliers}
         buttonStyles={buttonStyles}
       />
-<Box display="flex" gap={2} p={2} ml={-2} stickyHeader sx={{ minWidth: 1200, position: 'sticky', zIndex: 3 }}>
+<Box display="flex" gap={2} p={2} ml={-2}     mt={-3} stickyHeader sx={{ minWidth: 1200, position: 'sticky', zIndex: 3 }}>
           <Button
             variant="contained"
             sx={buttonStyles}
@@ -776,28 +776,34 @@ const handleExportPdf = () => {
                 );
               })}
           </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TablePagination
-                rowsPerPageOptions={[4, 8, 12, { label: "Todos", value: -1 }]}
-                colSpan={12}
-                count={suppliers.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                SelectProps={{
-                  inputProps: {
-                    "aria-label": "Linhas por página",
-                  },
-                  native: true,
-                }}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                ActionsComponent={TablePaginationActions}
-              />
-            </TableRow>
-          </TableFooter>
+         
         </Table>
       </TableContainer>
+      <Paper sx={{ 
+      position: 'sticky',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      mt: 2,
+      zIndex: 2
+    }}>
+      <TablePagination
+        component="div"
+        rowsPerPageOptions={[4, 8, 12, { label: "Todos", value: -1 }]}
+        count={suppliers.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        SelectProps={{
+          inputProps: {
+            "aria-label": "Linhas por página",
+          },
+          native: true,
+        }}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        ActionsComponent={TablePaginationActions}
+      />
+    </Paper>
 
       <SupplierModal
         open={isPurchaseModalOpen}

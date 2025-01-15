@@ -701,6 +701,7 @@ export default function Shop() {
     gap={2} 
     p={2}
     ml={-2}
+    mt={-3}
     sx={{
       backgroundColor: 'background.paper',
    
@@ -878,35 +879,33 @@ export default function Shop() {
           </TableRow>
         ))}
     </TableBody>
-    <TableFooter>
-      <TableRow>
-        <TablePagination
-          sx={{
-            position: 'sticky',
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'background.default',
-            zIndex: 2
-          }}
-          rowsPerPageOptions={[4, 8, 12, { label: "Todos", value: -1 }]}
-          colSpan={12}
-          count={purchases.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          SelectProps={{
-            inputProps: {
-              "aria-label": "Linhas por página",
-            },
-            native: true,
-          }}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          ActionsComponent={TablePaginationActions}
-        />
-      </TableRow>
-    </TableFooter>
   </Table>
 </TableContainer>
+<Paper sx={{ 
+      position: 'sticky',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      mt: 2,
+      zIndex: 2
+    }}>
+      <TablePagination
+        component="div"
+        rowsPerPageOptions={[4, 8, 12, { label: "Todos", value: -1 }]}
+        count={purchases.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        SelectProps={{
+          inputProps: {
+            "aria-label": "Linhas por página",
+          },
+          native: true,
+        }}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        ActionsComponent={TablePaginationActions}
+      />
+    </Paper>
 
       <PurchaseModal
         open={isPurchaseModalOpen}
