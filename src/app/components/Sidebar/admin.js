@@ -27,6 +27,8 @@ import {
   Inventory,
   Logout,
 } from "@mui/icons-material";
+import Suppliers from "@/app/content/screens/dashboardAdmin/layouts/suppliers/Suppliers";
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 
 const StyledListItemButton = styled(ListItemButton)(({ theme, active }) => ({
   marginBottom: '4px',
@@ -76,7 +78,7 @@ const SubMenuItem = styled(ListItemButton)(({ theme, active }) => ({
 const CompanySelect = styled(Select)(({ theme }) => ({
   '& .MuiSelect-select': {
     padding: '8px 32px 8px 0',
-    fontSize: '1.1rem',
+    fontSize: '1.5rem',
     fontWeight: 600,
     color: theme.palette.text.primary,
     display: 'flex',
@@ -121,6 +123,7 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen }) => {
     },
     other: [
       { icon: <ShoppingCart />, label: "Compras" },
+      { icon: <LocalShippingIcon />, label: "Fornecedores" },
       { icon: <DirectionsCar />, label: "Veículos" },
       { icon: <Inventory />, label: "Inventário" },
     ]
@@ -200,7 +203,7 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen }) => {
               <MenuItem key={comp.id} value={comp.id}>
                 <Typography sx={{
                   fontWeight: 'bold',
-                  fontSize: '1.5rem'
+                  fontSize: '1.1rem'
                 }}>
                 {comp.name}
                 </Typography>

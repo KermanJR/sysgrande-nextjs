@@ -146,8 +146,7 @@ const RescisaoModal = ({ open, onClose, onSave, item }) => {
     setIsSubmitting(true);
     const expenseData = new FormData();
 
-    console.log(item)
-
+ 
     // Add base fields
     expenseData.append("type", "Termination");
     expenseData.append("employee", selectedEmployee);

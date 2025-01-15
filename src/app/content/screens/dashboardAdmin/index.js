@@ -14,6 +14,8 @@ import HumansRec from "./layouts/humansrec/HumansRec";
 import VacancyCheck from "./layouts/vacancyCheck/VacancyCheck";
 import NotificationBadge from "@/app/components/HeaderDashboard";
 import HeaderDashboard from "@/app/components/HeaderDashboard";
+import Shop from "./layouts/shop/Shop";
+import Suppliers from "./layouts/suppliers/Suppliers";
 
 export default function ScreenDashboardAdmin() {
   const [selectedComponent, setSelectedComponent] = useState("init");
@@ -33,6 +35,8 @@ export default function ScreenDashboardAdmin() {
     Funcionário: <Employees />,
     Perfil: <ProfileAdmin />,
     Rescisão: <Termination />,
+    Compras: <Shop />,
+    Fornecedores: <Suppliers />,
   };
 
   return (

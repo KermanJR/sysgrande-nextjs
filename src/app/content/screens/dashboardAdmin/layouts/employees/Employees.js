@@ -65,7 +65,7 @@ export default function Employees() {
     status: "",
     attachment: null,
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { company } = useCompany();
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -280,28 +280,30 @@ export default function Employees() {
   );
 
   return (
-    <Box sx={{ 
-          height: '100vh',
-          backgroundColor: theme.palette.background.default,
-          p: 2,
-          mt: -6
-        }}>
+    <Box 
+      sx={{ 
+        height: '100vh',
+        backgroundColor: theme.palette.background.default,
+        p: 2,
+        mt: -6,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden'
+      }}
+    >
       <HeaderDashboard
         subtitle={"Gerencie todos os funcionários da"}
         title={"Funcionários"}
       />
+      
       <Box sx={{ padding: 0, mt: 3 }}>
         {isLoading ? (
           <CircularProgress />
         ) : (
-          <>
-            {/* Exibindo as estatísticas no início do dashb*/}
-            <EmployeeStats employees={employees} />
-          </>
+          <EmployeeStats employees={employees} />
         )}
       </Box>
 
-      {/* Add Advanced Filters */}
       <FilterDrawer
         open={filterDrawerOpen}
         onClose={() => setFilterDrawerOpen(false)}
@@ -313,272 +315,237 @@ export default function Employees() {
       />
 
       {viewMode === "list" ? (
-        <TableContainer className={styles.plans__table__container}>
-          <Box display="flex" gap={2} p={2} sx={{ justifyContent: "left" }}>
-            <Box sx={{ mb: 0, display: "flex", gap: 2 }}>
-              <Button
-                variant="contained"
-                sx={buttonStyles}
-                onClick={handleOpenPlanModal}
-                startIcon={<AddIcon />}
-              >
-                Novo Funcionário
-              </Button>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          flexGrow: 1,
+          minHeight: 0,
+          mt: 2
+        }}>
+          <Box sx={{ 
+            display: "flex", 
+            gap: 2, 
+            p: 2,
+            flexWrap: 'wrap'
+          }}>
+            <Button
+              variant="contained"
+              sx={buttonStyles}
+              onClick={handleOpenPlanModal}
+              startIcon={<AddIcon />}
+            >
+              Novo Funcionário
+            </Button>
 
-              <Button
-                variant="outlined"
-                onClick={() => setFilterDrawerOpen(true)}
-                startIcon={<FilterListIcon />}
-              >
-                Filtros
-              </Button>
-              {selectedEmployees.length > 0 && (
-                <>
-                  <Button
-                    variant="contained"
-                    startIcon={<ArticleIcon />}
-                    onClick={() => handleExportSelected()}
-                  >
-                    Exportar Selecionados
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    startIcon={<FaTrash />}
-                    onClick={() => {
-                      setIsDeleteModalOpen(true);
-                      setEmployeeToDelete(selectedEmployees);
-                    }}
-                  >
-                    Excluir Selecionados ({selectedEmployees.length})
-                  </Button>
-                </>
-              )}
-            </Box>
-          </Box>
-          <Table className={styles.plans__table}>
-            <TableHead>
-              <TableRow>
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    checked={
-                      selectedEmployees.length === filteredEmployess.length
-                    }
-                    indeterminate={
-                      selectedEmployees.length > 0 &&
-                      selectedEmployees.length < filteredEmployess.length
-                    }
-                    onChange={(event) => {
-                      if (event.target.checked) {
-                        setSelectedEmployees(
-                          filteredEmployess.map((emp) => emp._id)
-                        );
-                      } else {
-                        setSelectedEmployees([]);
-                      }
-                    }}
-                  />
-                </TableCell>
-                <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                  Nome
-                </TableCell>
-                <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                  Equipe
-                </TableCell>
-                <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                  Telefone
-                </TableCell>
-                <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                  Regional
-                </TableCell>
-                <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                  Município
-                </TableCell>
-                <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                  Localidade
-                </TableCell>
-                <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                  Placa Veículo
-                </TableCell>
-                <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                  Departamento
-                </TableCell>
-                <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                  Cargo
-                </TableCell>
-                <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                  Status
-                </TableCell>
-                <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                  Ações
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {!isLoading ? (
-                paginatedEmployees
-                  ?.filter(
-                    (employee) =>
-                      employee?.codigoRegional && employee?.codigoLocal
-                  )
-                  .map((employee) => (
-                    <TableRow
-                      key={employee._id}
-                      onClick={() => handleViewEmployeeDetails(employee)}
-                      sx={{
-                        cursor: "pointer",
-                        "&:hover": { bgcolor: "action.hover" },
-                      }}
-                    >
-                      <TableCell padding="checkbox">
-                        <Checkbox
-                          checked={selectedEmployees.includes(employee._id)}
-                          onChange={(event) => {
-                            if (event.target.checked) {
-                              setSelectedEmployees([
-                                ...selectedEmployees,
-                                employee._id,
-                              ]);
-                            } else {
-                              setSelectedEmployees(
-                                selectedEmployees.filter(
-                                  (id) => id !== employee._id
-                                )
-                              );
-                            }
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        {employee?.name}
-                      </TableCell>
-                      <TableCell align="center">
-                        {employee?.codigoEquipe}
-                      </TableCell>
-                      <TableCell align="center">{employee?.phone}</TableCell>
-                      <TableCell align="center">
-                        {employee?.codigoRegional?.name}
-                      </TableCell>
-                      <TableCell align="center">
-                        {employee?.codigoMunicipio?.name}
-                      </TableCell>
-                      <TableCell align="center">
-                        {employee?.codigoLocal?.name}
-                      </TableCell>
-                      <TableCell align="center">
-                        {employee?.placaMoto}
-                      </TableCell>
-                      <TableCell align="center">
-                        {employee?.department}
-                      </TableCell>
-                      <TableCell align="center">{employee?.position}</TableCell>
-                      <TableCell align="center">
-                        <Box
-                          style={{
-                            backgroundColor: (() => {
-                              switch (employee?.status) {
-                                case "Ativo":
-                                  return "#C8E6C9";
-                                case "Inativo":
-                                  return "#FFCDD2";
-                                case "Afastado":
-                                  return "#FBBC04";
-                                default:
-                                  return "#FFFFFF";
-                              }
-                            })(),
-                            color: "#000",
-                            height: "35px",
-                            borderRadius: "9px",
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          {employee?.status}
-                        </Box>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Box className={styles.plans__table__actions}>
-                          <Tooltip title="Editar Funcionário">
-                            <span>
-                              <FaEdit
-                                style={{ cursor: "pointer" }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleOpenPlanModal(employee);
-                                }}
-                              />
-                            </span>
-                          </Tooltip>
-                          <Tooltip title="Excluir">
-                            <span>
-                              <FaTrash
-                                style={{ cursor: "pointer" }}
-                                color="red"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteClick(e, employee);
-                                }}
-                              />
-                            </span>
-                          </Tooltip>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))
-              ) : (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    width: 100,
-                    height: "400px",
+            <Button
+              variant="outlined"
+              onClick={() => setFilterDrawerOpen(true)}
+              startIcon={<FilterListIcon />}
+            >
+              Filtros
+            </Button>
+            
+            {selectedEmployees.length > 0 && (
+              <>
+                <Button
+                  variant="contained"
+                  startIcon={<ArticleIcon />}
+                  onClick={() => handleExportSelected()}
+                >
+                  Exportar Selecionados
+                </Button>
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<FaTrash />}
+                  onClick={() => {
+                    setIsDeleteModalOpen(true);
+                    setEmployeeToDelete(selectedEmployees);
                   }}
                 >
-                  <CircularProgress
-                    size={30}
-                    thickness={5}
-                    sx={
-                      {
-                        // use a cor que combina com seu tema
-                      }
-                    }
-                  />
-                </Box>
-              )}
-            </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TablePagination
-                  rowsPerPageOptions={[
-                    5,
-                    10,
-                    25,
-                    { label: "Todos", value: -1 },
-                  ]}
-                  colSpan={11}
-                  count={filteredEmployess.length}
-                  rowsPerPage={rowsPerPage}
-                  page={page}
-                  slotProps={{
-                    select: {
-                      inputProps: {
-                        "aria-label": "Linhas por página",
+                  Excluir Selecionados ({selectedEmployees.length})
+                </Button>
+              </>
+            )}
+          </Box>
+
+          <TableContainer sx={{ 
+            flexGrow: 1,
+            overflow: 'auto',
+            minHeight: 0,
+            maxHeight: 'calc(100vh - 350px)',
+            '& .MuiTable-root': {
+              minWidth: 1200,
+            },
+            '& .MuiTableHead-root': {
+              position: 'sticky',
+              top: 0,
+              backgroundColor: theme.palette.background.paper,
+              zIndex: 2,
+            }
+          }}>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={selectedEmployees.length === filteredEmployess.length}
+                      indeterminate={selectedEmployees.length > 0 && selectedEmployees.length < filteredEmployess.length}
+                      onChange={(event) => {
+                        if (event.target.checked) {
+                          setSelectedEmployees(filteredEmployess.map((emp) => emp._id));
+                        } else {
+                          setSelectedEmployees([]);
+                        }
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Nome</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Equipe</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Telefone</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Regional</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Município</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Localidade</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Placa Veículo</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Departamento</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Cargo</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Status</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Ações</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {!isLoading ? (
+                  paginatedEmployees
+                    ?.filter((employee) => employee?.codigoRegional && employee?.codigoLocal)
+                    .map((employee) => (
+                      <TableRow
+                        key={employee._id}
+                        onClick={() => handleViewEmployeeDetails(employee)}
+                        sx={{
+                          cursor: "pointer",
+                          "&:hover": { bgcolor: "action.hover" },
+                        }}
+                      >
+                        <TableCell padding="checkbox">
+                          <Checkbox
+                            checked={selectedEmployees.includes(employee._id)}
+                            onChange={(event) => {
+                              event.stopPropagation();
+                              if (event.target.checked) {
+                                setSelectedEmployees([...selectedEmployees, employee._id]);
+                              } else {
+                                setSelectedEmployees(selectedEmployees.filter((id) => id !== employee._id));
+                              }
+                            }}
+                            onClick={(event) => event.stopPropagation()}
+                          />
+                        </TableCell>
+                        <TableCell align="center">{employee?.name}</TableCell>
+                        <TableCell align="center">{employee?.codigoEquipe}</TableCell>
+                        <TableCell align="center">{employee?.phone}</TableCell>
+                        <TableCell align="center">{employee?.codigoRegional?.name}</TableCell>
+                        <TableCell align="center">{employee?.codigoMunicipio?.name}</TableCell>
+                        <TableCell align="center">{employee?.codigoLocal?.name}</TableCell>
+                        <TableCell align="center">{employee?.placaMoto}</TableCell>
+                        <TableCell align="center">{employee?.department}</TableCell>
+                        <TableCell align="center">{employee?.position}</TableCell>
+                        <TableCell align="center">
+                          <Box
+                            sx={{
+                              backgroundColor: (() => {
+                                switch (employee?.status) {
+                                  case "Ativo": return "#C8E6C9";
+                                  case "Inativo": return "#FFCDD2";
+                                  case "Afastado": return "#FBBC04";
+                                  default: return "#FFFFFF";
+                                }
+                              })(),
+                              color: "#000",
+                              height: "35px",
+                              borderRadius: "9px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {employee?.status}
+                          </Box>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
+                            <Tooltip title="Editar Funcionário">
+                              <span>
+                                <FaEdit
+                                  style={{ cursor: "pointer" }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenPlanModal(employee);
+                                  }}
+                                />
+                              </span>
+                            </Tooltip>
+                            <Tooltip title="Excluir">
+                              <span>
+                                <FaTrash
+                                  style={{ cursor: "pointer" }}
+                                  color="red"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteClick(e, employee);
+                                  }}
+                                />
+                              </span>
+                            </Tooltip>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={12}>
+                      <Box sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: "200px"
+                      }}>
+                        <CircularProgress />
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TablePagination
+                    rowsPerPageOptions={[5, 10, 25, { label: "Todos", value: -1 }]}
+                    colSpan={12}
+                    count={filteredEmployess.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    sx={{
+                      position: 'sticky',
+                      bottom: 0,
+                      backgroundColor: theme.palette.background.paper,
+                      zIndex: 2
+                    }}
+                    slotProps={{
+                      select: {
+                        inputProps: {
+                          "aria-label": "Linhas por página",
+                        },
+                        native: true,
                       },
-                      native: true,
-                    },
-                  }}
-                  onPageChange={handleChangePage}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                  ActionsComponent={TablePaginationActions}
-                />
-              </TableRow>
-            </TableFooter>
-          </Table>
-        </TableContainer>
+                    }}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    ActionsComponent={TablePaginationActions}
+                  />
+                </TableRow>
+              </TableFooter>
+            </Table>
+          </TableContainer>
+        </Box>
       ) : (
         <Box sx={{ mt: 2 }}>
           <Button
@@ -609,7 +576,10 @@ export default function Employees() {
         employeeName={`${employeeToDelete?.name} ${employeeToDelete?.surname}`}
       />
 
-      <ReportModal open={isReportModalOpen} onClose={handleCloseReportModal} />
+      <ReportModal 
+        open={isReportModalOpen} 
+        onClose={handleCloseReportModal} 
+      />
     </Box>
   );
 }

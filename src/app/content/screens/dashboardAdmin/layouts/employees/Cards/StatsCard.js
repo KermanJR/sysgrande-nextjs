@@ -97,7 +97,7 @@ const EmployeeStats = ({ employees }) => {
   ];
 
   return (
-    <Box>
+    <Box sx={{mt: '-4rem'}}>
       <Grid container spacing={3}>
         {stats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>

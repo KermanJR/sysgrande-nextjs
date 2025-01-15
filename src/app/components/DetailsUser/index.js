@@ -323,7 +323,7 @@ export const EmployeeDetailView = ({ employee }) => {
                     <Typography variant="body2">{formatDate(employee?.cnhValidity)}</Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography variant="caption" color="textSecondary">Placa do Veículo</Typography>
+                    <Typography variant="caption" color="textSecondary">Placa do Vecículo</Typography>
                     <Typography variant="body2">{employee?.placaMoto || '-'}</Typography>
                   </Grid>
                   
