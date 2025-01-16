@@ -137,24 +137,25 @@ export default function Suppliers() {
     const newDate = new Date(date);
     return newDate.toLocaleDateString("pt-BR", { timeZone: "UTC" });
   };
+  
+  const loadSuppliers = async () => {
+    try {
+      const supplierData = await fetchedSuppliers(company.name);
+      const activeSuppliers = supplierData.filter(
+        (supplier) => !supplier.deletedAt
+      );
+
+      setSuppliers(activeSuppliers);
+      setFilteredSuppliers(activeSuppliers);
+    } catch (error) {
+      console.error("Erro ao carregar compras", error);
+      toast.error("Erro ao carregar as compras");
+    }
+  };
 
   useEffect(() => {
     if (company) {
-      const loadSuppliers = async () => {
-        try {
-          const supplierData = await fetchedSuppliers(company.name);
-          const activeSuppliers = supplierData.filter(
-            (supplier) => !supplier.deletedAt
-          );
-
-          setSuppliers(activeSuppliers);
-          setFilteredSuppliers(activeSuppliers);
-        } catch (error) {
-          console.error("Erro ao carregar compras", error);
-          toast.error("Erro ao carregar as compras");
-        }
-      };
-
+      
       loadSuppliers();
     }
   }, [company, suppliers.length]);
@@ -194,10 +195,11 @@ export default function Suppliers() {
   const handleDeletePurchase = async (id) => {
     const deleted = await deleteSupplierById(id);
     if (deleted) {
-      setPurchases((prevItem) => prevItem.filter((item) => item.id !== id));
-      setFilteredPurchases((prevExpense) =>
+      setSuppliers((prevItem) => prevItem.filter((item) => item.id !== id));
+      setFilteredSuppliers((prevExpense) =>
         prevExpense.filter((expense) => expense.id !== id)
       );
+      loadSuppliers()
       toast.success("Fornecedor excluída com sucesso.");
     }
   };
@@ -316,6 +318,8 @@ const handleExportPdf = () => {
   const titleHeight = 15;
   const logoWidth = 48;
   const logoHeight = 10;
+  const logoWidth2 = 20;
+  const logoHeight2 = 10;
   const logoX = 20;
   const logoY = titleY + (titleHeight - logoHeight) / 2;
 
@@ -327,14 +331,23 @@ const handleExportPdf = () => {
   // Adicionar logo
   company.name === 'Sanegrande' 
     ? doc.addImage('../../../../icons/logo-sanegrande-2.png', 'PNG', logoX, logoY, logoWidth, logoHeight)
-    : doc.addImage('../../../../icons/logo-enterhome.png', 'PNG', logoX, logoY, logoWidth, logoHeight);
+    : doc.addImage('../../../../icons/logo-enterhome-3.png', 'PNG', logoX, logoY, logoWidth2, logoHeight2);
 
-  // Configurar e adicionar o título
+  // Configurar e adicionar o título centralizado
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6);
+  doc.setFontSize(8);
   doc.setTextColor(0, 0, 0);
-  const title = `CONTROLE DE FORNECEDORES - ${getCurrentMonthYear()} - ${company.name === 'Sanegrande' ? 'SANEGRANDE CONSTRUTORA LTDA' : 'ENTER HOME'}`;
-  doc.text(title, pageWidth / 2, titleY + titleHeight/2 + 1, { align: 'center' });
+  const title = `CONTROLE DE FORNECEDORES - ${company.name === 'Sanegrande' ? 'SANEGRANDE CONSTRUTORA LTDA' : 'ENTER HOME'}`;
+  const textWidth = doc.getStringUnitWidth(title) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+  const titleX = (pageWidth - textWidth) / 2;
+  doc.text(title, titleX, titleY + titleHeight/2 + 1);
+
+  // Adicionar mês e ano no lado direito
+  doc.setFontSize(8);
+  const monthYear = getCurrentMonthYear();
+  doc.text(monthYear, pageWidth - 20, titleY + titleHeight/2 + 1, { align: 'right' });
+
+
 
   // Data de geração
   doc.setFontSize(7);
@@ -342,12 +355,12 @@ const handleExportPdf = () => {
   doc.text(
     `Gerado em: ${now.toLocaleDateString("pt-BR")} às ${now.toLocaleTimeString("pt-BR")}`,
     pageWidth - 20,
-    titleY + titleHeight + 5,
+    titleY + titleHeight + 10,
     { align: 'right' }
   );
 
   const tableConfig = {
-    startY: titleY + titleHeight + 10,
+    startY: titleY + titleHeight + 15,
     head: [baseHeaders],
     body: tableData,
     headStyles: {
@@ -359,21 +372,23 @@ const handleExportPdf = () => {
       cellPadding: 3,
     },
     bodyStyles: {
-      fontSize: 6,
+      fontSize: 6.5,
       cellPadding: 2,
+      fontStyle: 'bold',
+      textColor: [0, 0, 0],
     },
     alternateRowStyles: {
       fillColor: [245, 245, 245],
     },
     columnStyles: {
-      0: { cellWidth: 'auto' },
-      1: { halign: 'center' },
-      2: { cellWidth: 'auto' },
-      3: { halign: 'center' },
-      4: { cellWidth: 'auto' },
-      5: { cellWidth: 'auto' },
-      6: { halign: 'center' },
-      7: { halign: 'center' }
+      0: { cellWidth: 'auto', fontStyle: 'bold' },
+      1: { halign: 'center', fontStyle: 'bold' },
+      2: { cellWidth: 'auto', fontStyle: 'bold' },
+      3: { halign: 'center', fontStyle: 'bold' },
+      4: { cellWidth: 'auto', fontStyle: 'bold' },
+      5: { cellWidth: 'auto', fontStyle: 'bold' },
+      6: { halign: 'center', fontStyle: 'bold' },
+      7: { halign: 'center', fontStyle: 'bold' }
     },
     margin: { top: 50, right: 14, bottom: 20, left: 14 },
     tableLineWidth: 0.5,
@@ -625,7 +640,8 @@ const handleExportPdf = () => {
   sx={{ 
     maxHeight: 'calc(100vh - 250px)', // Altura máxima considerando o cabeçalho
     width: '100%',
-    overflow: 'auto' // Habilita scroll em ambas direções quando necessário
+    overflow: 'auto' // Habilita scroll em ambas direções quando necessário,
+    ,overflowY: 'scroll'
   }}
 >
        
@@ -779,31 +795,7 @@ const handleExportPdf = () => {
          
         </Table>
       </TableContainer>
-      <Paper sx={{ 
-      position: 'sticky',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      mt: 2,
-      zIndex: 2
-    }}>
-      <TablePagination
-        component="div"
-        rowsPerPageOptions={[4, 8, 12, { label: "Todos", value: -1 }]}
-        count={suppliers.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        SelectProps={{
-          inputProps: {
-            "aria-label": "Linhas por página",
-          },
-          native: true,
-        }}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        ActionsComponent={TablePaginationActions}
-      />
-    </Paper>
+    
 
       <SupplierModal
         open={isPurchaseModalOpen}

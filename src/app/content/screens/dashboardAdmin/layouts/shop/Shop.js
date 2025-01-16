@@ -2,11 +2,14 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
+  ButtonGroup,
   Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Menu,
+  MenuItem,
   Paper,
   Table,
   TableBody,
@@ -16,12 +19,13 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 import * as XLSX from "xlsx";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import IconButton from "@mui/material/IconButton";
@@ -31,13 +35,15 @@ import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import DateRangeIcon from "@mui/icons-material/DateRange";
+
 import toast from "react-hot-toast";
 import ArticleIcon from "@mui/icons-material/Article";
 import AddIcon from "@mui/icons-material/Add";
 import HeaderDashboard from "@/app/components/HeaderDashboard";
 import { useCompany } from "@/app/context/CompanyContext";
 import PurchaseModal from "@/app/components/Modal/Admin/ModalShop";
-
 
 import {
   deletePurchaseById,
@@ -119,15 +125,20 @@ export default function Shop() {
   const [currentPurchase, setCurrentPurchase] = useState(null);
   const [purchases, setPurchases] = useState([]);
   const [filteredPurchases, setFilteredPurchases] = useState([]);
+  const [dateFilteredPurchases, setDateFilteredPurchases] =
+    useState(filteredPurchases);
   const [setIsLoading, isLoading] = useState(false);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [selectedPurchases, setSelectedPurchases] = useState([]);
-    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [monthMenuAnchor, setMonthMenuAnchor] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [filters, setFilters] = useState({
-    materialType: '',
-    supplier: '',
+    materialType: "",
+    supplier: "",
     startDate: null,
-    endDate: null
+    endDate: null,
   });
   const { company } = useCompany();
   const theme = useTheme();
@@ -138,26 +149,80 @@ export default function Shop() {
     return newDate.toLocaleDateString("pt-BR", { timeZone: "UTC" });
   };
 
+  useEffect(() => {
+    const filtered = filteredPurchases.filter((purchase) => {
+      const purchaseDate = new Date(purchase.purchaseDate);
+      console.log(selectedMonth);
+      const monthMatch =
+        selectedMonth === "" || purchaseDate.getMonth() === selectedMonth;
+      const yearMatch =
+        purchaseDate.getFullYear().toString() === selectedYear.toString();
 
-  const formatQuantity = (value) => {
-    return new Intl.NumberFormat('pt-BR').format(value);
+      return monthMatch && yearMatch;
+    });
+
+    setDateFilteredPurchases(filtered);
+  }, [selectedMonth, selectedYear, filteredPurchases]);
+
+  const months = [
+    { value: "", label: "Todos" },
+    { value: "0", label: "Janeiro" },
+    { value: "1", label: "Fevereiro" },
+    { value: "2", label: "Março" },
+    { value: "3", label: "Abril" },
+    { value: "4", label: "Maio" },
+    { value: "5", label: "Junho" },
+    { value: "6", label: "Julho" },
+    { value: "7", label: "Agosto" },
+    { value: "8", label: "Setembro" },
+    { value: "9", label: "Outubro" },
+    { value: "10", label: "Novembro" },
+    { value: "11", label: "Dezembro" },
+  ];
+  const handleMonthClick = (event) => {
+    setMonthMenuAnchor(event.currentTarget);
   };
 
-  
+  const handleMonthClose = () => {
+    setMonthMenuAnchor(null);
+  };
+
+  const handleMonthSelect = (monthValue) => {
+    setSelectedMonth(monthValue);
+    handleMonthClose();
+  };
+
+  const handleYearChange = (event) => {
+    setSelectedYear(event.target.value);
+  };
+  const formatQuantity = (value) => {
+    return new Intl.NumberFormat("pt-BR").format(value);
+  };
+
   const handleExportPdfSelected = () => {
     const now = new Date();
     const getCurrentMonthYear = () => {
       const months = [
-        'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'Junho',
-        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+        "JANEIRO",
+        "FEVEREIRO",
+        "MARÇO",
+        "ABRIL",
+        "MAIO",
+        "Junho",
+        "Julho",
+        "Agosto",
+        "Setembro",
+        "Outubro",
+        "Novembro",
+        "Dezembro",
       ];
       const date = new Date();
       return `${months[date.getMonth()]} ${date.getFullYear()}`;
     };
-  
+
     const selectedData = filteredPurchases
       .filter((purchase) => selectedPurchases.includes(purchase._id))
-      .sort((a, b) => a.materialType.localeCompare(b.materialType, 'pt-BR'));
+      .sort((a, b) => a.materialType.localeCompare(b.materialType, "pt-BR"));
 
     const baseHeaders = [
       "Material",
@@ -170,11 +235,14 @@ export default function Shop() {
       "Entrada",
       "Valor Parcela",
       "Data Compra",
-      "Data Entrega"
+      "Data Entrega",
     ];
 
     const tableData = [];
-    const totalValue = selectedData.reduce((acc, purchase) => acc + purchase.totalPrice, 0);
+    const totalValue = selectedData.reduce(
+      (acc, purchase) => acc + purchase.totalPrice,
+      0
+    );
 
     selectedData.forEach((purchase) => {
       const baseData = [
@@ -185,152 +253,181 @@ export default function Shop() {
         formatCurrency(purchase.totalPrice),
         purchase.paymentMethod,
         purchase.installments,
-        purchase.entrancy ? formatCurrency(purchase.entrancy) : '0',
+        purchase.entrancy ? formatCurrency(purchase.entrancy) : "0",
         formatCurrency(purchase.installmentValue),
         formatDate(purchase.purchaseDate),
-        formatDate(purchase.deliveryDate)
+        formatDate(purchase.deliveryDate),
       ];
       tableData.push(baseData);
 
-      if (purchase.installmentDates?.length > 0) {
-        const formattedInstallments = purchase.installmentDates.map((date, index) => 
-          `${index + 1}ª: ${formatDate(date)}`
-        ).join(' | ');
+      // Adiciona linha de parcelas para todas as compras
+      const formattedInstallments =
+        purchase.installmentDates?.length > 0
+          ? purchase.installmentDates
+              .map((date, index) => `${index + 1}ª: ${formatDate(date)}`)
+              .join(" | ")
+          : "";
 
-        tableData.push([
-          { 
-            content: 'Parcelas:', 
-            colSpan: 1, 
-            styles: { 
-              fontStyle: 'bold', 
-              fillColor: [240, 240, 240],
-              halign: 'right'
-            } 
+      tableData.push([
+        {
+          content: "Parcelas:",
+          colSpan: 1,
+          styles: {
+            fontStyle: "bold",
+            fillColor: [240, 240, 240],
+            halign: "right",
           },
-          { 
-            content: formattedInstallments, 
-            colSpan: 10, 
-            styles: { 
-              fillColor: [240, 240, 240],
-              fontSize: 6
-            } 
-          }
-        ]);
+        },
+        {
+          content: formattedInstallments,
+          colSpan: 10,
+          styles: {
+            fillColor: [240, 240, 240],
+            fontSize: 6,
+          },
+        },
+      ]);
 
-        tableData.push([{ content: '', colSpan: 11, styles: { cellPadding: 1 } }]);
-      }
+      tableData.push([
+        { content: "", colSpan: 11, styles: { cellPadding: 1 } },
+      ]);
     });
 
     const doc = new jsPDF({
-      orientation: 'landscape'
+      orientation: "landscape",
     });
 
     const primaryColor = [158, 197, 232];
     const borderColor = [0, 0, 0];
     const pageWidth = doc.internal.pageSize.width;
-    
+
     // Configurações do título e logo
     const titleY = 15;
     const titleHeight = 15;
     const logoWidth = 48;
     const logoHeight = 10;
+    const logoWidth2 = 20;
+    const logoHeight2 = 10;
     const logoX = 20;
     const logoY = titleY + (titleHeight - logoHeight) / 2;
 
     // Desenhar retângulo cinza
     doc.setFillColor(240, 240, 240);
     doc.setDrawColor(0, 0, 0);
-    doc.rect(14, titleY, pageWidth - 28, titleHeight, 'FD');
+    doc.rect(14, titleY, pageWidth - 28, titleHeight, "FD");
 
     // Adicionar logo
-    company.name === 'Sanegrande' 
-      ? doc.addImage('../../../../icons/logo-sanegrande-2.png', 'PNG', logoX, logoY, logoWidth, logoHeight)
-      : doc.addImage('../../../../icons/logo-enterhome.png', 'PNG', logoX, logoY, logoWidth, logoHeight);
+    company.name === "Sanegrande"
+      ? doc.addImage(
+          "../../../../icons/logo-sanegrande-2.png",
+          "PNG",
+          logoX,
+          logoY,
+          logoWidth,
+          logoHeight
+        )
+      : doc.addImage(
+          "../../../../icons/logo-enterhome-3.png",
+          "PNG",
+          logoX,
+          logoY,
+          logoWidth,
+          logoHeight
+        );
 
-    // Configurar e adicionar o título
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6);
+    // Configurar e adicionar o título centralizado
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
     doc.setTextColor(0, 0, 0);
-    const title = `CONTROLE DE COMPRAS - ${getCurrentMonthYear()} - ${company.name === 'Sanegrande' ? 'SANEGRANDE CONSTRUTORA LTDA' : 'ENTER HOME'}`;
-    doc.text(title, pageWidth / 2, titleY + titleHeight/2 + 1, { align: 'center' });
+    const title = `CONTROLE DE COMPRAS - ${
+      company.name === "Sanegrande"
+        ? "SANEGRANDE CONSTRUTORA LTDA"
+        : "ENTER HOME"
+    }`;
+    const textWidth =
+      (doc.getStringUnitWidth(title) * doc.internal.getFontSize()) /
+      doc.internal.scaleFactor;
+    const titleX = (pageWidth - textWidth) / 2;
+    doc.text(title, titleX, titleY + titleHeight / 2 + 1);
+
+    // Adicionar mês e ano no lado direito
+    doc.setFontSize(8);
+    const monthYear = getCurrentMonthYear();
+    doc.text(monthYear, pageWidth - 20, titleY + titleHeight / 2 + 1, {
+      align: "right",
+    });
 
     // Data de geração
     doc.setFontSize(7);
     doc.setTextColor(100);
     doc.text(
-      `Gerado em: ${now.toLocaleDateString("pt-BR")} às ${now.toLocaleTimeString("pt-BR")}`,
+      `Gerado em: ${now.toLocaleDateString(
+        "pt-BR"
+      )} às ${now.toLocaleTimeString("pt-BR")}`,
       pageWidth - 20,
-      titleY + titleHeight + 5,
-      { align: 'right' }
+      titleY + titleHeight + 10,
+      { align: "right" }
     );
 
     const tableConfig = {
-      startY: titleY + titleHeight + 10,
+      startY: titleY + titleHeight + 15,
       head: [baseHeaders],
       body: tableData,
       headStyles: {
         fillColor: primaryColor,
         textColor: [0, 0, 0],
-        fontStyle: 'bold',
-        halign: 'center',
+        fontStyle: "bold",
+        halign: "center",
         fontSize: 6,
         cellPadding: 3,
       },
       bodyStyles: {
-        fontSize: 6,
+        fontSize: 6.5,
         cellPadding: 2,
+        fontStyle: "bold",
+        textColor: [0, 0, 0],
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],
       },
       columnStyles: {
-        0: { cellWidth: 'auto' },
-        1: { cellWidth: 'auto' },
-        2: { halign: 'center' },
-        3: { halign: 'center' },
-        4: { halign: 'center' },
-        5: { halign: 'center' },
-        6: { halign: 'center' },
-        7: { halign: 'center' },
-        8: { halign: 'center' },
-        9: { halign: 'center' },
-        10: { halign: 'center' },
+        0: { cellWidth: "auto", fontStyle: "bold" },
+        1: { cellWidth: "auto", fontStyle: "bold" },
+        2: { halign: "center", fontStyle: "bold" },
+        3: { halign: "center", fontStyle: "bold" },
+        4: { halign: "center", fontStyle: "bold" },
+        5: { halign: "center", fontStyle: "bold" },
+        6: { halign: "center", fontStyle: "bold" },
+        7: { halign: "center", fontStyle: "bold" },
+        8: { halign: "center", fontStyle: "bold" },
+        9: { halign: "center", fontStyle: "bold" },
+        10: { halign: "center", fontStyle: "bold" },
       },
       margin: { top: 50, right: 14, bottom: 20, left: 14 },
       tableLineWidth: 0.5,
       tableLineColor: borderColor,
-      showHead: 'everyPage',
-      theme: 'grid',
+      showHead: "everyPage",
+      theme: "grid",
       styles: {
         cellPadding: 3,
         fontSize: 6,
         lineColor: borderColor,
         lineWidth: 0.3,
-        overflow: 'linebreak',
-        valign: 'middle'
+        overflow: "linebreak",
+        valign: "middle",
       },
-      didDrawPage: function(data) {
+      didDrawPage: function (data) {
         const pageHeight = doc.internal.pageSize.height;
-        
-      
-       
-        
+
         // Informações do rodapé
         doc.setFontSize(6);
         doc.setTextColor(100);
-       
-          doc.text(
-            company.name,
-            14,
-            pageHeight - 15
-          );
-          doc.text(
-            `Página ${data.pageCount}`,
-            pageWidth - 20,
-            pageHeight - 15,
-            { align: 'right' }
-          );
-        }
+
+        doc.text(company.name, 14, pageHeight - 15);
+        doc.text(`Página ${data.pageCount}`, pageWidth - 20, pageHeight - 15, {
+          align: "right",
+        });
+      },
     };
 
     // Gerar a tabela
@@ -338,48 +435,53 @@ export default function Shop() {
 
     // Adicionar sumário no final
     const finalY = doc.previousAutoTable.finalY || 280;
-    
 
     // Adicionar total em negrito
-    doc.setFont('helvetica', 'bold');
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
     doc.text(
-      `Valor Total das Compras: ${formatCurrency(totalValue)}`,
+      `Valor Total - ${getCurrentMonthYear()}: ${formatCurrency(totalValue)}`,
       pageWidth - 20,
       finalY + 12,
-      { align: 'right' }
+      { align: "right" }
     );
 
     // Salvar o PDF
-    const fileName = `relatorio_compras_${getCurrentMonthYear().replace(' ', '_')}.pdf`;
+    const fileName = `relatorio_compras_${getCurrentMonthYear().replace(
+      " ",
+      "_"
+    )}.pdf`;
     doc.save(fileName);
-};
-
-
-
+  };
 
   const handleExportSelected = () => {
     const selectedData = filteredPurchases.filter((purchase) =>
       selectedPurchases.includes(purchase._id)
     );
-  
+
     const now = new Date();
     const reportDate = `${now.toLocaleDateString(
       "pt-BR"
     )} ${now.toLocaleTimeString("pt-BR")}`;
-  
+
     // Encontrar o número máximo de parcelas
-    const maxInstallments = Math.max(...selectedData.map(p => p.installmentDates?.length || 0));
-  
-    // Criar os headers dinâmicos para as parcelas
-    const installmentHeaders = Array.from({ length: maxInstallments }, (_, i) => 
-      `Data ${i + 1}ª Parcela`
+    const maxInstallments = Math.max(
+      ...selectedData.map((p) => p.installmentDates?.length || 0)
     );
-  
+
+    // Criar os headers dinâmicos para as parcelas
+    const installmentHeaders = Array.from(
+      { length: maxInstallments },
+      (_, i) => `Data ${i + 1}ª Parcela`
+    );
+
     // Calcular o valor total das compras
-    const totalValue = selectedData.reduce((acc, purchase) => acc + purchase.totalPrice, 0);
-  
+    const totalValue = selectedData.reduce(
+      (acc, purchase) => acc + purchase.totalPrice,
+      0
+    );
+
     const baseHeaders = [
       "Material",
       "Fornecedor",
@@ -392,12 +494,12 @@ export default function Shop() {
       "Entrada",
       "Valor Parcela",
       "Data Compra",
-      "Data Entrega"
+      "Data Entrega",
     ];
-  
+
     // Combinar headers base com headers de parcelas
     const allHeaders = [...baseHeaders, ...installmentHeaders];
-  
+
     const wsData = [
       ["Relatório de Compras"],
       [`Empresa: ${company.name}`],
@@ -418,22 +520,26 @@ export default function Shop() {
           formatCurrency(purchase.entrancy),
           formatCurrency(purchase.installmentValue),
           formatDate(purchase.purchaseDate),
-          formatDate(purchase.deliveryDate)
+          formatDate(purchase.deliveryDate),
         ];
-  
+
         // Adicionar datas das parcelas, preenchendo com vazios se necessário
-        const installmentDates = Array.from({ length: maxInstallments }, (_, i) => 
-          purchase.installmentDates[i] ? formatDate(purchase.installmentDates[i]) : '-'
+        const installmentDates = Array.from(
+          { length: maxInstallments },
+          (_, i) =>
+            purchase.installmentDates[i]
+              ? formatDate(purchase.installmentDates[i])
+              : "-"
         );
-  
+
         return [...baseData, ...installmentDates];
       }),
       [], // Linha vazia
-      [`Valor Total das Compras: ${formatCurrency(totalValue)}`], // Linha com o total
+      [`Valor Total : ${formatCurrency(totalValue)}`], // Linha com o total
     ];
-  
+
     const ws = XLSX.utils.aoa_to_sheet(wsData);
-  
+
     // Definindo estilos
     const headerStyle = {
       fill: { fgColor: { rgb: "9EC5E8" } },
@@ -446,25 +552,25 @@ export default function Shop() {
         right: { style: "thin" },
       },
     };
-  
+
     const titleStyle = {
       font: { bold: true, size: 16, color: { rgb: "000000" } },
       alignment: { horizontal: "center" },
     };
-  
+
     const infoStyle = {
       font: { size: 12 },
       alignment: { horizontal: "left" },
     };
-  
+
     const totalStyle = {
       font: { bold: true, size: 12, color: { rgb: "000000" } },
       alignment: { horizontal: "left" },
     };
-  
+
     // Calculando o número total de colunas
     const totalColumns = allHeaders.length;
-  
+
     // Aplicando larguras das colunas
     ws["!cols"] = [
       { width: 20 }, // Material
@@ -480,34 +586,39 @@ export default function Shop() {
       { width: 15 }, // Data Compra
       { width: 15 }, // Data Entrega
       // Adicionar larguras para as colunas de parcelas
-      ...Array(maxInstallments).fill({ width: 15 })
+      ...Array(maxInstallments).fill({ width: 15 }),
     ];
-  
+
     // Estilo do título
     ws["A1"] = { v: "Relatório de Compras", s: titleStyle };
     ws["A2"] = { v: `Empresa: ${company.name}`, s: infoStyle };
     ws["A3"] = { v: `Gerado em: ${reportDate}`, s: infoStyle };
-  
+
     // Estilo do cabeçalho
-    const headerRange = XLSX.utils.decode_range(`A5:${XLSX.utils.encode_col(totalColumns - 1)}5`);
+    const headerRange = XLSX.utils.decode_range(
+      `A5:${XLSX.utils.encode_col(totalColumns - 1)}5`
+    );
     for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
       const cell = XLSX.utils.encode_cell({ r: 4, c: col });
       ws[cell].s = headerStyle;
     }
-  
+
     // Aplicando estilo ao total
     const lastRowIndex = wsData.length;
     const totalCell = XLSX.utils.encode_cell({ r: lastRowIndex - 1, c: 0 });
     ws[totalCell].s = totalStyle;
-  
+
     // Mesclando células do título e do total
     ws["!merges"] = [
       { s: { r: 0, c: 0 }, e: { r: 0, c: totalColumns - 1 } }, // Título
       { s: { r: 1, c: 0 }, e: { r: 1, c: totalColumns - 1 } }, // Empresa
       { s: { r: 2, c: 0 }, e: { r: 2, c: totalColumns - 1 } }, // Data
-      { s: { r: lastRowIndex - 1, c: 0 }, e: { r: lastRowIndex - 1, c: totalColumns - 1 } }, // Total
+      {
+        s: { r: lastRowIndex - 1, c: 0 },
+        e: { r: lastRowIndex - 1, c: totalColumns - 1 },
+      }, // Total
     ];
-  
+
     // Configurando altura das linhas
     ws["!rows"] = [
       { hpt: 30 }, // Altura da linha do título
@@ -516,20 +627,18 @@ export default function Shop() {
       { hpt: 20 }, // Linha vazia
       { hpt: 25 }, // Altura do cabeçalho
     ];
-  
+
     // Criando e salvando o arquivo
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Compras");
     XLSX.writeFile(wb, "compras_selecionadas.xlsx");
   };
-  
- 
 
   // Funções auxiliares de formatação
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(value);
   };
 
@@ -547,10 +656,9 @@ export default function Shop() {
       toast.error("Erro ao carregar as compras");
     }
   };
- 
+
   useEffect(() => {
     if (company) {
-     
       loadPurchases();
     }
   }, [company, purchases.length]);
@@ -566,7 +674,7 @@ export default function Shop() {
 
   const handleOpenPurchaseModal = (purchase = null) => {
     //Para carregar novamente os dados após atualizar uma compra
-    loadPurchases()
+    loadPurchases();
     setCurrentPurchase(purchase);
     setIsPurchaseModalOpen(true);
   };
@@ -586,6 +694,7 @@ export default function Shop() {
     } else {
       setPurchases((prevPurchases) => [...prevPurchases, updatedPurchase]);
     }
+    loadPurchases()
   };
 
   const handleDeletePurchase = async (id) => {
@@ -595,41 +704,41 @@ export default function Shop() {
       setFilteredPurchases((prevExpense) =>
         prevExpense.filter((expense) => expense.id !== id)
       );
+      loadPurchases()
       toast.success("Compra excluída com sucesso.");
     }
   };
 
   const handleFilterChange = (newFilters) => {
-
     setFilters(newFilters);
   };
 
- 
   const applyFilters = () => {
-    const filtered = purchases.filter(purchase => {
+    const filtered = purchases.filter((purchase) => {
       const purchaseDate = new Date(purchase.purchaseDate);
       const startDate = filters.startDate ? new Date(filters.startDate) : null;
       const endDate = filters.endDate ? new Date(filters.endDate) : null;
-      
+
       // Ajusta o endDate para incluir todo o dia final
       if (endDate) {
         endDate.setHours(23, 59, 59, 999);
       }
-      
-      const matchesDateRange = (!startDate || purchaseDate >= startDate) &&
-                             (!endDate || purchaseDate <= endDate);
-      
-      const matchesMaterial = !filters.materialType || purchase.materialType === filters.materialType;
-      const matchesSupplier = !filters.supplier || purchase.supplier.name === filters.supplier;
-  
+
+      const matchesDateRange =
+        (!startDate || purchaseDate >= startDate) &&
+        (!endDate || purchaseDate <= endDate);
+
+      const matchesMaterial =
+        !filters.materialType || purchase.materialType === filters.materialType;
+      const matchesSupplier =
+        !filters.supplier || purchase.supplier.name === filters.supplier;
+
       return matchesDateRange && matchesMaterial && matchesSupplier;
     });
-  
+
     // Atualiza o estado com os resultados filtrados
     setFilteredPurchases(filtered);
   };
-
-
 
   const buttonStyles = {
     backgroundColor: "#3A8DFF",
@@ -640,8 +749,6 @@ export default function Shop() {
     },
   };
 
- 
-
   return (
     <Box
       sx={{
@@ -649,10 +756,10 @@ export default function Shop() {
         backgroundColor: theme.palette.background.default,
         p: 2,
         mt: -6,
-        ml: -3
+        ml: -3,
       }}
     >
-       <Dialog
+      <Dialog
         open={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
       >
@@ -696,216 +803,274 @@ export default function Shop() {
         buttonStyles={buttonStyles}
       />
 
-<Box 
-    display="flex" 
-    gap={2} 
-    p={2}
-    ml={-2}
-    mt={-3}
-    sx={{
-      backgroundColor: 'background.paper',
-   
+      <Box
+        display="flex"
+        gap={2}
+        p={2}
+        ml={-2}
+        mt={-3}
+        sx={{
+          backgroundColor: "background.paper",
 
-      zIndex: 3
-    }}
-  >
-    <Button
-      variant="contained"
-      sx={buttonStyles}
-      onClick={() => handleOpenPurchaseModal()}
-      startIcon={<AddIcon />}
-    >
-      Nova Compra
-    </Button>
-    <Button
-      variant="outlined"
-      onClick={() => setFilterDrawerOpen(true)}
-      startIcon={<FilterListIcon />}
-    >
-      Filtros
-    </Button>
-    {selectedPurchases.length > 0 && (
-      <Button
-        variant="contained"
-        startIcon={<ArticleIcon />}
-        onClick={() => setIsExportModalOpen(true)}
-      >
-        Exportar Selecionados
-      </Button>
-    )}
-  </Box>
-
-<TableContainer 
-  component={Paper} 
-  sx={{ 
-    maxHeight: 'calc(100vh - 250px)', // Altura máxima considerando o cabeçalho
-    width: '100%',
-    overflow: 'auto' // Habilita scroll em ambas direções quando necessário
-  }}
->
- 
-
-  <Table stickyHeader sx={{ minWidth: 1200 }}> {/* Largura mínima para garantir que todas as colunas caibam */}
-    <TableHead>
-      <TableRow>
-        <TableCell 
-          padding="checkbox"
-          sx={{ 
-            position: 'sticky',
-            left: 0,
-            backgroundColor: 'background.default',
-            zIndex: 3
-          }}
-        >
-          <Checkbox
-            checked={selectedPurchases.length === filteredPurchases.length}
-            indeterminate={selectedPurchases.length > 0 && selectedPurchases.length < filteredPurchases.length}
-            onChange={(event) => {
-              if (event.target.checked) {
-                setSelectedPurchases(filteredPurchases.map((emp) => emp._id));
-              } else {
-                setSelectedPurchases([]);
-              }
-            }}
-          />
-        </TableCell>
-        {/* Definir larguras fixas para as colunas */}
-        <TableCell align="center" sx={{ fontWeight: "bold", minWidth: 150 }}>Material</TableCell>
-        <TableCell align="center" sx={{ fontWeight: "bold", minWidth: 150 }}>Fornecedor</TableCell>
-        <TableCell align="center" sx={{ fontWeight: "bold", minWidth: 100 }}>Quantidade</TableCell>
-        <TableCell align="center" sx={{ fontWeight: "bold", minWidth: 120 }}>Valor Unit.</TableCell>
-        <TableCell align="center" sx={{ fontWeight: "bold", minWidth: 120 }}>Valor Total</TableCell>
-        <TableCell align="center" sx={{ fontWeight: "bold", minWidth: 120 }}>Pagamento</TableCell>
-        <TableCell align="center" sx={{ fontWeight: "bold", minWidth: 100 }}>Entrada</TableCell>
-        <TableCell align="center" sx={{ fontWeight: "bold", minWidth: 120 }}>Data Compra</TableCell>
-        <TableCell align="center" sx={{ fontWeight: "bold", minWidth: 120 }}>Data Entrega</TableCell>
-        <TableCell 
-          align="center" 
-          sx={{ 
-            fontWeight: "bold", 
-            minWidth: 100,
-            position: 'sticky',
-            right: 0,
-            backgroundColor: 'background.default',
-            zIndex: 3
-          }}
-        >
-          Ações
-        </TableCell>
-      </TableRow>
-    </TableHead>
-    <TableBody>
-      {filteredPurchases
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-        .map((purchase) => (
-          <TableRow key={purchase.id}>
-            <TableCell 
-              padding="checkbox"
-              sx={{ 
-                position: 'sticky',
-                left: 0,
-                backgroundColor: 'background.default',
-                zIndex: 2
-              }}
-            >
-              <Checkbox
-                checked={selectedPurchases.includes(purchase._id)}
-                onChange={(event) => {
-                  event.stopPropagation();
-                  if (event.target.checked) {
-                    setSelectedPurchases([...selectedPurchases, purchase._id]);
-                  } else {
-                    setSelectedPurchases(selectedPurchases.filter((id) => id !== purchase._id));
-                  }
-                }}
-                onClick={(event) => event.stopPropagation()}
-              />
-            </TableCell>
-            <TableCell align="center">{purchase.materialType}</TableCell>
-            <TableCell align="center">{purchase.supplier.name}</TableCell>
-            <TableCell align="center">{purchase.quantity}</TableCell>
-            <TableCell align="center">
-              {purchase.unitPrice.toLocaleString("pt-br", {
-                style: "currency",
-                currency: "BRL",
-              })}
-            </TableCell>
-            <TableCell align="center">
-              {purchase.totalPrice.toLocaleString("pt-br", {
-                style: "currency",
-                currency: "BRL",
-              })}
-            </TableCell>
-            <TableCell align="center">{purchase.paymentMethod}</TableCell>
-            <TableCell align="center">
-              {purchase?.entrancy 
-                ? purchase.entrancy.toLocaleString("pt-br", {
-                    style: "currency",
-                    currency: "BRL",
-                  })
-                : "-"}
-            </TableCell>
-            <TableCell align="center">{formatDate(purchase.purchaseDate)}</TableCell>
-            <TableCell align="center">{formatDate(purchase.deliveryDate)}</TableCell>
-            <TableCell 
-              align="center"
-              sx={{ 
-                position: 'sticky',
-                right: 0,
-                backgroundColor: 'background.default',
-                zIndex: 2
-              }}
-            >
-              <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
-                <Tooltip title="Editar Compra">
-                  <span>
-                    <FaEdit
-                      style={{ cursor: "pointer" }}
-                      onClick={() => handleOpenPurchaseModal(purchase)}
-                    />
-                  </span>
-                </Tooltip>
-                <Tooltip title="Excluir">
-                  <span>
-                    <FaTrash
-                      style={{ cursor: "pointer" }}
-                      color="red"
-                      onClick={() => handleDeletePurchase(purchase._id)}
-                    />
-                  </span>
-                </Tooltip>
-              </Box>
-            </TableCell>
-          </TableRow>
-        ))}
-    </TableBody>
-  </Table>
-</TableContainer>
-<Paper sx={{ 
-      position: 'sticky',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      mt: 2,
-      zIndex: 2
-    }}>
-      <TablePagination
-        component="div"
-        rowsPerPageOptions={[4, 8, 12, { label: "Todos", value: -1 }]}
-        count={purchases.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        SelectProps={{
-          inputProps: {
-            "aria-label": "Linhas por página",
-          },
-          native: true,
+          zIndex: 3,
         }}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        ActionsComponent={TablePaginationActions}
-      />
-    </Paper>
+      >
+        <Button
+          variant="contained"
+          sx={buttonStyles}
+          onClick={() => handleOpenPurchaseModal()}
+          startIcon={<AddIcon />}
+        >
+          Nova Compra
+        </Button>
+
+        <Button
+          variant="outlined"
+          onClick={() => setFilterDrawerOpen(true)}
+          startIcon={<FilterListIcon />}
+        >
+          Filtros
+        </Button>
+
+        <Menu
+          anchorEl={monthMenuAnchor}
+          open={Boolean(monthMenuAnchor)}
+          onClose={handleMonthClose}
+        >
+          {months.map((month) => (
+            <MenuItem
+              key={month.value}
+              onClick={() => handleMonthSelect(month.value)}
+              selected={month.value === selectedMonth}
+            >
+              {month.label}
+            </MenuItem>
+          ))}
+        </Menu>
+        {selectedPurchases.length > 0 && (
+          <Button
+            variant="contained"
+            startIcon={<ArticleIcon />}
+            onClick={() => setIsExportModalOpen(true)}
+          >
+            Exportar Selecionados
+          </Button>
+        )}
+      </Box>
+
+      <TableContainer
+        component={Paper}
+        sx={{
+          maxHeight: "calc(100vh - 250px)", // Altura máxima considerando o cabeçalho
+          width: "100%",
+          overflow: "auto", // Habilita scroll em ambas direções quando necessário
+          overflowY: 'scroll'
+        }}
+      >
+        <Table stickyHeader sx={{ minWidth: 1200 }}>
+          {" "}
+          {/* Largura mínima para garantir que todas as colunas caibam */}
+          <TableHead>
+            <TableRow>
+              <TableCell
+                padding="checkbox"
+                sx={{
+                  position: "sticky",
+                  left: 0,
+                  backgroundColor: "background.default",
+                  zIndex: 3,
+                }}
+              >
+                <Checkbox
+                  checked={
+                    selectedPurchases.length === filteredPurchases.length
+                  }
+                  indeterminate={
+                    selectedPurchases.length > 0 &&
+                    selectedPurchases.length < filteredPurchases.length
+                  }
+                  onChange={(event) => {
+                    if (event.target.checked) {
+                      setSelectedPurchases(
+                        filteredPurchases.map((emp) => emp._id)
+                      );
+                    } else {
+                      setSelectedPurchases([]);
+                    }
+                  }}
+                />
+              </TableCell>
+              {/* Definir larguras fixas para as colunas */}
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 150 }}
+              >
+                Material
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 150 }}
+              >
+                Fornecedor
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 100 }}
+              >
+                Quantidade
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 120 }}
+              >
+                Valor Unit.
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 120 }}
+              >
+                Valor Total
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 120 }}
+              >
+                Pagamento
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 100 }}
+              >
+                Entrada
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 120 }}
+              >
+                Data Compra
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 120 }}
+              >
+                Data Entrega
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{
+                  fontWeight: "bold",
+                  minWidth: 100,
+                  position: "sticky",
+                  right: 0,
+                  backgroundColor: "background.default",
+                  zIndex: 3,
+                }}
+              >
+                Ações
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredPurchases
+              .slice(page)
+              .map((purchase) => (
+                <TableRow key={purchase.id}>
+                  <TableCell
+                    padding="checkbox"
+                    sx={{
+                      position: "sticky",
+                      left: 0,
+                      backgroundColor: "background.default",
+                      zIndex: 2,
+                    }}
+                  >
+                    <Checkbox
+                      checked={selectedPurchases.includes(purchase._id)}
+                      onChange={(event) => {
+                        event.stopPropagation();
+                        if (event.target.checked) {
+                          setSelectedPurchases([
+                            ...selectedPurchases,
+                            purchase._id,
+                          ]);
+                        } else {
+                          setSelectedPurchases(
+                            selectedPurchases.filter(
+                              (id) => id !== purchase._id
+                            )
+                          );
+                        }
+                      }}
+                      onClick={(event) => event.stopPropagation()}
+                    />
+                  </TableCell>
+                  <TableCell align="center">{purchase.materialType}</TableCell>
+                  <TableCell align="center">{purchase.supplier.name}</TableCell>
+                  <TableCell align="center">{purchase.quantity}</TableCell>
+                  <TableCell align="center">
+                    {purchase.unitPrice.toLocaleString("pt-br", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                  </TableCell>
+                  <TableCell align="center">
+                    {purchase.totalPrice.toLocaleString("pt-br", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                  </TableCell>
+                  <TableCell align="center">{purchase.paymentMethod}</TableCell>
+                  <TableCell align="center">
+                    {purchase?.entrancy
+                      ? purchase.entrancy.toLocaleString("pt-br", {
+                          style: "currency",
+                          currency: "BRL",
+                        })
+                      : "-"}
+                  </TableCell>
+                  <TableCell align="center">
+                    {formatDate(purchase.purchaseDate)}
+                  </TableCell>
+                  <TableCell align="center">
+                    {formatDate(purchase.deliveryDate)}
+                  </TableCell>
+                  <TableCell
+                    align="center"
+                    sx={{
+                      position: "sticky",
+                      right: 0,
+                      backgroundColor: "background.default",
+                      zIndex: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{ display: "flex", justifyContent: "center", gap: 1 }}
+                    >
+                      <Tooltip title="Editar Compra">
+                        <span>
+                          <FaEdit
+                            style={{ cursor: "pointer" }}
+                            onClick={() => handleOpenPurchaseModal(purchase)}
+                          />
+                        </span>
+                      </Tooltip>
+                      <Tooltip title="Excluir">
+                        <span>
+                          <FaTrash
+                            style={{ cursor: "pointer" }}
+                            color="red"
+                            onClick={() => handleDeletePurchase(purchase._id)}
+                          />
+                        </span>
+                      </Tooltip>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      
 
       <PurchaseModal
         open={isPurchaseModalOpen}
