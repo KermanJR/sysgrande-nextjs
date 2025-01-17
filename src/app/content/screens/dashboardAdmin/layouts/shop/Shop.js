@@ -120,7 +120,7 @@ function TablePaginationActions(props) {
 
 export default function Shop() {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(7);
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [currentPurchase, setCurrentPurchase] = useState(null);
   const [purchases, setPurchases] = useState([]);
@@ -219,17 +219,18 @@ export default function Shop() {
       const date = new Date();
       return `${months[date.getMonth()]} ${date.getFullYear()}`;
     };
-
+  
     const selectedData = filteredPurchases
       .filter((purchase) => selectedPurchases.includes(purchase._id))
       .sort((a, b) => a.materialType.localeCompare(b.materialType, "pt-BR"));
-
+  
     const baseHeaders = [
       "Material",
-      "Fornecedor",
+      "Tipo",
       "Quantidade",
       "Valor Unit.",
       "Valor Total",
+      "Fornecedor",
       "Forma Pgto.",
       "Parcelas",
       "Entrada",
@@ -237,37 +238,55 @@ export default function Shop() {
       "Data Compra",
       "Data Entrega",
     ];
-
+  
     const tableData = [];
     const totalValue = selectedData.reduce(
       (acc, purchase) => acc + purchase.totalPrice,
       0
     );
-
+  
     selectedData.forEach((purchase) => {
-      const baseData = [
-        purchase.materialType,
-        purchase.supplier.name,
-        formatQuantity(purchase.quantity),
-        formatCurrency(purchase.unitPrice),
-        formatCurrency(purchase.totalPrice),
-        purchase.paymentMethod,
-        purchase.installments,
-        purchase.entrancy ? formatCurrency(purchase.entrancy) : "0",
-        formatCurrency(purchase.installmentValue),
-        formatDate(purchase.purchaseDate),
-        formatDate(purchase.deliveryDate),
-      ];
-      tableData.push(baseData);
-
-      // Adiciona linha de parcelas para todas as compras
+      // Add material type header row
+      tableData.push([
+        {
+          content: purchase.materialType,
+          colSpan: 12,
+          styles: {
+            fillColor: [200, 200, 200],
+            fontStyle: 'bold',
+            fontSize: 8,
+            halign: 'left'
+          }
+        }
+      ]);
+  
+      // Add items rows
+      purchase.items.forEach((item) => {
+        const itemRow = [
+          item.name,
+          item.type || '-',
+          formatQuantity(item.quantity),
+          formatCurrency(item.unitPrice),
+          formatCurrency(item.totalPrice),
+          purchase.supplier.name,
+          purchase.paymentMethod,
+          purchase.installments,
+          purchase.entrancy ? formatCurrency(purchase.entrancy) : "0",
+          formatCurrency(purchase.installmentValue),
+          formatDate(purchase.purchaseDate),
+          formatDate(purchase.deliveryDate),
+        ];
+        tableData.push(itemRow);
+      });
+  
+      // Add installments information
       const formattedInstallments =
         purchase.installmentDates?.length > 0
           ? purchase.installmentDates
               .map((date, index) => `${index + 1}ª: ${formatDate(date)}`)
               .join(" | ")
           : "";
-
+  
       tableData.push([
         {
           content: "Parcelas:",
@@ -280,43 +299,42 @@ export default function Shop() {
         },
         {
           content: formattedInstallments,
-          colSpan: 10,
+          colSpan: 11,
           styles: {
             fillColor: [240, 240, 240],
             fontSize: 6,
           },
         },
       ]);
-
+  
+      // Add spacing row
       tableData.push([
-        { content: "", colSpan: 11, styles: { cellPadding: 1 } },
+        { content: "", colSpan: 12, styles: { cellPadding: 1 } },
       ]);
     });
-
+  
     const doc = new jsPDF({
       orientation: "landscape",
     });
-
+  
     const primaryColor = [158, 197, 232];
     const borderColor = [0, 0, 0];
     const pageWidth = doc.internal.pageSize.width;
-
-    // Configurações do título e logo
+  
+    // Header configuration
     const titleY = 15;
     const titleHeight = 15;
     const logoWidth = 48;
     const logoHeight = 10;
-    const logoWidth2 = 20;
-    const logoHeight2 = 10;
     const logoX = 20;
     const logoY = titleY + (titleHeight - logoHeight) / 2;
-
-    // Desenhar retângulo cinza
+  
+    // Draw gray rectangle
     doc.setFillColor(240, 240, 240);
     doc.setDrawColor(0, 0, 0);
     doc.rect(14, titleY, pageWidth - 28, titleHeight, "FD");
-
-    // Adicionar logo
+  
+    // Add logo
     company.name === "Sanegrande"
       ? doc.addImage(
           "../../../../icons/logo-sanegrande-2.png",
@@ -334,8 +352,8 @@ export default function Shop() {
           logoWidth,
           logoHeight
         );
-
-    // Configurar e adicionar o título centralizado
+  
+    // Configure and add centered title
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
     doc.setTextColor(0, 0, 0);
@@ -349,26 +367,26 @@ export default function Shop() {
       doc.internal.scaleFactor;
     const titleX = (pageWidth - textWidth) / 2;
     doc.text(title, titleX, titleY + titleHeight / 2 + 1);
-
-    // Adicionar mês e ano no lado direito
+  
+    // Add month and year on the right
     doc.setFontSize(8);
     const monthYear = getCurrentMonthYear();
     doc.text(monthYear, pageWidth - 20, titleY + titleHeight / 2 + 1, {
       align: "right",
     });
-
-    // Data de geração
+  
+    // Generation date
     doc.setFontSize(7);
     doc.setTextColor(100);
     doc.text(
-      `Gerado em: ${now.toLocaleDateString(
+      `Gerado em: ${now.toLocaleDateString("pt-BR")} às ${now.toLocaleTimeString(
         "pt-BR"
-      )} às ${now.toLocaleTimeString("pt-BR")}`,
+      )}`,
       pageWidth - 20,
       titleY + titleHeight + 10,
       { align: "right" }
     );
-
+  
     const tableConfig = {
       startY: titleY + titleHeight + 15,
       head: [baseHeaders],
@@ -384,24 +402,25 @@ export default function Shop() {
       bodyStyles: {
         fontSize: 6.5,
         cellPadding: 2,
-        fontStyle: "bold",
+        fontStyle: "normal",
         textColor: [0, 0, 0],
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],
       },
       columnStyles: {
-        0: { cellWidth: "auto", fontStyle: "bold" },
-        1: { cellWidth: "auto", fontStyle: "bold" },
-        2: { halign: "center", fontStyle: "bold" },
-        3: { halign: "center", fontStyle: "bold" },
-        4: { halign: "center", fontStyle: "bold" },
-        5: { halign: "center", fontStyle: "bold" },
-        6: { halign: "center", fontStyle: "bold" },
-        7: { halign: "center", fontStyle: "bold" },
-        8: { halign: "center", fontStyle: "bold" },
-        9: { halign: "center", fontStyle: "bold" },
-        10: { halign: "center", fontStyle: "bold" },
+        0: { cellWidth: "auto" },
+        1: { cellWidth: "auto" },
+        2: { halign: "center" },
+        3: { halign: "center" },
+        4: { halign: "center" },
+        5: { halign: "center" },
+        6: { halign: "center" },
+        7: { halign: "center" },
+        8: { halign: "center" },
+        9: { halign: "center" },
+        10: { halign: "center" },
+        11: { halign: "center" },
       },
       margin: { top: 50, right: 14, bottom: 20, left: 14 },
       tableLineWidth: 0.5,
@@ -418,25 +437,25 @@ export default function Shop() {
       },
       didDrawPage: function (data) {
         const pageHeight = doc.internal.pageSize.height;
-
-        // Informações do rodapé
+  
+        // Footer information
         doc.setFontSize(6);
         doc.setTextColor(100);
-
+  
         doc.text(company.name, 14, pageHeight - 15);
         doc.text(`Página ${data.pageCount}`, pageWidth - 20, pageHeight - 15, {
           align: "right",
         });
       },
     };
-
-    // Gerar a tabela
+  
+    // Generate table
     doc.autoTable(tableConfig);
-
-    // Adicionar sumário no final
+  
+    // Add summary at the end
     const finalY = doc.previousAutoTable.finalY || 280;
-
-    // Adicionar total em negrito
+  
+    // Add bold total
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
@@ -446,8 +465,8 @@ export default function Shop() {
       finalY + 12,
       { align: "right" }
     );
-
-    // Salvar o PDF
+  
+    // Save PDF
     const fileName = `relatorio_compras_${getCurrentMonthYear().replace(
       " ",
       "_"
@@ -749,6 +768,8 @@ export default function Shop() {
     },
   };
 
+ 
+
   return (
     <Box
       sx={{
@@ -919,12 +940,7 @@ export default function Shop() {
               >
                 Quantidade
               </TableCell>
-              <TableCell
-                align="center"
-                sx={{ fontWeight: "bold", minWidth: 120 }}
-              >
-                Valor Unit.
-              </TableCell>
+              
               <TableCell
                 align="center"
                 sx={{ fontWeight: "bold", minWidth: 120 }}
@@ -1006,13 +1022,10 @@ export default function Shop() {
                   </TableCell>
                   <TableCell align="center">{purchase.materialType}</TableCell>
                   <TableCell align="center">{purchase.supplier.name}</TableCell>
-                  <TableCell align="center">{purchase.quantity}</TableCell>
-                  <TableCell align="center">
-                    {purchase.unitPrice.toLocaleString("pt-br", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                  </TableCell>
+                  <TableCell align="center">{purchase?.items?.map((item)=>{
+                    return <>{item.quantity+item.quantity}</> 
+                  })}</TableCell>
+                  
                   <TableCell align="center">
                     {purchase.totalPrice.toLocaleString("pt-br", {
                       style: "currency",

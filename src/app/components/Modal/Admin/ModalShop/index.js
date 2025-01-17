@@ -13,6 +13,12 @@ import {
   Grid,
   Tooltip,
   Paper,
+  TableCell,
+  TableRow,
+  Table,
+  TableContainer,
+  TableHead,
+  TableBody,
 } from "@mui/material";
 import { IoMdCloseCircleOutline } from "react-icons/io";
 import DownloadIcon from '@mui/icons-material/Download';
@@ -25,6 +31,9 @@ import {
   fetchedSuppliersByCompany,
   updatePurchase,
 } from "./API";
+import { DeleteIcon } from "lucide-react";
+
+
 
 const PurchaseModal = ({ open, onClose, onSave, item }) => {
   const { user } = useContext(AuthContext);
@@ -49,6 +58,123 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
   const [attachment, setAttachment] = useState(null);
   const [installmentDates, setInstallmentDates] = useState([]);
 
+  const [items, setItems] = useState([]);
+  const [currentItem, setCurrentItem] = useState({
+    name: "",
+    type: "",
+    quantity: "",
+    unitPrice: "",
+    totalPrice: "",
+  });
+
+  const renderItemsSection = () => (
+    <Grid item xs={12}>
+      <Paper elevation={0} sx={{ p: 2, bgcolor: "grey.50", mt: 2 }}>
+        <Typography variant="subtitle1" gutterBottom>
+          Adicionar Item
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={3}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Nome do Item"
+              value={currentItem.name}
+              onChange={(e) => handleItemChange('name', e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Tipo"
+              value={currentItem.type}
+              onChange={(e) => handleItemChange('type', e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Quantidade"
+              type="number"
+              value={currentItem.quantity}
+              onChange={(e) => handleItemChange('quantity', e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Valor Unitário"
+              type="number"
+              value={currentItem.unitPrice}
+              onChange={(e) => handleItemChange('unitPrice', e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Valor Total"
+              type="number"
+              value={currentItem.totalPrice}
+              InputProps={{ readOnly: true }}
+            />
+          </Grid>
+          <Grid item xs={12} md={1}>
+            <Button
+             size="small"
+              variant="contained"
+              color="primary"
+              onClick={handleAddItem}
+              sx={{ mt: 0 }}
+            >
+              Adicionar
+            </Button>
+          </Grid>
+        </Grid>
+  
+        {items.length > 0 && (
+          <TableContainer component={Paper} sx={{ mt: 2 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Nome</TableCell>
+                  <TableCell>Tipo</TableCell>
+                  <TableCell align="right">Quantidade</TableCell>
+                  <TableCell align="right">Valor Unitário</TableCell>
+                  <TableCell align="right">Valor Total</TableCell>
+                  <TableCell align="center">Ações</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {items.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>{item.name}</TableCell>
+                    <TableCell>{item.type}</TableCell>
+                    <TableCell align="right">{item.quantity}</TableCell>
+                    <TableCell align="right">R$ {parseFloat(item.unitPrice).toFixed(2)}</TableCell>
+                    <TableCell align="right">R$ {parseFloat(item.totalPrice).toFixed(2)}</TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleRemoveItem(item.id)}
+                        color="error"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Paper>
+    </Grid>
+  );
+
   useEffect(() => {
     if (item) {
       console.log(item)
@@ -63,7 +189,7 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
       setPaymentMethod(item?.paymentMethod || "");
       setInstallments(item?.installments || "");
 
-  
+      setItems(item?.items || []);
       setInstallmentValue(item?.installmentValue || "");
       setDueDate(item?.dueDate ? item.dueDate.split("T")[0] : "");
       setPurchaseDate(
@@ -95,6 +221,64 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
     setDeliveryDate("");
     setAttachment(null);
     setInstallmentDates([]);
+    setItems([]);
+    setCurrentItem({
+      name: "",
+      type: "",
+      quantity: "",
+      unitPrice: "",
+      totalPrice: "",
+    });
+  };
+
+  const handleItemChange = (field, value) => {
+    setCurrentItem(prev => {
+      const updated = { ...prev, [field]: value };
+      
+      // Automatically calculate total price for the item
+      if (field === 'quantity' || field === 'unitPrice') {
+        const quantity = field === 'quantity' ? value : prev.quantity;
+        const unitPrice = field === 'unitPrice' ? value : prev.unitPrice;
+        if (quantity && unitPrice) {
+          updated.totalPrice = (parseFloat(quantity) * parseFloat(unitPrice)).toFixed(2);
+        }
+      }
+      
+      return updated;
+    });
+  };
+
+  const handleAddItem = () => {
+    if (!currentItem.name || !currentItem.quantity || !currentItem.unitPrice) {
+      NotificationManager.error("Por favor, preencha todos os campos do item");
+      return;
+    }
+
+    setItems(prev => [...prev, { ...currentItem, id: Date.now() }]);
+    setCurrentItem({
+      name: "",
+      type: "",
+      quantity: "",
+      unitPrice: "",
+      totalPrice: "",
+    });
+
+    // Recalculate total purchase price
+    calculateTotalPurchasePrice([...items, currentItem]);
+  };
+
+  const handleRemoveItem = (itemId) => {
+    const updatedItems = items.filter(item => item.id !== itemId);
+    setItems(updatedItems);
+    calculateTotalPurchasePrice(updatedItems);
+  };
+
+  // Function to calculate total purchase price
+  const calculateTotalPurchasePrice = (currentItems) => {
+    const total = currentItems.reduce((sum, item) => 
+      sum + parseFloat(item.totalPrice || 0), 0
+    );
+    setTotalPrice(total.toFixed(2));
   };
 
   useEffect(() => {
@@ -178,10 +362,15 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
 
   const handleSave = async (e) => {
     e.preventDefault();
+
+    if (items.length === 0) {
+      NotificationManager.error("Adicione pelo menos um item à compra");
+      return;
+    }
     const purchaseData = new FormData();
 
     // Validações básicas
-    if (!materialType || !supplier || !quantity || !unitPrice) {
+    if (!materialType || !supplier) {
       NotificationManager.error(
         "Por favor, preencha todos os campos obrigatórios"
       );
@@ -190,15 +379,18 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
 
     // Dados básicos da compra
     purchaseData.append("materialType", materialType);
+    purchaseData.append("items", JSON.stringify(items));
     purchaseData.append("buyer", company?.name || "");
     purchaseData.append("supplier", supplier);
-    purchaseData.append("quantity", quantity);
+   
     purchaseData.append("entrancy", entrancy);
-    purchaseData.append("unitPrice", unitPrice);
+   
     purchaseData.append("totalPrice", totalPrice);
     purchaseData.append("paymentMethod", paymentMethod);
     purchaseData.append("installments", installments);
     purchaseData.append("installmentValue", installmentValue);
+
+    
 
     // Datas
     purchaseData.append(
@@ -270,7 +462,7 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
           borderRadius: "5px",
           boxShadow: 24,
           p: 4,
-          maxHeight: "90vh",
+          maxHeight: "80vh",
           overflow: "auto",
         }}
       >
@@ -337,28 +529,9 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Quantidade"
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              margin="normal"
-               size="small"
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Valor Unitário"
-              type="number"
-              value={unitPrice}
-              onChange={(e) => setUnitPrice(e.target.value)}
-              margin="normal"
-               size="small"
-            />
-          </Grid>
+          {renderItemsSection()}
+
+         
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
