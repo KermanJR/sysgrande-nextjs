@@ -302,7 +302,8 @@ export default function TaskBoard() {
       height: '100vh',
       backgroundColor: theme.palette.background.default,
       p: 2,
-      mt: -6
+      mt: -6,
+      ml: -3
     }}>
       <Paper 
         elevation={0}

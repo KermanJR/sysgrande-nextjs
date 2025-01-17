@@ -221,8 +221,9 @@ export default function Shop() {
     };
   
     const selectedData = filteredPurchases
-      .filter((purchase) => selectedPurchases.includes(purchase._id))
-      .sort((a, b) => a.materialType.localeCompare(b.materialType, "pt-BR"));
+  .filter((purchase) => selectedPurchases.includes(purchase._id))
+  .sort((a, b) => new Date(a.purchaseDate) - new Date(b.purchaseDate));
+
   
     const baseHeaders = [
       "Material",
@@ -1110,9 +1111,9 @@ export default function Shop() {
                   </TableCell>
                   <TableCell align="center">{purchase.materialType}</TableCell>
                   <TableCell align="center">{purchase.supplier.name}</TableCell>
-                  <TableCell align="center">{purchase?.items?.map((item)=>{
-                    return <>{item.quantity+item.quantity}</> 
-                  })}</TableCell>
+                  <TableCell align="center">
+  {purchase?.items?.reduce((total, item) => total + item.quantity, 0)}
+</TableCell>
                   
                   <TableCell align="center">
                     {purchase.totalPrice.toLocaleString("pt-br", {
