@@ -246,22 +246,35 @@ export default function Shop() {
     );
   
     selectedData.forEach((purchase) => {
+      const materialGroup = [];
+      
       // Add material type header row
-      tableData.push([
+      materialGroup.push([
         {
           content: purchase.materialType,
           colSpan: 12,
           styles: {
             fillColor: [200, 200, 200],
             fontStyle: 'bold',
-            fontSize: 8,
-            halign: 'left'
+            fontSize: 7,
+            halign: 'left',
+            cellPadding: 1, 
           }
         }
       ]);
   
+      // Calcular valor proporcional da entrada para cada item (se houver entrada)
+      const entrancyPercentage = purchase.entrancy ? (purchase.entrancy / purchase.totalPrice) : 0;
+      
       // Add items rows
       purchase.items.forEach((item) => {
+        // Calcular valor da parcela para este item específico
+        const itemEntrancy = entrancyPercentage * item.totalPrice;
+        const itemRemainingValue = item.totalPrice - itemEntrancy;
+        const itemInstallmentValue = purchase.installments > 0 ? 
+          itemRemainingValue / purchase.installments : 
+          0;
+  
         const itemRow = [
           item.name,
           item.type || '-',
@@ -271,13 +284,66 @@ export default function Shop() {
           purchase.supplier.name,
           purchase.paymentMethod,
           purchase.installments,
-          purchase.entrancy ? formatCurrency(purchase.entrancy) : "0",
-          formatCurrency(purchase.installmentValue),
+          itemEntrancy > 0 ? formatCurrency(itemEntrancy) : "0",
+          formatCurrency(itemInstallmentValue),
           formatDate(purchase.purchaseDate),
           formatDate(purchase.deliveryDate),
         ];
-        tableData.push(itemRow);
+        materialGroup.push(itemRow);
       });
+  
+      // Se houver mais de um item, adiciona uma linha de total
+      if (purchase.items.length > 1) {
+        materialGroup.push([
+          {
+            content: "Total",
+            colSpan: 4,
+            styles: {
+              fontStyle: "bold",
+              fillColor: [240, 240, 240],
+              halign: "right",
+            },
+          },
+          {
+            content: formatCurrency(purchase.totalPrice),
+            styles: {
+              fontStyle: "bold",
+              fillColor: [240, 240, 240],
+              halign: "center",
+            },
+          },
+          {
+            content: "",
+            colSpan: 3,
+            styles: {
+              fillColor: [240, 240, 240],
+            },
+          },
+          {
+            content: purchase.entrancy ? formatCurrency(purchase.entrancy) : "0",
+            styles: {
+              fontStyle: "bold",
+              fillColor: [240, 240, 240],
+              halign: "center",
+            },
+          },
+          {
+            content: formatCurrency(purchase.installmentValue),
+            styles: {
+              fontStyle: "bold",
+              fillColor: [240, 240, 240],
+              halign: "center",
+            },
+          },
+          {
+            content: "",
+            colSpan: 2,
+            styles: {
+              fillColor: [240, 240, 240],
+            },
+          },
+        ]);
+      }
   
       // Add installments information
       const formattedInstallments =
@@ -287,7 +353,7 @@ export default function Shop() {
               .join(" | ")
           : "";
   
-      tableData.push([
+      materialGroup.push([
         {
           content: "Parcelas:",
           colSpan: 1,
@@ -308,9 +374,12 @@ export default function Shop() {
       ]);
   
       // Add spacing row
-      tableData.push([
+      materialGroup.push([
         { content: "", colSpan: 12, styles: { cellPadding: 1 } },
       ]);
+  
+      // Adicionar o grupo inteiro ao tableData
+      tableData.push(...materialGroup);
     });
   
     const doc = new jsPDF({
@@ -320,6 +389,7 @@ export default function Shop() {
     const primaryColor = [158, 197, 232];
     const borderColor = [0, 0, 0];
     const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
   
     // Header configuration
     const titleY = 15;
@@ -435,9 +505,23 @@ export default function Shop() {
         overflow: "linebreak",
         valign: "middle",
       },
+      didParseCell: function(data) {
+        if (data.cell.colSpan === 12 && data.cell.styles.fillColor[0] === 200) {
+          data.cell.styles.minCellHeight = 6;
+        }
+      },
+      willDrawCell: function(data) {
+        if (data.cell.colSpan === 12 && data.cell.styles.fillColor[0] === 200) {
+          const rowHeight = data.row.height;
+          const remainingPageSpace = pageHeight - data.cursor.y;
+          
+          if (remainingPageSpace < (rowHeight * 3)) {
+            data.cursor.y = pageHeight;
+            return false;
+          }
+        }
+      },
       didDrawPage: function (data) {
-        const pageHeight = doc.internal.pageSize.height;
-  
         // Footer information
         doc.setFontSize(6);
         doc.setTextColor(100);
@@ -446,6 +530,11 @@ export default function Shop() {
         doc.text(`Página ${data.pageCount}`, pageWidth - 20, pageHeight - 15, {
           align: "right",
         });
+  
+        // Se não for a primeira página, ajusta a posição inicial da tabela para o topo
+        if (data.pageCount > 1) {
+          data.settings.margin.top = 20;
+        }
       },
     };
   
@@ -473,7 +562,6 @@ export default function Shop() {
     )}.pdf`;
     doc.save(fileName);
   };
-
   const handleExportSelected = () => {
     const selectedData = filteredPurchases.filter((purchase) =>
       selectedPurchases.includes(purchase._id)
