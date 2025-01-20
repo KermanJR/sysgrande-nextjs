@@ -201,190 +201,407 @@ export default function Shop() {
 
   const handleExportPdfSelected = () => {
     const now = new Date();
+    
     const getCurrentMonthYear = () => {
       const months = [
-        "JANEIRO",
-        "FEVEREIRO",
-        "MARÇO",
-        "ABRIL",
-        "MAIO",
-        "Junho",
-        "Julho",
-        "Agosto",
-        "Setembro",
-        "Outubro",
-        "Novembro",
-        "Dezembro",
+        "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
+        "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
       ];
       const date = new Date();
       return `${months[date.getMonth()]} ${date.getFullYear()}`;
     };
-  
-    const selectedData = filteredPurchases
-  .filter((purchase) => selectedPurchases.includes(purchase._id))
-  .sort((a, b) => new Date(a.purchaseDate) - new Date(b.purchaseDate));
 
-  
-    const baseHeaders = [
-      "Material",
-      "Tipo",
-      "Quantidade",
-      "Valor Unit.",
-      "Valor Total",
-      "Fornecedor",
-      "Forma Pgto.",
-      "Parcelas",
-      "Entrada",
-      "Valor Parcela",
-      "Data Compra",
-      "Data Entrega",
-    ];
-  
-    const tableData = [];
-    const totalValue = selectedData.reduce(
-      (acc, purchase) => acc + purchase.totalPrice,
-      0
-    );
-  
-    selectedData.forEach((purchase) => {
-      const materialGroup = [];
-      
-      // Add material type header row
-      materialGroup.push([
-        {
-          content: purchase.materialType,
-          colSpan: 12,
-          styles: {
-            fillColor: [200, 200, 200],
-            fontStyle: 'bold',
-            fontSize: 7,
-            halign: 'left',
-            cellPadding: 1, 
-          }
+    // Separar dados em grupos especiais e outros itens
+    const separatePurchaseData = () => {
+      const selectedData = filteredPurchases
+        .filter(purchase => selectedPurchases.includes(purchase._id))
+        .sort((a, b) => new Date(a.purchaseDate) - new Date(b.purchaseDate));
+
+      const longTermItems = [];
+      const regularItems = [];
+
+      selectedData.forEach(purchase => {
+        const isSpecialItem = purchase.items.some(item => {
+          const name = item.name.toLowerCase().trim();
+          const type = item.type ? item.type.toLowerCase().trim() : '';
+          return name === 'coletor' || 
+                 name === 'coletores' || 
+                 type === 'coletor' || 
+                 type === 'coletores' ||
+                 name.includes('ar-condicionado') || 
+                 name.includes('ar condicionado') ||
+                 type.includes('ar-condicionado') ||
+                 type.includes('ar condicionado');
+        });
+
+        // Se é um item especial ou tem mais de 5 parcelas, vai para longTermItems
+        if (isSpecialItem || purchase.installments > 5) {
+          longTermItems.push(purchase);
+        } else {
+          regularItems.push(purchase);
         }
-      ]);
+      });
+
+      return { longTermItems, regularItems };
+    };
   
-      // Calcular valor proporcional da entrada para cada item (se houver entrada)
-      const entrancyPercentage = purchase.entrancy ? (purchase.entrancy / purchase.totalPrice) : 0;
+    const groupByMonth = (purchases) => {
+      const purchasesByMonth = {};
       
-      // Add items rows
-      purchase.items.forEach((item) => {
-        // Calcular valor da parcela para este item específico
-        const itemEntrancy = entrancyPercentage * item.totalPrice;
-        const itemRemainingValue = item.totalPrice - itemEntrancy;
-        const itemInstallmentValue = purchase.installments > 0 ? 
-          itemRemainingValue / purchase.installments : 
-          0;
+      purchases.forEach(purchase => {
+        if (purchase.installmentDates && purchase.installmentDates.length > 0) {
+          purchase.installmentDates.forEach((date, index) => {
+            const installmentDate = new Date(date);
+            const monthKey = `${installmentDate.getMonth()}-${installmentDate.getFullYear()}`;
+            const monthName = installmentDate.toLocaleString('pt-BR', { 
+              month: 'long', 
+              year: 'numeric' 
+            }).toUpperCase();
   
-        const itemRow = [
-          item.name,
-          item.type || '-',
-          formatQuantity(item.quantity),
-          formatCurrency(item.unitPrice),
-          formatCurrency(item.totalPrice),
-          purchase.supplier.name,
-          purchase.paymentMethod,
-          purchase.installments,
-          itemEntrancy > 0 ? formatCurrency(itemEntrancy) : "0",
-          formatCurrency(itemInstallmentValue),
-          formatDate(purchase.purchaseDate),
-          formatDate(purchase.deliveryDate),
-        ];
-        materialGroup.push(itemRow);
+            if (!purchasesByMonth[monthKey]) {
+              purchasesByMonth[monthKey] = {
+                monthName,
+                installments: [],
+                totalValue: 0
+              };
+            }
+
+            const installmentValue = purchase.totalPrice / purchase.installments;
+            
+            purchasesByMonth[monthKey].installments.push({
+              purchase,
+              installmentNumber: index + 1,
+              installmentDate: date,
+              installmentValue
+            });
+            purchasesByMonth[monthKey].totalValue += installmentValue;
+          });
+        }
       });
   
-      // Se houver mais de um item, adiciona uma linha de total
-      if (purchase.items.length > 1) {
-        materialGroup.push([
-          {
-            content: "Total",
-            colSpan: 4,
+      return purchasesByMonth;
+    };
+
+    const generateLongTermSection = (items) => {
+      const tableData = [];
+      let totalValue = 0;
+
+      if (items.length > 0) {
+        // Cabeçalho da seção
+        tableData.push([{
+          content: "PRODUTOS PARCELADOS (COLETORES, AR-CONDICIONADO E ACIMA DE 5 PARCELAS)",
+          colSpan: 12,
+          styles: {
+            fillColor: [50, 50, 50],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 10,
+            halign: 'center',
+            cellPadding: 3
+          }
+        }]);
+
+        items.forEach(purchase => {
+          totalValue += purchase.totalPrice;
+
+          // Cabeçalho do material
+          tableData.push([{
+            content: purchase.materialType,
+            colSpan: 12,
             styles: {
-              fontStyle: "bold",
-              fillColor: [240, 240, 240],
-              halign: "right",
-            },
-          },
-          {
-            content: formatCurrency(purchase.totalPrice),
+              fillColor: [200, 200, 200],
+              fontStyle: 'bold',
+              fontSize: 7,
+              halign: 'left',
+              cellPadding: 1
+            }
+          }]);
+
+          // Detalhes dos itens
+          purchase.items.forEach(item => {
+            tableData.push([
+              item.name,
+              item.type || '-',
+              formatQuantity(item.quantity),
+              formatCurrency(item.unitPrice),
+              formatCurrency(item.totalPrice),
+              purchase.supplier.name,
+              purchase.paymentMethod,
+              purchase.installments,
+              formatCurrency(purchase.entrancy || 0),
+              formatCurrency(item.totalPrice / purchase.installments),
+              formatDate(purchase.purchaseDate),
+              formatDate(purchase.deliveryDate)
+            ]);
+          });
+
+          // Total da compra se houver mais de um item
+          if (purchase.items.length > 1) {
+            tableData.push([
+              {
+                content: "Total",
+                colSpan: 4,
+                styles: {
+                  fontStyle: "bold",
+                  fillColor: [240, 240, 240],
+                  halign: "right"
+                }
+              },
+              {
+                content: formatCurrency(purchase.totalPrice),
+                styles: {
+                  fontStyle: "bold",
+                  fillColor: [240, 240, 240],
+                  halign: "center"
+                }
+              },
+              {
+                content: "",
+                colSpan: 7,
+                styles: {
+                  fillColor: [240, 240, 240]
+                }
+              }
+            ]);
+          }
+
+          // Todas as parcelas
+          const installmentsRows = [];
+          for (let i = 0; i < purchase.installmentDates.length; i += 4) {
+            const installmentsGroup = purchase.installmentDates
+              .slice(i, i + 4)
+              .map((date, idx) => {
+                const installmentNumber = i + idx + 1;
+                return `${installmentNumber}ª: ${formatDate(date)} - ${formatCurrency(purchase.installmentValue)}`;
+              })
+              .join(" | ");
+
+            installmentsRows.push([{
+              content: installmentsGroup,
+              colSpan: 12,
+              styles: {
+                fillColor: [240, 240, 240],
+                fontSize: 6,
+                cellPadding: 1
+              }
+            }]);
+          }
+
+          tableData.push(...installmentsRows);
+          
+          // Espaçamento
+          tableData.push([{ 
+            content: "", 
+            colSpan: 12, 
+            styles: { cellPadding: 1 } 
+          }]);
+        });
+
+        // Total da seção
+        tableData.push([{
+          content: `TOTAL PRODUTOS PARCELADOS: ${formatCurrency(totalValue)}`,
+          colSpan: 12,
+          styles: {
+            fillColor: [100, 100, 100],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 8,
+            halign: 'right',
+            cellPadding: 2
+          }
+        }]);
+
+        // Espaçamento entre seções
+        tableData.push([{ 
+          content: "", 
+          colSpan: 12, 
+          styles: { cellPadding: 4 } 
+        }]);
+      }
+
+      return { tableData, totalValue };
+    };
+
+    const baseHeaders = [
+      "Material", "Tipo", "Quantidade", "Valor Unit.",
+      "Valor Total", "Fornecedor", "Forma Pgto.", "Parcelas",
+      "Entrada", "Valor Parcela", "Data Compra", "Data Entrega"
+    ];
+  
+    const generateTableData = () => {
+      const { longTermItems, regularItems } = separatePurchaseData();
+      const { tableData: longTermData, totalValue: longTermTotalValue } = generateLongTermSection(longTermItems);
+      const purchasesByMonth = groupByMonth(regularItems);
+      
+      const tableData = [...longTermData];
+      let monthlyTotalValue = 0;
+  
+      const sortedMonths = Object.keys(purchasesByMonth).sort((a, b) => {
+        const [monthA, yearA] = a.split('-');
+        const [monthB, yearB] = b.split('-');
+        return yearA - yearB || monthA - monthB;
+      });
+  
+      if (regularItems.length > 0) {
+        tableData.push([{
+          content: "DEMAIS MATERIAIS - POR MÊS",
+          colSpan: 12,
+          styles: {
+            fillColor: [50, 50, 50],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 10,
+            halign: 'center',
+            cellPadding: 3
+          }
+        }]);
+
+        sortedMonths.forEach(monthKey => {
+          const monthData = purchasesByMonth[monthKey];
+          monthlyTotalValue += monthData.totalValue;
+
+          tableData.push([{
+            content: `${monthData.monthName} - Total de Parcelas: ${formatCurrency(monthData.totalValue)}`,
+            colSpan: 12,
             styles: {
-              fontStyle: "bold",
-              fillColor: [240, 240, 240],
-              halign: "center",
-            },
-          },
-          {
-            content: "",
-            colSpan: 3,
-            styles: {
-              fillColor: [240, 240, 240],
-            },
-          },
-          {
-            content: purchase.entrancy ? formatCurrency(purchase.entrancy) : "0",
-            styles: {
-              fontStyle: "bold",
-              fillColor: [240, 240, 240],
-              halign: "center",
-            },
-          },
-          {
-            content: formatCurrency(purchase.installmentValue),
-            styles: {
-              fontStyle: "bold",
-              fillColor: [240, 240, 240],
-              halign: "center",
-            },
-          },
-          {
-            content: "",
-            colSpan: 2,
-            styles: {
-              fillColor: [240, 240, 240],
-            },
-          },
-        ]);
+              fillColor: [100, 100, 100],
+              textColor: [255, 255, 255],
+              fontStyle: 'bold',
+              fontSize: 8,
+              halign: 'left',
+              cellPadding: 2
+            }
+          }]);
+
+
+        
+          const groupedByPurchase = monthData.installments.reduce((acc, curr) => {
+            const purchaseId = curr.purchase._id;
+            if (!acc[purchaseId]) {
+              acc[purchaseId] = {
+                purchase: curr.purchase,
+                installments: []
+              };
+            }
+            acc[purchaseId].installments.push(curr);
+            return acc;
+          }, {});
+
+          Object.values(groupedByPurchase).forEach(({ purchase, installments }) => {
+            tableData.push([{
+              content: purchase.materialType,
+              colSpan: 12,
+              styles: {
+                fillColor: [200, 200, 200],
+                fontStyle: 'bold',
+                fontSize: 7,
+                halign: 'left',
+                cellPadding: 1
+              }
+            }]);
+
+            purchase.items.forEach(item => {
+              const itemInstallmentValue = item.totalPrice / purchase.installments;
+
+              tableData.push([
+                item.name,
+                item.type || '-',
+                formatQuantity(item.quantity),
+                formatCurrency(item.unitPrice),
+                formatCurrency(item.totalPrice),
+                purchase.supplier.name,
+                purchase.paymentMethod,
+                purchase.installments,
+                formatCurrency(purchase.entrancy || 0),
+                formatCurrency(itemInstallmentValue),
+                formatDate(purchase.purchaseDate),
+                formatDate(purchase.deliveryDate)
+              ]);
+            });
+
+            if (purchase.items.length > 1) {
+              tableData.push([
+                {
+                  content: "Total",
+                  colSpan: 4,
+                  styles: {
+                    fontStyle: "bold",
+                    fillColor: [240, 240, 240],
+                    halign: "right"
+                  }
+                },
+                {
+                  content: formatCurrency(purchase.totalPrice),
+                  styles: {
+                    fontStyle: "bold",
+                    fillColor: [240, 240, 240],
+                    halign: "center"
+                  }
+                },
+                {
+                  content: "",
+                  colSpan: 3,
+                  styles: {
+                    fillColor: [240, 240, 240]
+                  }
+                },
+                {
+                  content: purchase.entrancy ? formatCurrency(purchase.entrancy) : "0",
+                  styles: {
+                    fontStyle: "bold",
+                    fillColor: [240, 240, 240],
+                    halign: "center"
+                  }
+                },
+                {
+                  content: formatCurrency(purchase.installmentValue),
+                  styles: {
+                    fontStyle: "bold",
+                    fillColor: [240, 240, 240],
+                    halign: "center"
+                  }
+                },
+                {
+                  content: "",
+                  colSpan: 2,
+                  styles: {
+                    fillColor: [240, 240, 240]
+                  }
+                }
+              ]);
+            }
+
+            const installmentsInfo = installments
+              .map(inst => `${inst.installmentNumber}ª: ${formatDate(inst.installmentDate)} - ${formatCurrency(inst.installmentValue)}`)
+              .join(" | ");
+
+            tableData.push([{
+              content: `Parcelas do mês: ${installmentsInfo}`,
+              colSpan: 12,
+              styles: {
+                fillColor: [240, 240, 240],
+                fontSize: 6,
+                cellPadding: 1
+              }
+            }]);
+
+            tableData.push([{ 
+              content: "", 
+              colSpan: 12, 
+              styles: { cellPadding: 1 } 
+            }]);
+          });
+        });
       }
   
-      // Add installments information
-      const formattedInstallments =
-        purchase.installmentDates?.length > 0
-          ? purchase.installmentDates
-              .map((date, index) => `${index + 1}ª: ${formatDate(date)}`)
-              .join(" | ")
-          : "";
+      
+      const totalValue = monthlyTotalValue + longTermTotalValue;
+      return { tableData, totalValue };
+    };
   
-      materialGroup.push([
-        {
-          content: "Parcelas:",
-          colSpan: 1,
-          styles: {
-            fontStyle: "bold",
-            fillColor: [240, 240, 240],
-            halign: "right",
-          },
-        },
-        {
-          content: formattedInstallments,
-          colSpan: 11,
-          styles: {
-            fillColor: [240, 240, 240],
-            fontSize: 6,
-          },
-        },
-      ]);
-  
-      // Add spacing row
-      materialGroup.push([
-        { content: "", colSpan: 12, styles: { cellPadding: 1 } },
-      ]);
-  
-      // Adicionar o grupo inteiro ao tableData
-      tableData.push(...materialGroup);
-    });
-  
+    // Criar documento PDF
     const doc = new jsPDF({
-      orientation: "landscape",
+      orientation: "landscape"
     });
   
     const primaryColor = [158, 197, 232];
@@ -392,20 +609,20 @@ export default function Shop() {
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
   
-    // Header configuration
+    // Configuração do cabeçalho
     const titleY = 15;
     const titleHeight = 15;
     const logoWidth = 48;
     const logoHeight = 10;
     const logoX = 20;
     const logoY = titleY + (titleHeight - logoHeight) / 2;
-  
-    // Draw gray rectangle
+
+    // Desenhar retângulo cinza
     doc.setFillColor(240, 240, 240);
     doc.setDrawColor(0, 0, 0);
     doc.rect(14, titleY, pageWidth - 28, titleHeight, "FD");
-  
-    // Add logo
+
+    // Adicionar logo
     company.name === "Sanegrande"
       ? doc.addImage(
           "../../../../icons/logo-sanegrande-2.png",
@@ -423,8 +640,8 @@ export default function Shop() {
           logoWidth,
           logoHeight
         );
-  
-    // Configure and add centered title
+
+    // Configurar e adicionar título centralizado
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
     doc.setTextColor(0, 0, 0);
@@ -438,131 +655,97 @@ export default function Shop() {
       doc.internal.scaleFactor;
     const titleX = (pageWidth - textWidth) / 2;
     doc.text(title, titleX, titleY + titleHeight / 2 + 1);
-  
-    // Add month and year on the right
+
+    // Adicionar mês e ano à direita
     doc.setFontSize(8);
     const monthYear = getCurrentMonthYear();
     doc.text(monthYear, pageWidth - 20, titleY + titleHeight / 2 + 1, {
-      align: "right",
+      align: "right"
     });
-  
-    // Generation date
+
+    // Data de geração
     doc.setFontSize(7);
     doc.setTextColor(100);
     doc.text(
-      `Gerado em: ${now.toLocaleDateString("pt-BR")} às ${now.toLocaleTimeString(
-        "pt-BR"
-      )}`,
+      `Gerado em: ${now.toLocaleDateString("pt-BR")} às ${now.toLocaleTimeString("pt-BR")}`,
       pageWidth - 20,
-      titleY + titleHeight + 10,
+      titleY + titleHeight + 5,
       { align: "right" }
     );
-  
-    const tableConfig = {
-      startY: titleY + titleHeight + 15,
+    
+    // Gerar dados da tabela
+    const { tableData, totalValue } = generateTableData();
+    
+    // Configurar tabela
+    const tableStart = titleY + titleHeight + 10;
+    doc.autoTable({
       head: [baseHeaders],
       body: tableData,
+      startY: tableStart,
+      theme: 'grid',
+      styles: {
+        fontSize: 6,
+        cellPadding: 2,
+        lineColor: borderColor,
+        lineWidth: 0.1,
+      },
       headStyles: {
         fillColor: primaryColor,
         textColor: [0, 0, 0],
-        fontStyle: "bold",
-        halign: "center",
-        fontSize: 6,
-        cellPadding: 3,
-      },
-      bodyStyles: {
-        fontSize: 6.5,
-        cellPadding: 2,
-        fontStyle: "normal",
-        textColor: [0, 0, 0],
-      },
-      alternateRowStyles: {
-        fillColor: [245, 245, 245],
+        fontStyle: 'bold',
+        halign: 'center',
       },
       columnStyles: {
-        0: { cellWidth: "auto" },
-        1: { cellWidth: "auto" },
-        2: { halign: "center" },
-        3: { halign: "center" },
-        4: { halign: "center" },
-        5: { halign: "center" },
-        6: { halign: "center" },
-        7: { halign: "center" },
-        8: { halign: "center" },
-        9: { halign: "center" },
-        10: { halign: "center" },
-        11: { halign: "center" },
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 25 },
+        2: { cellWidth: 20, halign: 'center' },
+        3: { cellWidth: 25, halign: 'center' },
+        4: { cellWidth: 25, halign: 'center' },
+        5: { cellWidth: 'auto' },
+        6: { cellWidth: 25, halign: 'center' },
+        7: { cellWidth: 20, halign: 'center' },
+        8: { cellWidth: 25, halign: 'center' },
+        9: { cellWidth: 25, halign: 'center' },
+        10: { cellWidth: 25, halign: 'center' },
+        11: { cellWidth: 25, halign: 'center' },
       },
-      margin: { top: 50, right: 14, bottom: 20, left: 14 },
-      tableLineWidth: 0.5,
-      tableLineColor: borderColor,
-      showHead: "everyPage",
-      theme: "grid",
-      styles: {
-        cellPadding: 3,
-        fontSize: 6,
-        lineColor: borderColor,
-        lineWidth: 0.3,
-        overflow: "linebreak",
-        valign: "middle",
-      },
-      didParseCell: function(data) {
-        if (data.cell.colSpan === 12 && data.cell.styles.fillColor[0] === 200) {
-          data.cell.styles.minCellHeight = 6;
-        }
-      },
-      willDrawCell: function(data) {
-        if (data.cell.colSpan === 12 && data.cell.styles.fillColor[0] === 200) {
-          const rowHeight = data.row.height;
-          const remainingPageSpace = pageHeight - data.cursor.y;
-          
-          if (remainingPageSpace < (rowHeight * 3)) {
-            data.cursor.y = pageHeight;
-            return false;
-          }
-        }
-      },
-      didDrawPage: function (data) {
-        // Footer information
-        doc.setFontSize(6);
-        doc.setTextColor(100);
-  
-        doc.text(company.name, 14, pageHeight - 15);
-        doc.text(`Página ${data.pageCount}`, pageWidth - 20, pageHeight - 15, {
-          align: "right",
-        });
-  
-        // Se não for a primeira página, ajusta a posição inicial da tabela para o topo
-        if (data.pageCount > 1) {
-          data.settings.margin.top = 20;
-        }
-      },
-    };
-  
-    // Generate table
-    doc.autoTable(tableConfig);
-  
-    // Add summary at the end
-    const finalY = doc.previousAutoTable.finalY || 280;
-  
-    // Add bold total
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
+      margin: { top: 10, left: 14, right: 14, bottom: 20 },
+    });
+    
+    // Adicionar total geral no final do documento
+    const finalY = doc.previousAutoTable.finalY + 5;
     doc.setTextColor(0, 0, 0);
-    doc.text(
-      `Valor Total - ${getCurrentMonthYear()}: ${formatCurrency(totalValue)}`,
-      pageWidth - 20,
-      finalY + 12,
-      { align: "right" }
-    );
-  
-    // Save PDF
-    const fileName = `relatorio_compras_${getCurrentMonthYear().replace(
-      " ",
-      "_"
-    )}.pdf`;
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    
+    // Calcular largura do texto do total
+    const totalText = `TOTAL GERAL: ${formatCurrency(totalValue)}`;
+    const totalWidth = (doc.getStringUnitWidth(totalText) * doc.internal.getFontSize()) / doc.internal.scaleFactor;
+    const padding = 10;
+    
+    // Desenhar retângulo para o total
+    doc.text(totalText, pageWidth - 20, finalY, { align: 'right' });
+    
+    // Adicionar numeração de páginas
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      doc.text(
+        `Página ${i} de ${totalPages}`,
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+    }
+    
+    // Salvar o PDF
+    const fileName = `controle_compras_${company.name.toLowerCase()}_${now.getTime()}.pdf`;
     doc.save(fileName);
-  };
+    };
+
+
   const handleExportSelected = () => {
     const selectedData = filteredPurchases.filter((purchase) =>
       selectedPurchases.includes(purchase._id)
@@ -1111,7 +1294,7 @@ export default function Shop() {
                   </TableCell>
                   <TableCell align="center">{purchase.materialType}</TableCell>
                   <TableCell align="center">{purchase.supplier.name}</TableCell>
-                  <TableCell align="center">
+                 <TableCell align="center">
   {purchase?.items?.reduce((total, item) => total + item.quantity, 0)}
 </TableCell>
                   
