@@ -113,7 +113,7 @@ function TablePaginationActions(props) {
 
 export default function Suppliers() {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(20);
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [currentPurchase, setCurrentPurchase] = useState(null);
   const [suppliers, setSuppliers] = useState([]);
@@ -636,13 +636,13 @@ const handleExportPdf = () => {
         </Box>
      
 <TableContainer 
-  component={Paper} 
-  sx={{ 
-    maxHeight: 'calc(100vh - 250px)', // Altura máxima considerando o cabeçalho
-    width: '100%',
-    overflow: 'auto' // Habilita scroll em ambas direções quando necessário,
-    ,overflowY: 'scroll'
-  }}
+   component={Paper}
+          sx={{
+            maxHeight: "calc(100vh - 250px)", // Altura máxima considerando o cabeçalho
+            width: "100%",
+            overflow: "auto", // Habilita scroll em ambas direções quando necessário
+            overflowY: 'scroll'
+          }}
 >
        
         <Table stickyHeader sx={{ minWidth: 1200 }}>

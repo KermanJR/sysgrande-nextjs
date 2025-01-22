@@ -1,38 +1,35 @@
 const URL = 'https://sysgrande-nodejs.onrender.com/api/'
-const URL_LOCAL = 'http://localhost:5000/api/'
-export const fetchedPurchases = async () => {
+
+export const fetchedExpenses = async () => {
   try {
-    const response = await fetch(`${URL}purchases`, { 
+    const response = await fetch(`${URL}expenses`, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     });
     if (!response.ok) {
-      throw new Error('Erro ao buscar os compras');
+      throw new Error('Erro ao buscar os despesas');
     }
     const data = await response.json();
-    return data; // Retorna os dados das compras
+    return data; // Retorna os dados dos despesas
   } catch (error) {
     console.error('Erro:', error);
     return [];
   }
 };
 
-export const fetchedPurchasesByCompany = async (companyName) => {
-  console.log(companyName)
+export const fetchedExpensesByCompany = async (companyName) => {
   try {
-    const response = await fetch(`${URL}purchase?company=${companyName}`, { 
+    const response = await fetch(`${URL}expenses?company=${companyName}`, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
-    console.log(response)
-
     if (!response.ok) {
-      throw new Error('Erro ao buscar as compras');
+      throw new Error('Erro ao buscar as despesas');
     }
 
     const data = await response.json();
@@ -46,19 +43,19 @@ export const fetchedPurchasesByCompany = async (companyName) => {
 
 
 
-export const deletePurchaseById = async (purchaseId) => {
+export const deleteExpenseById = async (expenseId) => {
   try {
-    const response = await fetch(`${URL}purchase/${purchaseId}`, { 
+    const response = await fetch(`${URL}expenses/${expenseId}`, { 
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
       },
     });
     if (!response.ok) {
-      throw new Error('Erro ao deletar compra.');
+      throw new Error('Erro ao deletar despesa.');
     }
     const data = await response.json();
-    return data; // Retorna os dados da compra
+    return data; // Retorna os dados dos itens
   } catch (error) {
     console.error('Erro:', error);
     return [];

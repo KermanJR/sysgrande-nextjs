@@ -45,7 +45,7 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
   const [contact, setContact] = useState("");
   const [suppliers, setSuppliers] = useState([]);
   const [quantity, setQuantity] = useState("");
- 
+  const [entrancyPaymentDate, setEntrancyPaymentDate] = useState(""); // New state for entrance payment date
   const [entrancy, setEntrancy] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
   const [totalPrice, setTotalPrice] = useState("");
@@ -188,7 +188,7 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
       setTotalPrice(item?.totalPrice || "");
       setPaymentMethod(item?.paymentMethod || "");
       setInstallments(item?.installments || "");
-
+      setEntrancyPaymentDate(item?.entrancyPaymentDate ? item.entrancyPaymentDate.split("T")[0] : ""); // Initialize entrance payment date
       setItems(item?.items || []);
       setInstallmentValue(item?.installmentValue || "");
       setDueDate(item?.dueDate ? item.dueDate.split("T")[0] : "");
@@ -219,6 +219,7 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
     setDueDate("");
     setPurchaseDate("");
     setDeliveryDate("");
+    setEntrancyPaymentDate("");
     setAttachment(null);
     setInstallmentDates([]);
     setItems([]);
@@ -389,7 +390,7 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
     purchaseData.append("paymentMethod", paymentMethod);
     purchaseData.append("installments", installments);
     purchaseData.append("installmentValue", installmentValue);
-
+    purchaseData.append("entrancyPaymentDate", entrancyPaymentDate ? new Date(entrancyPaymentDate).toISOString() : "");
     
 
     // Datas
@@ -577,6 +578,19 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
               margin="normal"
             />
           </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Data do Pagamento da Entrada"
+              type="date"
+              size="small"
+              value={entrancyPaymentDate}
+              onChange={(e) => setEntrancyPaymentDate(e.target.value)}
+              margin="normal"
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth

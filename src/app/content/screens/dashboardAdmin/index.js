@@ -16,6 +16,8 @@ import NotificationBadge from "@/app/components/HeaderDashboard";
 import HeaderDashboard from "@/app/components/HeaderDashboard";
 import Shop from "./layouts/shop/Shop";
 import Suppliers from "./layouts/suppliers/Suppliers";
+import FinancesControll from "./layouts/financesControl/FinancesControll";
+import EpiManagement from "./layouts/Epi/EpiManagement";
 
 export default function ScreenDashboardAdmin() {
   const [selectedComponent, setSelectedComponent] = useState("init");
@@ -37,6 +39,8 @@ export default function ScreenDashboardAdmin() {
     Rescisão: <Termination />,
     Compras: <Shop />,
     Fornecedores: <Suppliers />,
+    Controle: <FinancesControll/>,
+    EPI: <EpiManagement/>
   };
 
   return (

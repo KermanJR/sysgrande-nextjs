@@ -244,12 +244,43 @@ export default function Shop() {
 
       return { longTermItems, regularItems };
     };
+
   
     const groupByMonth = (purchases) => {
       const purchasesByMonth = {};
       
       purchases.forEach(purchase => {
+        // Primeiro, adiciona a entrada (se existir) no mês da compra
+        if (purchase.entrancy && purchase.entrancy > 0) {
+          const purchaseDate = new Date(purchase.purchaseDate);
+          const entrancyMonthKey = `${purchaseDate.getMonth()}-${purchaseDate.getFullYear()}`;
+          const entrancyMonthName = purchaseDate.toLocaleString('pt-BR', { 
+            month: 'long', 
+            year: 'numeric' 
+          }).toUpperCase();
+    
+          if (!purchasesByMonth[entrancyMonthKey]) {
+            purchasesByMonth[entrancyMonthKey] = {
+              monthName: entrancyMonthName,
+              installments: [],
+              totalValue: 0
+            };
+          }
+    
+          purchasesByMonth[entrancyMonthKey].installments.push({
+            purchase,
+            installmentNumber: 'Entrada',
+            installmentDate: purchase.entrancyPaymentDate || purchase.purchaseDate,
+            installmentValue: purchase.entrancy
+          });
+          purchasesByMonth[entrancyMonthKey].totalValue += purchase.entrancy;
+        }
+    
+        // Depois, adiciona as parcelas regulares
         if (purchase.installmentDates && purchase.installmentDates.length > 0) {
+          const remainingValue = purchase.totalPrice - (purchase.entrancy || 0);
+          const installmentValue = remainingValue / purchase.installments;
+    
           purchase.installmentDates.forEach((date, index) => {
             const installmentDate = new Date(date);
             const monthKey = `${installmentDate.getMonth()}-${installmentDate.getFullYear()}`;
@@ -257,7 +288,7 @@ export default function Shop() {
               month: 'long', 
               year: 'numeric' 
             }).toUpperCase();
-  
+    
             if (!purchasesByMonth[monthKey]) {
               purchasesByMonth[monthKey] = {
                 monthName,
@@ -265,8 +296,6 @@ export default function Shop() {
                 totalValue: 0
               };
             }
-
-            const installmentValue = purchase.totalPrice / purchase.installments;
             
             purchasesByMonth[monthKey].installments.push({
               purchase,
@@ -278,10 +307,9 @@ export default function Shop() {
           });
         }
       });
-  
+    
       return purchasesByMonth;
     };
-
     const generateLongTermSection = (items) => {
       const tableData = [];
       let totalValue = 0;
@@ -290,7 +318,7 @@ export default function Shop() {
         // Cabeçalho da seção
         tableData.push([{
           content: "PRODUTOS PARCELADOS (COLETORES, AR-CONDICIONADO E ACIMA DE 5 PARCELAS)",
-          colSpan: 12,
+          colSpan: 13,
           styles: {
             fillColor: [50, 50, 50],
             textColor: [255, 255, 255],
@@ -307,7 +335,7 @@ export default function Shop() {
           // Cabeçalho do material
           tableData.push([{
             content: purchase.materialType,
-            colSpan: 12,
+            colSpan: 13,
             styles: {
               fillColor: [200, 200, 200],
               fontStyle: 'bold',
@@ -329,6 +357,7 @@ export default function Shop() {
               purchase.paymentMethod,
               purchase.installments,
               formatCurrency(purchase.entrancy || 0),
+              formatDate(purchase.entrancyPaymentDate),
               formatCurrency(item.totalPrice / purchase.installments),
               formatDate(purchase.purchaseDate),
               formatDate(purchase.deliveryDate)
@@ -378,7 +407,7 @@ export default function Shop() {
 
             installmentsRows.push([{
               content: installmentsGroup,
-              colSpan: 12,
+              colSpan: 13,
               styles: {
                 fillColor: [240, 240, 240],
                 fontSize: 6,
@@ -392,7 +421,7 @@ export default function Shop() {
           // Espaçamento
           tableData.push([{ 
             content: "", 
-            colSpan: 12, 
+            colSpan: 13, 
             styles: { cellPadding: 1 } 
           }]);
         });
@@ -400,7 +429,7 @@ export default function Shop() {
         // Total da seção
         tableData.push([{
           content: `TOTAL PRODUTOS PARCELADOS: ${formatCurrency(totalValue)}`,
-          colSpan: 12,
+          colSpan: 13,
           styles: {
             fillColor: [100, 100, 100],
             textColor: [255, 255, 255],
@@ -425,7 +454,7 @@ export default function Shop() {
     const baseHeaders = [
       "Material", "Tipo", "Quantidade", "Valor Unit.",
       "Valor Total", "Fornecedor", "Forma Pgto.", "Parcelas",
-      "Entrada", "Valor Parcela", "Data Compra", "Data Entrega"
+      "Entrada", "Data Pg. Entrada", "Valor Parcela", "Data Compra", "Data Entrega"
     ];
   
     const generateTableData = () => {
@@ -445,7 +474,7 @@ export default function Shop() {
       if (regularItems.length > 0) {
         tableData.push([{
           content: "DEMAIS MATERIAIS - POR MÊS",
-          colSpan: 12,
+          colSpan: 13,
           styles: {
             fillColor: [50, 50, 50],
             textColor: [255, 255, 255],
@@ -462,7 +491,7 @@ export default function Shop() {
 
           tableData.push([{
             content: `${monthData.monthName} - Total de Parcelas: ${formatCurrency(monthData.totalValue)}`,
-            colSpan: 12,
+            colSpan: 13,
             styles: {
               fillColor: [100, 100, 100],
               textColor: [255, 255, 255],
@@ -473,8 +502,6 @@ export default function Shop() {
             }
           }]);
 
-
-        
           const groupedByPurchase = monthData.installments.reduce((acc, curr) => {
             const purchaseId = curr.purchase._id;
             if (!acc[purchaseId]) {
@@ -486,11 +513,10 @@ export default function Shop() {
             acc[purchaseId].installments.push(curr);
             return acc;
           }, {});
-
           Object.values(groupedByPurchase).forEach(({ purchase, installments }) => {
             tableData.push([{
               content: purchase.materialType,
-              colSpan: 12,
+              colSpan: 13,
               styles: {
                 fillColor: [200, 200, 200],
                 fontStyle: 'bold',
@@ -513,6 +539,7 @@ export default function Shop() {
                 purchase.paymentMethod,
                 purchase.installments,
                 formatCurrency(purchase.entrancy || 0),
+                formatDate(purchase.entrancyPaymentDate),
                 formatCurrency(itemInstallmentValue),
                 formatDate(purchase.purchaseDate),
                 formatDate(purchase.deliveryDate)
@@ -697,14 +724,15 @@ export default function Shop() {
       },
       columnStyles: {
         0: { cellWidth: 'auto' },
-        1: { cellWidth: 25 },
-        2: { cellWidth: 20, halign: 'center' },
-        3: { cellWidth: 25, halign: 'center' },
-        4: { cellWidth: 25, halign: 'center' },
+        1: { cellWidth: 20 },
+        2: { cellWidth: 15, halign: 'center' },
+        3: { cellWidth: 20, halign: 'center' },
+        4: { cellWidth: 20, halign: 'center' },
         5: { cellWidth: 'auto' },
-        6: { cellWidth: 25, halign: 'center' },
+        6: { cellWidth: 20, halign: 'center' },
         7: { cellWidth: 20, halign: 'center' },
-        8: { cellWidth: 25, halign: 'center' },
+        8: { cellWidth: 20, halign: 'center' },
+        8: { cellWidth: 20, halign: 'center' },
         9: { cellWidth: 25, halign: 'center' },
         10: { cellWidth: 25, halign: 'center' },
         11: { cellWidth: 25, halign: 'center' },

@@ -114,12 +114,12 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen }) => {
     rh: {
       icon: <Group />,
       label: "Recursos Humanos",
-      items: ["Férias", "Rescisão", "Afastamento", "Contratação", "Funcionário"]
+      items: ["Férias", "Rescisão", "Afastamento", "Contratação", "Funcionário", "EPI"]
     },
     financeiro: {
       icon: <AccountBalanceWallet />,
       label: "Financeiro",
-      items: ["Contas a Pagar", "Contas a Receber", "Fluxo de Caixa", "Relatórios"]
+      items: ["Controle", "Contas a Receber", "Fluxo de Caixa", "Relatórios"]
     },
     other: [
       { icon: <ShoppingCart />, label: "Compras" },
