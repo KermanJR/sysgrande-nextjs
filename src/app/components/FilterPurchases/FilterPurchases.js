@@ -10,7 +10,6 @@ import {
   MenuItem,
   Button,
   Stack,
-  TextField,
 } from '@mui/material';
 import { X as CloseIcon } from 'lucide-react';
 
@@ -23,33 +22,43 @@ const FilterPurchases = ({
   purchases,
   buttonStyles 
 }) => {
- 
   const handleFilterChange = (field) => (event) => {
     if (field === 'reset') {
       onFilterChange({
         materialType: '',
         supplier: '',
-        startDate: null,
-        endDate: null
+        month: '',
+        year: ''
       });
       return;
     }
-  
-    const value = event?.target?.value ?? event;
     
-    // Se for um campo de data, converte para o formato ISO
-    if (field === 'startDate' || field === 'endDate') {
-      onFilterChange({
-        ...filters,
-        [field]: value ? new Date(value).toISOString() : null
-      });
-    } else {
-      onFilterChange({
-        ...filters,
-        [field]: value
-      });
-    }
+    const value = event?.target?.value ?? event;
+    onFilterChange({
+      ...filters,
+      [field]: value
+    });
   };
+
+  const years = Array.from(
+    { length: 5 },
+    (_, i) => new Date().getFullYear() - i
+  );
+
+  const months = [
+    { value: 1, label: 'Janeiro' },
+    { value: 2, label: 'Fevereiro' },
+    { value: 3, label: 'Março' },
+    { value: 4, label: 'Abril' },
+    { value: 5, label: 'Maio' },
+    { value: 6, label: 'Junho' },
+    { value: 7, label: 'Julho' },
+    { value: 8, label: 'Agosto' },
+    { value: 9, label: 'Setembro' },
+    { value: 10, label: 'Outubro' },
+    { value: 11, label: 'Novembro' },
+    { value: 12, label: 'Dezembro' }
+  ];
 
   return (
     <Drawer
@@ -73,30 +82,35 @@ const FilterPurchases = ({
         </Box>
 
         <Stack spacing={2}>
-        <TextField
-  label="Data de Compra Inicial"
-  type="date"
-  value={filters.startDate ? new Date(filters.startDate).toISOString().split('T')[0] : ''}
-  onChange={handleFilterChange('startDate')}
-  InputLabelProps={{
-    shrink: true,
-  }}
-  fullWidth
-/>
+          <FormControl fullWidth>
+            <InputLabel>Ano</InputLabel>
+            <Select
+              value={filters.year || ''}
+              onChange={handleFilterChange('year')}
+              label="Ano"
+            >
+              <MenuItem value="">Todos</MenuItem>
+              {years.map(year => (
+                <MenuItem key={year} value={year}>{year}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-<TextField
-  label="Data de Compra Final"
-  type="date"
-  value={filters.endDate ? new Date(filters.endDate).toISOString().split('T')[0] : ''}
-  onChange={handleFilterChange('endDate')}
-  InputLabelProps={{
-    shrink: true,
-  }}
-  fullWidth
-  inputProps={{
-    min: filters.startDate ? new Date(filters.startDate).toISOString().split('T')[0] : '',
-  }}
-/>
+          <FormControl fullWidth>
+            <InputLabel>Mês</InputLabel>
+            <Select
+              value={filters.month || ''}
+              onChange={handleFilterChange('month')}
+              label="Mês"
+            >
+              <MenuItem value="">Todos</MenuItem>
+              {months.map(month => (
+                <MenuItem key={month.value} value={month.value}>
+                  {month.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
           <FormControl fullWidth>
             <InputLabel>Material</InputLabel>
@@ -134,7 +148,6 @@ const FilterPurchases = ({
             <Button
               variant="outlined"
               onClick={() => handleFilterChange('reset')()}
-              
             >
               Limpar
             </Button>

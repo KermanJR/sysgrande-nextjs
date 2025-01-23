@@ -456,6 +456,7 @@ const EmployeeModal = ({ open, onClose, onSave, employee }) => {
     "Responsável Técnico II",
     "Supervisor de Regionais",
     "Funcionário de Campo",
+    "Leiturista",
     "Suporte Help Desk I",
     "Suporte Help Desk II",
     "Suporte Help Desk III",

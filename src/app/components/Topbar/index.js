@@ -1,125 +1,107 @@
 import React, { useContext, useEffect } from "react";
-import { Box, Typography, Select, MenuItem } from "@mui/material";
-import styles from "./Topbar.module.css";
-import LogoSanegrande from "../../../../public/icons/logo-sanegrande.png";
-import LogoEnterHome from "../../../../public/icons/logo-enterhome.png";
-import Image from "next/image";
-import AuthContext from "@/app/context/AuthContext";
-import { useCompany } from "@/app/context/CompanyContext";
-import Person3Icon from '@mui/icons-material/Person3';
+import { motion } from "framer-motion";
+import { 
+  AppBar, 
+  Toolbar, 
+  Avatar, 
+  Typography, 
+  IconButton, 
+  Menu, 
+  MenuItem 
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
 import LogoutIcon from '@mui/icons-material/Logout';
+import BusinessIcon from '@mui/icons-material/Business';
 
-export default function Topbar() {
+const StyledAppBar = styled(AppBar)(({ theme }) => ({
+  backgroundColor: '#f8f9fa',
+  boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
+  color: '#333',
+}));
+
+const LogoContainer = styled('div')({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '1rem',
+});
+
+const UserSection = styled('div')({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '1rem',
+  marginLeft: 'auto',
+});
+
+export default function ProfessionalTopbar() {
   const { user, logout } = useContext(AuthContext);
   const { company, setSelectedCompany } = useCompany();
+  const [anchorEl, setAnchorEl] = React.useState(null);
 
-  
-
-  // Definir empresa padrão caso não exista
-  useEffect(() => {
-    if (!company || !company.name) {
-        setSelectedCompany({ name: "Sanegrande", id: 1 });
-    }
-}, [company, setSelectedCompany]);
-
-
-  // Lista de empresas
   const companies = [
-    { name: "Sanegrande", id: 1 },
-    { name: "Enter Home", id: 2 },
+    { name: "Sanegrande", id: 1, logo: LogoSanegrande },
+    { name: "Enter Home", id: 2, logo: LogoEnterHome },
   ];
 
-  // Alterar empresa selecionada
-  const handleCompanyChange = (event) => {
-    const selectedCompany = companies.find((c) => c.id === event.target.value);
+  const handleCompanyMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCompanySelect = (selectedCompany) => {
     setSelectedCompany(selectedCompany);
+    setAnchorEl(null);
   };
 
   return (
-    <Box className={styles.topbar}>
-      <Box className={styles.topbar__boxLogo}>
-        {company?.name == "Sanegrande" && (
-          <Image
-            alt="Logo - Sanegrande"
-            src={LogoSanegrande.src}
-            width={40}
-            height={40}
-            style={{
-              objectFit: "contain",
-              marginTop: "0rem",
-              width: "40px",
-              height: "50px",
-            }}
-          />
-        )}
-
-        {company?.name == "Enter Home" && (
-          <Image
-            alt="Logo - Enter Home"
-            src={LogoEnterHome.src}
-            width={70}
-            height={70}
-            style={{
-              objectFit: "contain",
-              marginTop: "0rem",
-              width: "40px",
-              height: "50px",
-            }}
-          />
-        )}
-
-        <Typography sx={{fontSize: '2.5rem', fontWeight: 'bold', color: '#1E3932'}}>{company?.name}</Typography>
-      </Box>
-
-      <Box className={styles.topbar__boxSecond}>
-        {/* Menu suspenso para selecionar a empresa */}
-        <Select
-          value={company?.id || ""}
-          onChange={handleCompanyChange}
-          displayEmpty
-          disableUnderline // Remove a underline padrão
-          sx={{
-            minWidth: 150,
-            marginLeft: "4rem",
-            "& .MuiSelect-icon": {
-              color: "black", // Cor da setinha
-            },
-            "& .MuiOutlinedInput-notchedOutline": {
-              border: "none", // Remove a borda no estado normal
-            },
-            "&:hover .MuiOutlinedInput-notchedOutline": {
-              border: "none", // Remove a borda no estado de hover
-            },
-            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              border: "none", // Remove a borda no estado de foco
-            },
-          }}
-        >
-          <MenuItem value="" disabled>
-            Selecione a empresa
-          </MenuItem>
-          {companies.map((comp) => (
-            <MenuItem key={comp.id} value={comp.id}>
-              {comp.name}
-            </MenuItem>
-          ))}
-        </Select>
-
-        <Box className={styles.topbar__boxUser}>
-          <Person3Icon color="#0F548C" style={{ width: "20px", height: "20px", color: "#0F548C"}} />
-          <Typography>
-            {user ? user.name : "Minha Conta"}
+    <StyledAppBar position="fixed">
+      <Toolbar>
+        <LogoContainer>
+          <motion.div 
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <Avatar 
+              src={company?.logo} 
+              alt={`${company?.name} Logo`}
+              sx={{ width: 45, height: 45 }}
+            />
+          </motion.div>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            {company?.name}
           </Typography>
-        </Box>
+        </LogoContainer>
 
-        <Box className={styles.topbar__boxLogout}>
-          <LogoutIcon
-            onClick={logout}
-            style={{ width: "20px", height: "20px", cursor: "pointer", color: '#0F548C' }}
-          />
-          <Typography >Sair</Typography>
-        </Box>
-      </Box>
-    </Box>
+        <UserSection>
+          <IconButton onClick={handleCompanyMenu}>
+            <BusinessIcon />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={() => setAnchorEl(null)}
+          >
+            {companies.map((comp) => (
+              <MenuItem 
+                key={comp.id} 
+                onClick={() => handleCompanySelect(comp)}
+              >
+                <Avatar 
+                  src={comp.logo} 
+                  sx={{ width: 30, height: 30, mr: 2 }} 
+                />
+                {comp.name}
+              </MenuItem>
+            ))}
+          </Menu>
+
+          <Typography variant="body1">
+            {user?.name || "Minha Conta"}
+          </Typography>
+
+          <IconButton onClick={logout} color="error">
+            <LogoutIcon />
+          </IconButton>
+        </UserSection>
+      </Toolbar>
+    </StyledAppBar>
   );
 }

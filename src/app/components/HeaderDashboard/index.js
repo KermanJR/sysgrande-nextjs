@@ -11,6 +11,7 @@ import {
   Tooltip,
   Fade,
   ListItemIcon,
+  Select,
   useTheme
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
@@ -18,7 +19,21 @@ import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import AuthContext from "@/app/context/AuthContext";
+import { styled, alpha } from "@mui/material/styles";
 import { useCompany } from "@/app/context/CompanyContext";
+import {
+  KeyboardArrowDown,
+  KeyboardArrowRight,
+  Dashboard,
+  EventNote,
+  AssignmentTurnedIn,
+  Group,
+  AccountBalanceWallet,
+  ShoppingCart,
+  DirectionsCar,
+  Inventory,
+  Logout,
+} from "@mui/icons-material";
 
 const getInitials = (name) => {
   if (!name) return "";
@@ -33,11 +48,11 @@ const getInitials = (name) => {
 
 const HeaderDashboard = ({ title, subtitle, notificationCount = 0, onNotificationClick, onLogout }) => {
   const { user } = useContext(AuthContext);
-  const { company } = useCompany();
+
   
   const theme = useTheme();
-
-  const [selectedCompany, setSelectedCompany] = useState("");
+const { company, setSelectedCompany } = useCompany();
+  const [selectedCompany, setSelected2Company] = useState("");
   const [animate, setAnimate] = useState(false);
   // States for menus
   const [profileAnchor, setProfileAnchor] = useState(null);
@@ -47,6 +62,31 @@ const HeaderDashboard = ({ title, subtitle, notificationCount = 0, onNotificatio
   const handleProfileClick = (event) => {
     setProfileAnchor(event.currentTarget);
   };
+
+  const companies = [
+    { name: "Sanegrande", id: "1", logo: "/icons/logo-sanegrande.png" },
+    { name: "Enter Home", id: "2", logo: "/icons/logo-enterhome.png" }
+  ];
+
+  const CompanySelect = styled(Select)(({ theme }) => ({
+    '& .MuiSelect-select': {
+      padding: '8px 32px 8px 0',
+      fontSize: '1.5rem',
+      fontWeight: 600,
+      color: theme.palette.text.primary,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+    },
+    '&:before, &:after, &:hover:not(.Mui-disabled):before': {
+      borderBottom: 'none',
+    },
+    '& .MuiSelect-icon': {
+      color: theme.palette.text.primary,
+      right: 0,
+    },
+  }));
+
 
   const handleProfileClose = () => {
     setProfileAnchor(null);
@@ -64,7 +104,7 @@ const HeaderDashboard = ({ title, subtitle, notificationCount = 0, onNotificatio
 
   useEffect(() => {
     if (company?.name !== selectedCompany) {
-      setSelectedCompany(company.name || "");
+      setSelected2Company(company.name || "");
       setAnimate(true);
       const timer = setTimeout(() => setAnimate(false), 500);
       return () => clearTimeout(timer);
@@ -115,6 +155,28 @@ const HeaderDashboard = ({ title, subtitle, notificationCount = 0, onNotificatio
 
       {/* Icons Section */}
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+
+         <CompanySelect
+                    value={company?.id || ""}
+                    onChange={(e) => {
+                      const selectedCompany = companies.find(c => c.id === e.target.value);
+                      setSelectedCompany(selectedCompany);
+                    }}
+                    variant="standard"
+                    IconComponent={KeyboardArrowDown}
+                  >
+                    {companies.map((comp) => (
+                      <MenuItem key={comp.id} value={comp.id}>
+                        <Typography sx={{
+                          fontWeight: '400',
+                          fontSize: '1rem'
+                        }}>
+                        {comp.name}
+                        </Typography>
+                       
+                      </MenuItem>
+                    ))}
+                  </CompanySelect>
         {/* Notifications */}
         <Tooltip title="Notificações" arrow>
           <IconButton

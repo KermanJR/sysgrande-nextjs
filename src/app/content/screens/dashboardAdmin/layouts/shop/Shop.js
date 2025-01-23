@@ -1035,30 +1035,21 @@ export default function Shop() {
   const applyFilters = () => {
     const filtered = purchases.filter((purchase) => {
       const purchaseDate = new Date(purchase.purchaseDate);
-      const startDate = filters.startDate ? new Date(filters.startDate) : null;
-      const endDate = filters.endDate ? new Date(filters.endDate) : null;
-
-      // Ajusta o endDate para incluir todo o dia final
-      if (endDate) {
-        endDate.setHours(23, 59, 59, 999);
-      }
-
-      const matchesDateRange =
-        (!startDate || purchaseDate >= startDate) &&
-        (!endDate || purchaseDate <= endDate);
-
+      const matchesDate =
+        (!filters.year || purchaseDate.getFullYear() === Number(filters.year)) &&
+        (!filters.month || purchaseDate.getMonth() + 1 === Number(filters.month));
+  
       const matchesMaterial =
         !filters.materialType || purchase.materialType === filters.materialType;
       const matchesSupplier =
         !filters.supplier || purchase.supplier.name === filters.supplier;
-
-      return matchesDateRange && matchesMaterial && matchesSupplier;
+  
+      return matchesDate && matchesMaterial && matchesSupplier;
     });
-
-    // Atualiza o estado com os resultados filtrados
+    
     setFilteredPurchases(filtered);
   };
-
+  
   const buttonStyles = {
     backgroundColor: "#3A8DFF",
     color: "#ffffff",
@@ -1177,7 +1168,11 @@ export default function Shop() {
             Exportar Selecionados
           </Button>
         )}
+
+
       </Box>
+
+      
 
       <TableContainer
         component={Paper}

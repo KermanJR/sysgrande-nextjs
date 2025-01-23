@@ -32,6 +32,7 @@ import {
   updatePurchase,
 } from "./API";
 import { DeleteIcon } from "lucide-react";
+import { Edit } from "@mui/icons-material";
 
 
 
@@ -66,114 +67,225 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
     unitPrice: "",
     totalPrice: "",
   });
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [editingItem, setEditingItem] = useState({});
 
-  const renderItemsSection = () => (
-    <Grid item xs={12}>
-      <Paper elevation={0} sx={{ p: 2, bgcolor: "grey.50", mt: 2 }}>
-        <Typography variant="subtitle1" gutterBottom>
-          Adicionar Item
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Nome do Item"
-              value={currentItem.name}
-              onChange={(e) => handleItemChange('name', e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Tipo"
-              value={currentItem.type}
-              onChange={(e) => handleItemChange('type', e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Quantidade"
-              type="number"
-              value={currentItem.quantity}
-              onChange={(e) => handleItemChange('quantity', e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Valor Unitário"
-              type="number"
-              value={currentItem.unitPrice}
-              onChange={(e) => handleItemChange('unitPrice', e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Valor Total"
-              type="number"
-              value={currentItem.totalPrice}
-              InputProps={{ readOnly: true }}
-            />
-          </Grid>
-          <Grid item xs={12} md={1}>
-            <Button
-             size="small"
-              variant="contained"
-              color="primary"
-              onClick={handleAddItem}
-              sx={{ mt: 0 }}
-            >
-              Adicionar
-            </Button>
-          </Grid>
-        </Grid>
+  const renderItemsSection = () => {
+   
   
-        {items.length > 0 && (
-          <TableContainer component={Paper} sx={{ mt: 2 }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Nome</TableCell>
-                  <TableCell>Tipo</TableCell>
-                  <TableCell align="right">Quantidade</TableCell>
-                  <TableCell align="right">Valor Unitário</TableCell>
-                  <TableCell align="right">Valor Total</TableCell>
-                  <TableCell align="center">Ações</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {items.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>{item.type}</TableCell>
-                    <TableCell align="right">{item.quantity}</TableCell>
-                    <TableCell align="right">R$ {parseFloat(item.unitPrice).toFixed(2)}</TableCell>
-                    <TableCell align="right">R$ {parseFloat(item.totalPrice).toFixed(2)}</TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRemoveItem(item.id)}
-                        color="error"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
+    const handleEditItem = (item) => {
+      console.log(item)
+      setEditingItemId(item._id);
+      setEditingItem(item);
+    };
+  
+    const handleSaveEditedItem = () => {
+      if (!editingItem.name || !editingItem.quantity || !editingItem.unitPrice) {
+        NotificationManager.error("Por favor, preencha todos os campos do item");
+        return;
+      }
+  
+      const updatedItems = items.map(item => 
+        item._id === editingItemId 
+          ? { 
+              ...editingItem, 
+              totalPrice: (parseFloat(editingItem.quantity) * parseFloat(editingItem.unitPrice)).toFixed(2) 
+            } 
+          : item
+      );
+  
+      setItems(updatedItems);
+      calculateTotalPurchasePrice(updatedItems);
+      setEditingItemId(null);
+      setEditingItem({});
+    };
+  
+    const handleCancelEdit = () => {
+      setEditingItemId(null);
+      setEditingItem({});
+    };
+  
+    const handleEditItemChange = (field, value) => {
+      setEditingItem(prev => ({
+        ...prev, 
+        [field]: value
+      }));
+    };
+    return (
+      <Grid item xs={12}>
+        <Paper elevation={0} sx={{ p: 2, bgcolor: "grey.50", mt: 2 }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Adicionar Item
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={3}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Nome do Item"
+                value={currentItem.name}
+                onChange={(e) => handleItemChange('name', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Tipo"
+                value={currentItem.type}
+                onChange={(e) => handleItemChange('type', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Quantidade"
+                type="number"
+                value={currentItem.quantity}
+                onChange={(e) => handleItemChange('quantity', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Valor Unitário"
+                type="number"
+                value={currentItem.unitPrice}
+                onChange={(e) => handleItemChange('unitPrice', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Valor Total"
+                type="number"
+                value={currentItem.totalPrice}
+                InputProps={{ readOnly: true }}
+              />
+            </Grid>
+            <Grid item xs={12} md={1}>
+              <Button
+               size="small"
+                variant="contained"
+                color="primary"
+                onClick={handleAddItem}
+                sx={{ mt: 0 }}
+              >
+                Adicionar
+              </Button>
+            </Grid>
+          </Grid>
+    
+          {items.length > 0 && (
+            <TableContainer component={Paper} sx={{ mt: 2 }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Nome</TableCell>
+                    <TableCell>Tipo</TableCell>
+                    <TableCell align="right">Quantidade</TableCell>
+                    <TableCell align="right">Valor Unitário</TableCell>
+                    <TableCell align="right">Valor Total</TableCell>
+                    <TableCell align="center">Ações</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </Paper>
-    </Grid>
-  );
+                </TableHead>
+                <TableBody>
+                  {items.map((item) => (
+                    <TableRow key={item.id}>
+                      {editingItemId === item._id ? (
+                        <>
+                          <TableCell>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              value={editingItem.name}
+                              onChange={(e) => handleEditItemChange('name', e.target.value)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              value={editingItem.type}
+                              onChange={(e) => handleEditItemChange('type', e.target.value)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              type="number"
+                              value={editingItem.quantity}
+                              onChange={(e) => handleEditItemChange('quantity', e.target.value)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              type="number"
+                              value={editingItem.unitPrice}
+                              onChange={(e) => handleEditItemChange('unitPrice', e.target.value)}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            R$ {(editingItem.quantity * editingItem.unitPrice).toFixed(2)}
+                          </TableCell>
+                          <TableCell align="center">
+                            <Button 
+                              size="small" 
+                              color="primary" 
+                              onClick={handleSaveEditedItem}
+                            >
+                              Salvar
+                            </Button>
+                            <Button 
+                              size="small" 
+                              color="error" 
+                              onClick={handleCancelEdit}
+                            >
+                              Cancelar
+                            </Button>
+                          </TableCell>
+                        </>
+                      ) : (
+                        <>
+                          <TableCell>{item.name}</TableCell>
+                          <TableCell>{item.type}</TableCell>
+                          <TableCell align="right">{item.quantity}</TableCell>
+                          <TableCell align="right">R$ {parseFloat(item.unitPrice).toFixed(2)}</TableCell>
+                          <TableCell align="right">R$ {parseFloat(item.totalPrice).toFixed(2)}</TableCell>
+                          <TableCell align="center">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleEditItem(item)}
+                              color="primary"
+                            >
+                              <Edit />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleRemoveItem(item._id)}
+                              color="error"
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </TableCell>
+                        </>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Paper>
+      </Grid>
+    );
+  };
 
   useEffect(() => {
     if (item) {
@@ -269,18 +381,20 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
   };
 
   const handleRemoveItem = (itemId) => {
-    const updatedItems = items.filter(item => item.id !== itemId);
+    // Cria uma nova array excluindo o item com o ID especificado
+    console.log(itemId)
+    const updatedItems = items.filter(item => item._id !== itemId);
     setItems(updatedItems);
+    // Recalcula o total após a remoção
     calculateTotalPurchasePrice(updatedItems);
   };
-
   // Function to calculate total purchase price
   const calculateTotalPurchasePrice = (currentItems) => {
-    const total = currentItems.reduce((sum, item) => 
-      sum + parseFloat(item.totalPrice || 0), 0
-    );
-    setTotalPrice(total.toFixed(2));
-  };
+  const total = currentItems.reduce((sum, item) => 
+    sum + (parseFloat(item.totalPrice) || 0), 0
+  );
+  setTotalPrice(total.toFixed(2));
+};
 
   useEffect(() => {
     if (installments > 0) {

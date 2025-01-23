@@ -172,8 +172,8 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box
             sx={{
-              width: 40,
-              height: 40,
+              width: 200,
+              height: 47,
               borderRadius: '10px',
               overflow: 'hidden',
               display: 'flex',
@@ -183,34 +183,14 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen }) => {
             }}
           >
             <Image
-              src={company?.name === "Sanegrande" ? "/icons/logo-sanegrande.png" : "/icons/logo-enterhome.png"}
+              src={company?.name === "Sanegrande" ? "/icons/logo-sanegrande-2.png" : "/icons/logo-enterhome-3.png"}
               alt={`Logo - ${company?.name}`}
-              width={32}
-              height={32}
+              width={160}
+              height={40}
               style={{ objectFit: "contain" }}
             />
           </Box>
-          <CompanySelect
-            value={company?.id || ""}
-            onChange={(e) => {
-              const selectedCompany = companies.find(c => c.id === e.target.value);
-              setSelectedCompany(selectedCompany);
-            }}
-            variant="standard"
-            IconComponent={KeyboardArrowDown}
-          >
-            {companies.map((comp) => (
-              <MenuItem key={comp.id} value={comp.id}>
-                <Typography sx={{
-                  fontWeight: 'bold',
-                  fontSize: '1.1rem'
-                }}>
-                {comp.name}
-                </Typography>
-               
-              </MenuItem>
-            ))}
-          </CompanySelect>
+         
         </Box>
       </Box>
 
