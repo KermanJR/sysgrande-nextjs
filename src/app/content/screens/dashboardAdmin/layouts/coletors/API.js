@@ -1,16 +1,16 @@
 const URL = 'https://sysgrande-nodejs.onrender.com/api/'
 const URL_LOCAL = 'http://localhost:5000/api/'
 
-export const fetchedSuppliers = async (companyName) => {
+export const fetchedCollectors = async () => {
   try {
-    const response = await fetch(`${URL}supplier?company=${companyName}`, { 
+    const response = await fetch(`${URL}collectors`, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     });
     if (!response.ok) {
-      throw new Error('Erro ao buscar os fornecedores.');
+      throw new Error('Erro ao buscar os coletores.');
     }
     const data = await response.json();
     return data; // Retorna os dados das compras
@@ -20,10 +20,10 @@ export const fetchedSuppliers = async (companyName) => {
   }
 };
 
-export const fetchedPurchasesByCompany = async (companyName) => {
+export const fetchedCollectorsByCompany = async (companyName) => {
   console.log(companyName)
   try {
-    const response = await fetch(`${URL}purchase?company=${companyName}`, { 
+    const response = await fetch(`${URL}collectors?company=${companyName}`, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ export const fetchedPurchasesByCompany = async (companyName) => {
     console.log(response)
 
     if (!response.ok) {
-      throw new Error('Erro ao buscar as compras');
+      throw new Error('Erro ao buscar os coletores.');
     }
 
     const data = await response.json();
@@ -44,19 +44,22 @@ export const fetchedPurchasesByCompany = async (companyName) => {
   }
 };
 
-export const deleteSupplierById = async (supplierId) => {
+
+
+
+export const deleteCollectorById = async (purchaseId) => {
   try {
-    const response = await fetch(`${URL}supplier/${supplierId}`, { 
+    const response = await fetch(`${URL}collectors/${purchaseId}`, { 
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
       },
     });
     if (!response.ok) {
-      throw new Error('Erro ao deletar fornecedor.');
+      throw new Error('Erro ao deletar compra.');
     }
     const data = await response.json();
-    return data; // Retorna os dados do fornecedor
+    return data; // Retorna os dados da compra
   } catch (error) {
     console.error('Erro:', error);
     return [];

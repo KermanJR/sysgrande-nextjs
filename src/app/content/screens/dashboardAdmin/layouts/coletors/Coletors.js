@@ -46,15 +46,16 @@ import { useCompany } from "@/app/context/CompanyContext";
 import PurchaseModal from "@/app/components/Modal/Admin/ModalShop";
 
 import {
-  deletePurchaseById,
-  fetchedPurchases,
-  fetchedPurchasesByCompany,
+  deleteCollectorById,
+  fetchedCollectors,
+  fetchedCollectorsByCompany,
 } from "./API";
 import FilterDrawer from "@/app/components/FilterDrawer/FilterDrawer";
 import FilterPurchases from "@/app/components/FilterPurchases/FilterPurchases";
 import { PDFDocument, rgb } from "pdf-lib";
 import { formatCNPJ } from "@/app/utils/formatCNPJ";
 import { formatPhone } from "@/app/utils/formatPhone";
+import CollectorModal from "@/app/components/Modal/Admin/ModalColetors";
 
 function TablePaginationActions(props) {
   const theme = useTheme();
@@ -118,15 +119,16 @@ function TablePaginationActions(props) {
   );
 }
 
-export default function Shop() {
+export default function Coletors() {
+
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(7);
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [currentPurchase, setCurrentPurchase] = useState(null);
   const [purchases, setPurchases] = useState([]);
-  const [filteredPurchases, setFilteredPurchases] = useState([]);
+  const [filteredCollectors, setFilteredCollectors] = useState([]);
   const [dateFilteredPurchases, setDateFilteredPurchases] =
-    useState(filteredPurchases);
+    useState(filteredCollectors);
   const [setIsLoading, isLoading] = useState(false);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [selectedPurchases, setSelectedPurchases] = useState([]);
@@ -150,9 +152,9 @@ export default function Shop() {
   };
 
   useEffect(() => {
-    const filtered = filteredPurchases.filter((purchase) => {
+    const filtered = filteredCollectors.filter((purchase) => {
       const purchaseDate = new Date(purchase.purchaseDate);
-      console.log(selectedMonth);
+   
       const monthMatch =
         selectedMonth === "" || purchaseDate.getMonth() === selectedMonth;
       const yearMatch =
@@ -162,7 +164,29 @@ export default function Shop() {
     });
 
     setDateFilteredPurchases(filtered);
-  }, [selectedMonth, selectedYear, filteredPurchases]);
+  }, [selectedMonth, selectedYear, filteredCollectors]);
+
+
+    useEffect(() => {
+      if (company) {
+        const loadCollectors = async () => {
+          
+          try {
+            const employeesData = await fetchedCollectorsByCompany(company.name);
+            const activeEmployees = employeesData.filter(
+              (employee) => !employee.deletedAt
+            );
+            setEmployees(activeEmployees);
+            setFilteredEmployess(activeEmployees);
+          } catch (error) {
+            console.error("Erro ao carregar coletores", error);
+          } finally {
+         
+          }
+        };
+        loadCollectors();
+      }
+    }, [company]);
 
   const months = [
     { value: "", label: "Todos" },
@@ -199,7 +223,7 @@ export default function Shop() {
     return new Intl.NumberFormat("pt-BR").format(value);
   };
 
-  /*const handleExportPdfSelected = () => {
+  const handleExportPdfSelected = () => {
     const now = new Date();
     
     const getCurrentMonthYear = () => {
@@ -771,215 +795,6 @@ export default function Shop() {
     // Salvar o PDF
     const fileName = `controle_compras_${company.name.toLowerCase()}_${now.getTime()}.pdf`;
     doc.save(fileName);
-    };*/
-
-    const handleExportPdfSelected = () => {
-      const now = new Date();
-      
-      // Função auxiliar para formatar data
-      const formatDate = (dateString) => {
-        if (!dateString) return '-';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('pt-BR');
-      };
-      
-      // Função auxiliar para formatar moeda
-      const formatCurrency = (value) => {
-        if (value === undefined || value === null) return 'R$ 0,00';
-        return `R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      };
-      
-      // Função auxiliar para formatar quantidade
-      const formatQuantity = (value) => {
-        if (value === undefined || value === null) return '0';
-        return Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-      };
-      
-      // Obter mês e ano atual para o título
-      const getCurrentMonthYear = () => {
-        const months = [
-          "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
-          "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
-        ];
-        const date = new Date();
-        return `${months[date.getMonth()]} ${date.getFullYear()}`;
-      };
-    
-      // Preparar dados para a tabela
-      const prepareTableData = () => {
-        // Selecionar apenas as compras marcadas
-        const selectedData = filteredPurchases
-          .filter(purchase => selectedPurchases.includes(purchase._id))
-          .sort((a, b) => new Date(a.purchaseDate) - new Date(b.purchaseDate));
-        
-        const tableData = [];
-        let totalValue = 0;
-        
-        // Para cada compra, adicionar seus itens à tabela
-        selectedData.forEach(purchase => {
-          purchase.items.forEach(item => {
-            // Calcular a data da próxima compra (usando a data da primeira parcela se disponível)
-            const nextPurchaseDate = purchase.nextPurchaseDate || 
-              (purchase.installmentDates && purchase.installmentDates.length > 0 
-                ? purchase.installmentDates[0] 
-                : null);
-              
-            // Adicionar linha na tabela com o novo campo de recorrência
-            tableData.push([
-              item.name,
-              purchase.supplier.name,
-              formatCurrency(item.unitPrice),
-              formatQuantity(item.quantity),
-              formatDate(purchase.purchaseDate),
-              formatDate(nextPurchaseDate),
-              purchase.recurrence || '-',
-              formatCurrency(item.totalPrice)
-            ]);
-            
-            // Somar ao valor total
-            totalValue += item.totalPrice;
-          });
-        });
-        
-        return { tableData, totalValue };
-      };
-    
-      // Criar documento PDF
-      const doc = new jsPDF({
-        orientation: "landscape"
-      });
-    
-      const pageWidth = doc.internal.pageSize.width;
-      const pageHeight = doc.internal.pageSize.height;
-      const primaryColor = [158, 197, 232]; // Azul claro
-      
-      // Configuração do cabeçalho
-      const titleY = 15;
-      const titleHeight = 15;
-      const logoWidth = 48;
-      const logoHeight = 10;
-      const logoX = 20;
-      const logoY = titleY + (titleHeight - logoHeight) / 2;
-    
-      // Desenhar retângulo do cabeçalho
-      doc.setFillColor(240, 240, 240);
-      doc.setDrawColor(0, 0, 0);
-      doc.rect(14, titleY, pageWidth - 28, titleHeight, "FD");
-    
-      // Adicionar logo
-      company.name === "Sanegrande"
-        ? doc.addImage(
-            "../../../../icons/logo-sanegrande-2.png", 
-            "PNG", 
-            logoX, 
-            logoY, 
-            logoWidth, 
-            logoHeight
-          )
-        : doc.addImage(
-            "../../../../icons/logo-enterhome-3.png", 
-            "PNG", 
-            logoX, 
-            logoY, 
-            logoWidth, 
-            logoHeight
-          );
-    
-      // Adicionar título centralizado
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
-      const title = `RELATÓRIO DE COMPRAS - ${company.name === "Sanegrande" ? "SANEGRANDE CONSTRUTORA LTDA" : "ENTER HOME"}`;
-      const textWidth = (doc.getStringUnitWidth(title) * doc.internal.getFontSize()) / doc.internal.scaleFactor;
-      const titleX = (pageWidth - textWidth) / 2;
-      doc.text(title, titleX, titleY + titleHeight / 2 + 1);
-    
-      // Adicionar mês e ano à direita
-      doc.setFontSize(8);
-      const monthYear = getCurrentMonthYear();
-      doc.text(monthYear, pageWidth - 20, titleY + titleHeight / 2 + 1, { align: "right" });
-    
-      // Data de geração
-      doc.setFontSize(7);
-      doc.setTextColor(100);
-      doc.text(
-        `Gerado em: ${now.toLocaleDateString("pt-BR")} às ${now.toLocaleTimeString("pt-BR")}`,
-        pageWidth - 20, 
-        titleY + titleHeight + 5, 
-        { align: "right" }
-      );
-      
-      // Definir cabeçalhos da tabela incluindo o campo de recorrência
-      const headers = [
-        "Item", "Fornecedor", "Valor Unitário", "Quantidade", 
-        "Data Compra", "Data Próxima Compra", "Recorrência", "Valor Despesa"
-      ];
-      
-      const { tableData, totalValue } = prepareTableData();
-      
-      // Configurar e gerar tabela
-      const tableStart = titleY + titleHeight + 10;
-      doc.autoTable({
-        head: [headers],
-        body: tableData,
-        startY: tableStart,
-        theme: 'grid',
-        styles: {
-          fontSize: 8,
-          cellPadding: 2,
-          lineColor: [0, 0, 0],
-          lineWidth: 0.1,
-        },
-        headStyles: {
-          fillColor: primaryColor,
-          textColor: [0, 0, 0],
-          fontStyle: 'bold',
-          halign: 'center',
-        },
-        columnStyles: {
-          0: { cellWidth: 46 }, // Item
-          1: { cellWidth: 45 }, // Fornecedor
-          2: { cellWidth: 28, halign: 'center' }, // Valor Unitário
-          3: { cellWidth: 30, halign: 'center' }, // Quantidade
-          4: { cellWidth: 30, halign: 'center' }, // Data da Compra
-          5: { cellWidth: 30, halign: 'center' }, // Data da Próxima Compra
-          6: { cellWidth: 30, halign: 'center' }, // Recorrência
-          7: { cellWidth: 30, halign: 'center' }, // Valor da Despesa
-        },
-        // Configuração para o tema zebrado
-        alternateRowStyles: {
-          fillColor: [245, 245, 245]
-        },
-        margin: { top: 10, left: 14, right: 14, bottom: 20 },
-      });
-      
-      // Adicionar total geral no final do documento
-      const finalY = doc.previousAutoTable.finalY + 5;
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      
-      // Adicionar o total
-      const totalText = `TOTAL GERAL: ${formatCurrency(totalValue)}`;
-      doc.text(totalText, pageWidth - 20, finalY, { align: 'right' });
-      
-      // Adicionar numeração de páginas
-      const totalPages = doc.internal.getNumberOfPages();
-      for (let i = 1; i <= totalPages; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(100);
-        doc.text(
-          `Página ${i} de ${totalPages}`,
-          pageWidth / 2,
-          pageHeight - 10,
-          { align: 'center' }
-        );
-      }
-      
-      // Salvar o PDF
-      const fileName = `relatorio_compras_${company.name.toLowerCase()}_${now.getTime()}.pdf`;
-      doc.save(fileName);
     };
 
 
@@ -1015,7 +830,7 @@ export default function Shop() {
       "Fornecedor",
       "CNPJ",
       "Quantidade",
-      "Valor Unit.",
+      "Valor Unitário",
       "Valor Total",
       "Forma Pagamento",
       "Parcelas",
@@ -1226,7 +1041,7 @@ export default function Shop() {
   };
 
   const handleDeletePurchase = async (id) => {
-    const deleted = await deletePurchaseById(id);
+    const deleted = await deleteCollectorById(id);
     if (deleted) {
       setPurchases((prevItem) => prevItem.filter((item) => item.id !== id));
       setFilteredPurchases((prevExpense) =>
@@ -1284,7 +1099,7 @@ export default function Shop() {
         open={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
       >
-        <DialogTitle>Exportar Fornecedores</DialogTitle>
+        <DialogTitle>Exportar Coletores</DialogTitle>
         <DialogContent>Selecione o formato de exportação:</DialogContent>
         <DialogActions sx={{ margin: "0 auto", textAlign: "center" }}>
           <Button
@@ -1310,8 +1125,8 @@ export default function Shop() {
         </DialogActions>
       </Dialog>
       <HeaderDashboard
-        subtitle="Gerencie as compras da empresa"
-        title="Compras"
+        subtitle="Gerencie os coletores da empresa"
+        title="Coletores"
       />
 
       <FilterPurchases
@@ -1342,7 +1157,7 @@ export default function Shop() {
           onClick={() => handleOpenPurchaseModal()}
           startIcon={<AddIcon />}
         >
-          Nova Compra
+          Novo Coletor
         </Button>
 
         <Button
@@ -1384,232 +1199,201 @@ export default function Shop() {
       
 
       <TableContainer
-  component={Paper}
-  sx={{
-    maxHeight: "calc(100vh - 250px)", // Altura máxima considerando o cabeçalho
-    width: "100%",
-    overflow: "auto", // Habilita scroll em ambas direções quando necessário
-    overflowY: 'scroll'
-  }}
->
-  <Table stickyHeader sx={{ minWidth: 1200 }}>
-    {" "}
-    {/* Largura mínima para garantir que todas as colunas caibam */}
-    <TableHead>
-      <TableRow>
-        <TableCell
-          padding="checkbox"
-          sx={{
-            position: "sticky",
-            left: 0,
-            backgroundColor: "background.default",
-            zIndex: 3,
-          }}
-        >
-          <Checkbox
-            checked={
-              selectedPurchases.length === filteredPurchases.length
-            }
-            indeterminate={
-              selectedPurchases.length > 0 &&
-              selectedPurchases.length < filteredPurchases.length
-            }
-            onChange={(event) => {
-              if (event.target.checked) {
-                setSelectedPurchases(
-                  filteredPurchases.map((emp) => emp._id)
-                );
-              } else {
-                setSelectedPurchases([]);
-              }
-            }}
-          />
-        </TableCell>
-        {/* Definir larguras fixas para as colunas */}
-        <TableCell
-          align="center"
-          sx={{ fontWeight: "bold", minWidth: 150 }}
-        >
-          Material
-        </TableCell>
-        <TableCell
-          align="center"
-          sx={{ fontWeight: "bold", minWidth: 150 }}
-        >
-          Fornecedor
-        </TableCell>
-        <TableCell
-          align="center"
-          sx={{ fontWeight: "bold", minWidth: 100 }}
-        >
-          Quantidade
-        </TableCell>
-        
-        <TableCell
-          align="center"
-          sx={{ fontWeight: "bold", minWidth: 120 }}
-        >
-          Valor Total
-        </TableCell>
-        <TableCell
-          align="center"
-          sx={{ fontWeight: "bold", minWidth: 120 }}
-        >
-          Pagamento
-        </TableCell>
-        <TableCell
-          align="center"
-          sx={{ fontWeight: "bold", minWidth: 100 }}
-        >
-          Entrada
-        </TableCell>
-        <TableCell
-          align="center"
-          sx={{ fontWeight: "bold", minWidth: 120 }}
-        >
-          Data Compra
-        </TableCell>
-        <TableCell
-          align="center"
-          sx={{ fontWeight: "bold", minWidth: 120 }}
-        >
-          Data Entrega
-        </TableCell>
-        <TableCell
-          align="center"
-          sx={{ fontWeight: "bold", minWidth: 120 }}
-        >
-          Próx. Compra
-        </TableCell>
-        <TableCell
-          align="center"
-          sx={{
-            fontWeight: "bold",
-            minWidth: 100,
-            position: "sticky",
-            right: 0,
-            backgroundColor: "background.default",
-            zIndex: 3,
-          }}
-        >
-          Ações
-        </TableCell>
-      </TableRow>
-    </TableHead>
-    <TableBody>
-      {filteredPurchases
-        .slice(page)
-        .map((purchase, index) => (
-          <TableRow 
-            key={purchase.id}
-            sx={{ 
-              '&:nth-of-type(odd)': { 
-                backgroundColor: 'rgba(0, 0, 0, 0.04)' 
-              },
-         
-            }}
-          >
-            <TableCell
-              padding="checkbox"
-              sx={{
-                position: "sticky",
-                left: 0,
-                
-
-                zIndex: 2,
-               
-              }}
-            >
-              <Checkbox
-                checked={selectedPurchases.includes(purchase._id)}
-                onChange={(event) => {
-                  event.stopPropagation();
-                  if (event.target.checked) {
-                    setSelectedPurchases([
-                      ...selectedPurchases,
-                      purchase._id,
-                    ]);
-                  } else {
-                    setSelectedPurchases(
-                      selectedPurchases.filter(
-                        (id) => id !== purchase._id
-                      )
-                    );
-                  }
+        component={Paper}
+        sx={{
+          maxHeight: "calc(100vh - 250px)", // Altura máxima considerando o cabeçalho
+          width: "100%",
+          overflow: "auto", // Habilita scroll em ambas direções quando necessário
+          overflowY: 'scroll'
+        }}
+      >
+        <Table stickyHeader sx={{ minWidth: 1200 }}>
+          {" "}
+          {/* Largura mínima para garantir que todas as colunas caibam */}
+          <TableHead>
+            <TableRow>
+              <TableCell
+                padding="checkbox"
+                sx={{
+                  position: "sticky",
+                  left: 0,
+                  backgroundColor: "background.default",
+                  zIndex: 3,
                 }}
-                onClick={(event) => event.stopPropagation()}
-              />
-            </TableCell>
-            <TableCell align="center">{purchase?.materialType}</TableCell>
-            <TableCell align="center">{purchase?.supplier.name}</TableCell>
-            <TableCell align="center">
-              {purchase?.items?.reduce((total, item) => total + item?.quantity, 0)}
-            </TableCell>
-            
-            <TableCell align="center">
-              {purchase?.totalPrice?.toLocaleString("pt-br", {
-                style: "currency",
-                currency: "BRL",
-              })}
-            </TableCell>
-            <TableCell align="center">{purchase?.paymentMethod}</TableCell>
-            <TableCell align="center">
-              {purchase?.entrancy
-                ? purchase?.entrancy?.toLocaleString("pt-br", {
-                    style: "currency",
-                    currency: "BRL",
-                  })
-                : "-"}
-            </TableCell>
-            <TableCell align="center">
-              {formatDate(purchase?.purchaseDate)}
-            </TableCell>
-            <TableCell align="center">
-              {formatDate(purchase?.deliveryDate)}
-            </TableCell>
-            <TableCell align="center">
-              {formatDate(purchase?.nextPurchaseDate)}
-            </TableCell>
-            <TableCell
-              align="center"
-              sx={{
-                position: "sticky",
-                right: 0,
-               
-                zIndex: 2,
-      
-              }}
-            >
-              <Box
-                sx={{ display: "flex", justifyContent: "center", gap: 1 }}
               >
-                <Tooltip title="Editar Compra">
-                  <span>
-                    <FaEdit
-                      style={{ cursor: "pointer" }}
-                      onClick={() => handleOpenPurchaseModal(purchase)}
+                <Checkbox
+                  checked={
+                    selectedPurchases.length === filteredCollectors.length
+                  }
+                  indeterminate={
+                    selectedPurchases.length > 0 &&
+                    selectedPurchases.length < filteredCollectors.length
+                  }
+                  onChange={(event) => {
+                    if (event.target.checked) {
+                      setSelectedPurchases(
+                        filteredCollectors.map((emp) => emp._id)
+                      );
+                    } else {
+                      setSelectedPurchases([]);
+                    }
+                  }}
+                />
+              </TableCell>
+              {/* Definir larguras fixas para as colunas */}
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 150 }}
+              >
+                Matrícula
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 150 }}
+              >
+                Funcionário
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 100 }}
+              >
+                MEI
+              </TableCell>
+              
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 120 }}
+              >
+                MAC
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 120 }}
+              >
+                Condição
+              </TableCell>
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 100 }}
+              >
+                Status
+              </TableCell>
+             
+              <TableCell
+                align="center"
+                sx={{
+                  fontWeight: "bold",
+                  minWidth: 100,
+                  position: "sticky",
+                  right: 0,
+                  backgroundColor: "background.default",
+                  zIndex: 3,
+                }}
+              >
+                Ações
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredCollectors
+              .slice(page)
+              .map((purchase) => (
+                <TableRow key={purchase.id}>
+                  <TableCell
+                    padding="checkbox"
+                    sx={{
+                      position: "sticky",
+                      left: 0,
+                      backgroundColor: "background.default",
+                      zIndex: 2,
+                    }}
+                  >
+                    <Checkbox
+                      checked={selectedPurchases.includes(purchase._id)}
+                      onChange={(event) => {
+                        event.stopPropagation();
+                        if (event.target.checked) {
+                          setSelectedPurchases([
+                            ...selectedPurchases,
+                            purchase._id,
+                          ]);
+                        } else {
+                          setSelectedPurchases(
+                            selectedPurchases.filter(
+                              (id) => id !== purchase._id
+                            )
+                          );
+                        }
+                      }}
+                      onClick={(event) => event.stopPropagation()}
                     />
-                  </span>
-                </Tooltip>
-                <Tooltip title="Excluir">
-                  <span>
-                    <FaTrash
-                      style={{ cursor: "pointer" }}
-                      color="red"
-                      onClick={() => handleDeletePurchase(purchase._id)}
-                    />
-                  </span>
-                </Tooltip>
-              </Box>
-            </TableCell>
-          </TableRow>
-        ))}
-    </TableBody>
-  </Table>
-</TableContainer>
+                  </TableCell>
+                  <TableCell align="center">{purchase.materialType}</TableCell>
+                  <TableCell align="center">{purchase.supplier.name}</TableCell>
+                 <TableCell align="center">
+  {purchase?.items?.reduce((total, item) => total + item.quantity, 0)}
+</TableCell>
+                  
+                  <TableCell align="center">
+                    {purchase.totalPrice.toLocaleString("pt-br", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                  </TableCell>
+                  <TableCell align="center">{purchase.paymentMethod}</TableCell>
+                  <TableCell align="center">
+                    {purchase?.entrancy
+                      ? purchase.entrancy.toLocaleString("pt-br", {
+                          style: "currency",
+                          currency: "BRL",
+                        })
+                      : "-"}
+                  </TableCell>
+                  <TableCell align="center">
+                    {formatDate(purchase.purchaseDate)}
+                  </TableCell>
+                  <TableCell align="center">
+                    {formatDate(purchase.deliveryDate)}
+                  </TableCell>
+                  <TableCell
+                    align="center"
+                    sx={{
+                      position: "sticky",
+                      right: 0,
+                      backgroundColor: "background.default",
+                      zIndex: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{ display: "flex", justifyContent: "center", gap: 1 }}
+                    >
+                      <Tooltip title="Editar Compra">
+                        <span>
+                          <FaEdit
+                            style={{ cursor: "pointer" }}
+                            onClick={() => handleOpenPurchaseModal(purchase)}
+                          />
+                        </span>
+                      </Tooltip>
+                      <Tooltip title="Excluir">
+                        <span>
+                          <FaTrash
+                            style={{ cursor: "pointer" }}
+                            color="red"
+                            onClick={() => handleDeletePurchase(purchase._id)}
+                          />
+                        </span>
+                      </Tooltip>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
       
 
-      <PurchaseModal
+      <CollectorModal
         open={isPurchaseModalOpen}
         onClose={handleClosePurchaseModal}
         onSave={handleSavePurchase}

@@ -49,7 +49,7 @@ const getAccessToken = async () => {
   const clientSecret = '740fd9c3-21c4-434a-be36-3e06dbae1025';
   const tenantId = '06738f6b-6721-49b2-908b-ddeed51824ff';
 
-  const url = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+  const URL_LOCAL = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
 
   const params = new URLSearchParams();
   params.append('grant_type', 'client_credentials');
@@ -57,7 +57,7 @@ const getAccessToken = async () => {
   params.append('client_secret', clientSecret);
   params.append('scope', 'https://analysis.windows.net/powerbi/api/.default');
 
-  const response = await axios.post(url, params);
+  const response = await axios.post(URL_LOCAL, params);
   console.log(response)
   return response.data.access_token;
 };

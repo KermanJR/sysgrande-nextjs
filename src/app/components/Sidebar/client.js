@@ -38,10 +38,10 @@ const SidebarClient = ({ onMenuClick, isMenuOpen, setIsMenuOpen }) => {
 
   useEffect(()=>{
     if (typeof window !== "undefined") {
-    let url = window?.location.href;
-    if(url.includes('cliente')){
+    let URL_LOCAL = window?.location.href;
+    if(URL_LOCAL.includes('cliente')){
       setTypeUser("cliente")
-    }else if(url.includes('admin')){
+    }else if(URL_LOCAL.includes('admin')){
       setTypeUser("admin")
     }
   }

@@ -51,7 +51,7 @@ export const updatePurchase = async (purchaseData, id) => {
     const response = await fetch(
       `${URL}purchase/${id}`,
       {
-        method: "PATCH",
+        method: "PUT",
         body: purchaseData, // Passando o FormData diretamente como body
       }
     );

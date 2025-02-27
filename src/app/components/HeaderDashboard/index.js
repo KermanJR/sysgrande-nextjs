@@ -34,6 +34,7 @@ import {
   Inventory,
   Logout,
 } from "@mui/icons-material";
+import { NotificationMenu } from "./NotificationMenu";
 
 const getInitials = (name) => {
   if (!name) return "";
@@ -58,6 +59,8 @@ const { company, setSelectedCompany } = useCompany();
   const [profileAnchor, setProfileAnchor] = useState(null);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
 
+  const [notifications, setNotifications] = useState([]);
+
   // Profile menu handlers
   const handleProfileClick = (event) => {
     setProfileAnchor(event.currentTarget);
@@ -67,6 +70,29 @@ const { company, setSelectedCompany } = useCompany();
     { name: "Sanegrande", id: "1", logo: "/icons/logo-sanegrande.png" },
     { name: "Enter Home", id: "2", logo: "/icons/logo-enterhome.png" }
   ];
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/notifications?company=${company?.name}`);
+      const data = await response.json();
+      console
+      if (data.success) {
+        setNotifications(data.data);
+        // Atualizar o contador de notificações não lidas
+        const unreadCount = data.data.filter(n => !n.read).length;
+        // Se você tiver uma função para atualizar o contador
+        // onUpdateNotificationCount(unreadCount);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar notificações:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (company?.name) {
+      fetchNotifications();
+    }
+  }, [company?.name]);
 
   const CompanySelect = styled(Select)(({ theme }) => ({
     '& .MuiSelect-select': {
@@ -177,41 +203,49 @@ const { company, setSelectedCompany } = useCompany();
                       </MenuItem>
                     ))}
                   </CompanySelect>
-        {/* Notifications */}
-        <Tooltip title="Notificações" arrow>
-          <IconButton
-            size="large"
-            onClick={handleNotificationClick}
-            sx={{
-              transition: "transform 0.2s",
-              "&:hover": {
-                transform: "scale(1.05)",
-                backgroundColor: theme.palette.action.hover,
-              },
-            }}
-          >
-            <Badge
-              badgeContent={notificationCount}
-              color="error"
-              max={99}
-              sx={{
-                "& .MuiBadge-badge": {
-                  backgroundColor: theme.palette.error.main,
-                  color: theme.palette.common.white,
-                  fontWeight: "bold",
-                  animation: notificationCount > 0 ? "pulse 2s infinite" : "none",
-                  "@keyframes pulse": {
-                    "0%": { transform: "scale(1)" },
-                    "50%": { transform: "scale(1.1)" },
-                    "100%": { transform: "scale(1)" },
-                  },
-                },
-              }}
-            >
-              <NotificationsIcon color="action" />
-            </Badge>
-          </IconButton>
-        </Tooltip>
+       {/* Notifications */}
+<Tooltip title="Notificações" arrow >
+  <IconButton
+    size="large"
+    onClick={handleNotificationClick}
+    sx={{
+      transition: "transform 0.2s",
+      "&:hover": {
+        transform: "scale(1.05)",
+        backgroundColor: theme.palette.action.hover,
+      },
+    }}
+  >
+    <Badge
+      badgeContent={notifications.filter(n => !n.read).length}
+      color="error"
+      max={99}
+      sx={{
+        "& .MuiBadge-badge": {
+          backgroundColor: theme.palette.error.main,
+          color: theme.palette.common.white,
+          fontWeight: "bold",
+          animation: notifications.length > 0 ? "pulse 2s infinite" : "none",
+          "@keyframes pulse": {
+            "0%": { transform: "scale(1)" },
+            "50%": { transform: "scale(1.1)" },
+            "100%": { transform: "scale(1)" },
+          },
+        },
+      }}
+    >
+      <NotificationsIcon color="action" />
+    </Badge>
+  </IconButton>
+</Tooltip>
+
+{/* Notification Menu */}
+<NotificationMenu
+  anchorEl={notificationAnchor}
+  open={Boolean(notificationAnchor)}
+  onClose={handleNotificationClose}
+  notifications={notifications}
+/>
 
         {/* Profile Section */}
         <Box

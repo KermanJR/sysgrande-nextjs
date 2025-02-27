@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Box, Button, TextField, Typography, CircularProgress } from "@mui/material";
+import { Box, Button, TextField, Typography, CircularProgress, Paper, Divider } from "@mui/material";
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import AuthContext from "@/app/context/AuthContext";
@@ -8,6 +8,7 @@ import { useSnackbar } from 'notistack';
 import styles from './login.module.css';
 import Image from "next/image";
 import LogoSanegrande from '../../../../../../public/icons/logo-sanegrande.png';
+import LogoEnterhome from '../../../../../../public/icons/logo-enterhome.png';
 import Wave from "@/app/components/Footer/Wave";
 
 const URL_LOCAL = 'http://localhost:5000/api/';
@@ -58,73 +59,188 @@ const LoginPage = () => {
     });
 
     return (
-        <Box className={styles.containerLogin}>
-            <Box sx={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignSelf: 'center',
-                alignItems: "center",
-                width: '40vh',
+        <Box className={styles.containerLogin} sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            minHeight: "100vh",
+            background: "linear-gradient(135deg, #f5f7fa 0%, #e4ecf7 100%)"
+        }}>
+            <Paper elevation={3} sx={{
+                width: { xs: '90%', sm: '450px' },
                 margin: '0 auto',
-                padding: 3,
+                borderRadius: '12px',
+                overflow: 'hidden',
+                height: '650px',
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)'
             }}>
-                <Image
-                    src={LogoSanegrande}
-                    width={50}
-                    height={50}
-                    style={{objectFit: 'contain'}}
-                    alt="Logo - Sanegrande"
-                />
-                <Typography variant="h4" sx={{ mb: 2, color: '#5E899D' }}>
-                    Sanegrande
-                </Typography>
-                <form onSubmit={formik.handleSubmit} style={{ width: '100%' }}>
-                    <TextField
-                        fullWidth
-                        id="email"
-                        name="email"
-                        label="Digite seu E-mail"
-                        value={formik.values.email}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={formik.touched.email && Boolean(formik.errors.email)}
-                        helperText={formik.touched.email && formik.errors.email}
-                        disabled={formik.isSubmitting}
-                        sx={{ mb: 2 }}
-                    />
-                    <TextField
-                        fullWidth
-                        id="password"
-                        name="password"
-                        type="password"
-                        label="Digite sua senha"
-                        value={formik.values.password}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={formik.touched.password && Boolean(formik.errors.password)}
-                        helperText={formik.touched.password && formik.errors.password}
-                        disabled={formik.isSubmitting}
-                        sx={{ mb: 2 }}
-                    />
-                    <Button 
-                        type="submit"
-                        variant="contained"
-                        fullWidth
-                        disabled={formik.isSubmitting}
-                        sx={{ 
-                            mt: 2, 
-                            padding: '.7rem 2.5rem', 
-                            background: '#5E899D'
-                        }}
-                    >
-                        {formik.isSubmitting ? (
-                            <CircularProgress size={24} color="inherit" />
-                        ) : 'Entrar'}
-                    </Button>
-                </form>
-            </Box>
-            <Wave />
+                {/* Header with logos */}
+                <Box sx={{
+                    padding: '24px',
+                    background: 'linear-gradient(90deg, #5E899D 0%, #4A7185 100%)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center'
+                }}>
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '16px 0',
+                        width: '100%'
+                    }}>
+                        <Box sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            padding: '12px 24px',
+                            borderRadius: '12px',
+                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+                        }}>
+                            <Box sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center',
+                                marginRight: '16px'
+                            }}>
+                                <Image
+                                    src={LogoSanegrande}
+                                    width={60}
+                                    height={60}
+                                    style={{
+                                        objectFit: 'contain',
+                                        filter: 'drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.2))'
+                                    }}
+                                    alt="Logo - Sanegrande"
+                                />
+                            </Box>
+                            <Divider orientation="vertical" flexItem sx={{ 
+                                height: '80px', 
+                                backgroundColor: '#5E899D', 
+                                width: '2px'
+                            }} />
+                            <Box sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center',
+                                marginLeft: '16px'
+                            }}>
+                                <Image
+                                    src={LogoEnterhome}
+                                    width={75}
+                                    height={75}
+                                    style={{
+                                        objectFit: 'contain',
+                                        filter: 'drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.2))'
+                                    }}
+                                    alt="Logo - Enterhome"
+                                />
+                            </Box>
+                        </Box>
+                    </Box>
+                    <Typography variant="h6" component="h1" color="white" sx={{ 
+                        mt: 2,
+                        fontWeight: 500,
+                        letterSpacing: '0.5px',
+                        textShadow: '0px 1px 2px rgba(0, 0, 0, 0.3)'
+                    }}>
+                        Sistema de Gestão Integrado
+                    </Typography>
+                </Box>
+
+                {/* Form section */}
+                <Box sx={{
+                    padding: '32px 40px 40px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px'
+                }}>
+                    <Typography variant="h5" component="h2" align="center" sx={{ 
+                        mb: 3,
+                        fontWeight: 600,
+                        color: '#2D3748'
+                    }}>
+                        Login
+                    </Typography>
+                    <form onSubmit={formik.handleSubmit} style={{ width: '100%' }}>
+                        <TextField
+                            fullWidth
+                            id="email"
+                            name="email"
+                            label="E-mail"
+                            variant="outlined"
+                            value={formik.values.email}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.email && Boolean(formik.errors.email)}
+                            helperText={formik.touched.email && formik.errors.email}
+                            disabled={formik.isSubmitting}
+                            sx={{ 
+                                mb: 3,
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: '8px',
+                                    '&.Mui-focused fieldset': {
+                                        borderColor: '#5E899D',
+                                    },
+                                },
+                                '& .MuiInputLabel-root.Mui-focused': {
+                                    color: '#5E899D',
+                                }
+                            }}
+                        />
+                        <TextField
+                            fullWidth
+                            id="password"
+                            name="password"
+                            type="password"
+                            label="Senha"
+                            variant="outlined"
+                            value={formik.values.password}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.password && Boolean(formik.errors.password)}
+                            helperText={formik.touched.password && formik.errors.password}
+                            disabled={formik.isSubmitting}
+                            sx={{ 
+                                mb: 3,
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: '8px',
+                                    '&.Mui-focused fieldset': {
+                                        borderColor: '#5E899D',
+                                    },
+                                },
+                                '& .MuiInputLabel-root.Mui-focused': {
+                                    color: '#5E899D',
+                                }
+                            }}
+                        />
+                        <Button 
+                            type="submit"
+                            variant="contained"
+                            fullWidth
+                            disabled={formik.isSubmitting}
+                            sx={{ 
+                                mt: 2, 
+                                padding: '12px',
+                                borderRadius: '8px',
+                                background: 'linear-gradient(90deg, #5E899D 0%, #4A7185 100%)',
+                                boxShadow: '0 4px 10px rgba(94, 137, 157, 0.3)',
+                                textTransform: 'none',
+                                fontSize: '16px',
+                                fontWeight: 500,
+                                '&:hover': {
+                                    background: 'linear-gradient(90deg, #4A7185 0%, #3D5F74 100%)',
+                                }
+                            }}
+                        >
+                            {formik.isSubmitting ? (
+                                <CircularProgress size={24} color="inherit" />
+                            ) : 'Entrar'}
+                        </Button>
+                    </form>
+                </Box>
+            </Paper>
+            
+                <Wave />
+         
         </Box>
     );
 };

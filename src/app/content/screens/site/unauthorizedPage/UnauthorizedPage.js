@@ -24,7 +24,7 @@ const UnauthorizedPage = () => {
         Acesso Negado
       </Typography>
       <Typography variant="body1" gutterBottom>
-        Você não tem permissão para acessar esta URL.
+        Você não tem permissão para acessar esta URL_LOCAL.
       </Typography>
       <Button
         variant="contained"

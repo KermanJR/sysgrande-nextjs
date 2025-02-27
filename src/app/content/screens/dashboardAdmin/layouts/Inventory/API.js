@@ -1,8 +1,8 @@
-const URL = 'https://sysgrande-nodejs.onrender.com/api/'
+const URL_LOCAL = 'https://sysgrande-nodejs.onrender.com/api/'
 
 export const fetchItems = async () => {
   try {
-    const response = await fetch(`${URL}items`, { 
+    const response = await fetch(`${URL_LOCAL}items`, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -21,7 +21,7 @@ export const fetchItems = async () => {
 
 export const fetchRegionals = async () => {
   try {
-    const response = await fetch(`${URL}regionals`, { 
+    const response = await fetch(`${URL_LOCAL}regionals`, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ export const fetchRegionals = async () => {
 
 export const deleteItemById = async (itemId) => {
   try {
-    const response = await fetch(`${URL}items/${itemId}`, { 
+    const response = await fetch(`${URL_LOCAL}items/${itemId}`, { 
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

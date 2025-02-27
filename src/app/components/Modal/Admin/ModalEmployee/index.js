@@ -328,10 +328,10 @@ const EmployeeModal = ({ open, onClose, onSave, employee }) => {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) {
+    /*if (!validateForm()) {
       toast.error("Por favor, corrija os erros no formulário");
       return;
-    }
+    }*/
 
     setIsSubmitting(true);
 
@@ -445,11 +445,16 @@ const EmployeeModal = ({ open, onClose, onSave, employee }) => {
 
   const positions = [
     "Coordenador",
+    "Fiscal de Consumo",
     "Gerente",
     "Analista de RH",
     "Estagiário",
+    "Aux. Adm - Jovem Aprendiz",
+    "Secretária",
+    "Auxiliar Administrativo",
     "Analista de Dados",
     "Assistente Proc. Dados",
+    "Assistente Administrativo",
     "Supervisor Administrativo I",
     "Supervisor Administrativo II",
     "Responsável Técnico I",

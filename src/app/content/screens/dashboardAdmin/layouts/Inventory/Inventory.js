@@ -34,6 +34,7 @@ import ReportModal from "@/app/components/Modal/Admin/ReportModal";
 import { fetchItems, fetchRegionals, deleteItemById} from "./API";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import HeaderDashboard from "@/app/components/HeaderDashboard";
 
 function TablePaginationActions(props) {
   const theme = useTheme();
@@ -235,30 +236,10 @@ export default function Inventory() {
   return (
     <Box className={styles.plans}>
       <Toaster />
-      <Box
-        sx={{
-          border: "1px solid #d9d9d9",
-          borderRadius: "10px",
-          padding: ".5rem",
-        }}
-      >
-        <Typography
-          typography="h4"
-          style={{ fontWeight: "bold", color: "#1E3932" }}
-        >
-          Inventário
-        </Typography>
-        <Typography
-          typography="label"
-          style={{
-            padding: "0 0 1rem 0",
-            color: "#1E3932",
-            fontSize: ".875rem",
-          }}
-        >
-          Gerencie todos os itens da empresa
-        </Typography>
-      </Box>
+      <HeaderDashboard
+        subtitle="Gerencie todos os itens da empresa"
+        title="Inventário"
+      />
 
 
       <TableContainer className={styles.plans__table}>

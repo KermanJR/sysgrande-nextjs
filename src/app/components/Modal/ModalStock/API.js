@@ -5,7 +5,7 @@ const URL_LOCAL = 'http://localhost:5000/api/'
 export const fetchedSuppliersByCompany = async (companyName) => {
   try {
     const response = await fetch(
-      `${URL}supplier?company=${companyName}`,
+      `${URL_LOCAL}supplier?company=${companyName}`,
       {
         method: "GET",
         headers: {
@@ -27,7 +27,7 @@ export const fetchedSuppliersByCompany = async (companyName) => {
 export const createEpi = async (epiData) => {
   try {
     const response = await fetch(
-      `${URL}epi`,
+      `${URL_LOCAL}epi`,
       {
         method: "POST",
         headers: {
@@ -52,7 +52,7 @@ export const createEpi = async (epiData) => {
 export const updateEpi = async (epiData, id) => {
   try {
     const response = await fetch(
-      `${URL}epi/${id}`,
+      `${URL_LOCAL}epi/${id}`,
       {
         method: "PATCH",
         body: epiData, // Passando o FormData diretamente como body

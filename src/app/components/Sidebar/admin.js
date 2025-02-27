@@ -26,6 +26,7 @@ import {
   DirectionsCar,
   Inventory,
   Logout,
+  Phone,
 } from "@mui/icons-material";
 import Suppliers from "@/app/content/screens/dashboardAdmin/layouts/suppliers/Suppliers";
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
@@ -124,6 +125,7 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen }) => {
     other: [
       { icon: <ShoppingCart />, label: "Compras" },
       { icon: <LocalShippingIcon />, label: "Fornecedores" },
+      { icon: <Phone />, label: "Coletores" },
       { icon: <DirectionsCar />, label: "Veículos" },
       { icon: <Inventory />, label: "Inventário" },
     ]
@@ -172,8 +174,8 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box
             sx={{
-              width: 200,
-              height: 47,
+              width: 220,
+              height: 55,
               borderRadius: '10px',
               overflow: 'hidden',
               display: 'flex',
@@ -185,8 +187,8 @@ const SidebarAdmin = ({ onMenuClick, isMenuOpen }) => {
             <Image
               src={company?.name === "Sanegrande" ? "/icons/logo-sanegrande-2.png" : "/icons/logo-enterhome-3.png"}
               alt={`Logo - ${company?.name}`}
-              width={160}
-              height={40}
+              width={190}
+              height={60}
               style={{ objectFit: "contain" }}
             />
           </Box>

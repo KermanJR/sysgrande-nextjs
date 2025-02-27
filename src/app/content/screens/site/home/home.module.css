@@ -1,14 +1,14 @@
 
 
 .home__background {
-  background: url('../../../../../../public/siteImages/background_site.png');
+  background: URL_LOCAL('../../../../../../public/siteImages/background_site.png');
   background-size: 100% 100%;
   height: 60vh;
 }
 
 @media screen and (max-width: 768px){
   .home__background {
-    background: url('../../../../../../public/siteImages/background_site.png');
+    background: URL_LOCAL('../../../../../../public/siteImages/background_site.png');
     background-size: 100% 100%;
     height: 30vh;
   }

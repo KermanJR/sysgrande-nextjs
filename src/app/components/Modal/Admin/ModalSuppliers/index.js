@@ -7,9 +7,16 @@ import {
   Button,
   Grid,
   IconButton,
+  Divider,
+  Paper,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import InputMask from 'react-input-mask';
-import { IoMdCloseCircleOutline } from "react-icons/io";
+import CloseIcon from "@mui/icons-material/Close";
+import BusinessIcon from "@mui/icons-material/Business";
+import ContactsIcon from "@mui/icons-material/Contacts";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
 import AuthContext from "@/app/context/AuthContext";
 import { useCompany } from "@/app/context/CompanyContext";
 import NotificationManager from "@/app/components/NotificationManager/NotificationManager";
@@ -18,6 +25,8 @@ import { createSupplier, updateSupplier } from './API';
 const SupplierModal = ({ open, onClose, onSave, item }) => {
   const { user } = useContext(AuthContext);
   const { company } = useCompany();
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
   const [formData, setFormData] = useState({
     name: '',
@@ -37,6 +46,7 @@ const SupplierModal = ({ open, onClose, onSave, item }) => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [activeSection, setActiveSection] = useState('empresa');
 
   useEffect(() => {
     if (item) {
@@ -244,223 +254,471 @@ const SupplierModal = ({ open, onClose, onSave, item }) => {
   };
 
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal 
+      open={open} 
+      onClose={onClose}
+      fullScreen={fullScreen}
+    >
       <Box sx={{
         position: 'absolute',
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: '50%',
+        width: fullScreen ? '100%' : '80%',
+        maxWidth: '900px',
         bgcolor: 'background.paper',
-        borderRadius: '5px',
+        borderRadius: '10px',
         boxShadow: 24,
-        p: 4,
+        overflow: 'hidden',
         maxHeight: '90vh',
-        overflow: 'auto'
       }}>
-        <IconButton
-          onClick={onClose}
-          sx={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-          }}
-        >
-          <IoMdCloseCircleOutline />
-        </IconButton>
+        <Box sx={{ position: 'relative' }}>
+          <Box 
+            sx={{ 
+              backgroundColor: '#5E899D',
+              py: 2, 
+              px: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Typography variant="h6" component="h2" sx={{ color: 'white', fontWeight: 500 }}>
+              {item ? "Editar Fornecedor" : "Novo Fornecedor"}
+            </Typography>
+            <IconButton 
+              onClick={onClose}
+              size="small"
+              sx={{ color: 'white' }}
+              aria-label="fechar"
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
 
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
-          {item ? "Editar Fornecedor" : "Adicionar Novo Fornecedor"}
-        </Typography>
+          <form onSubmit={handleSubmit}>
+            <Box sx={{ px: 3, py: 3, overflow: 'auto', maxHeight: 'calc(90vh - 140px)' }}>
+              <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    display: 'flex',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    border: '1px solid #e0e0e0',
+                  }}
+                >
+                  <Button
+                    onClick={() => setActiveSection('empresa')}
+                    sx={{
+                      px: 3,
+                      py: 1,
+                      borderRadius: 0,
+                      backgroundColor: activeSection === 'empresa' ? '#5E899D' : 'transparent',
+                      color: activeSection === 'empresa' ? 'white' : '#666',
+                      '&:hover': {
+                        backgroundColor: activeSection === 'empresa' ? '#4A7185' : '#f5f5f5',
+                      },
+                    }}
+                    startIcon={<BusinessIcon />}
+                  >
+                    Dados da Empresa
+                  </Button>
+                  <Button
+                    onClick={() => setActiveSection('contato')}
+                    sx={{
+                      px: 3,
+                      py: 1,
+                      borderRadius: 0,
+                      backgroundColor: activeSection === 'contato' ? '#5E899D' : 'transparent',
+                      color: activeSection === 'contato' ? 'white' : '#666',
+                      '&:hover': {
+                        backgroundColor: activeSection === 'contato' ? '#4A7185' : '#f5f5f5',
+                      },
+                    }}
+                    startIcon={<ContactsIcon />}
+                  >
+                    Contato
+                  </Button>
+                  <Button
+                    onClick={() => setActiveSection('endereco')}
+                    sx={{
+                      px: 3,
+                      py: 1,
+                      borderRadius: 0,
+                      backgroundColor: activeSection === 'endereco' ? '#5E899D' : 'transparent',
+                      color: activeSection === 'endereco' ? 'white' : '#666',
+                      '&:hover': {
+                        backgroundColor: activeSection === 'endereco' ? '#4A7185' : '#f5f5f5',
+                      },
+                    }}
+                    startIcon={<LocationOnIcon />}
+                  >
+                    Endereço
+                  </Button>
+                </Paper>
+              </Box>
 
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Nome"
-                 size="small"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </Grid>
+              {activeSection === 'empresa' && (
+                <Box>
+                  <Typography variant="subtitle1" component="h3" sx={{ mb: 2, fontWeight: 500, color: '#424242' }}>
+                    <BusinessIcon fontSize="small" sx={{ mr: 1, verticalAlign: 'text-bottom', color: '#5E899D' }} />
+                    Informações da Empresa
+                  </Typography>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Nome da Empresa"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#5E899D',
+                            },
+                          },
+                          '& .MuiInputLabel-root.Mui-focused': {
+                            color: '#5E899D',
+                          },
+                        }}
+                      />
+                    </Grid>
 
-            <Grid item xs={12} md={6}>
-              <InputMask
-                mask="99.999.999/9999-99"
-                value={formData.cnpj}
-                 size="small"
-                onChange={handleChange}
-              >
-                {(inputProps) => (
-                  <TextField
-                    {...inputProps}
-                    fullWidth
-                    label="CNPJ"
-                    name="cnpj"
-                    
-                  />
-                )}
-              </InputMask>
-            </Grid>
+                    <Grid item xs={12} md={6}>
+                      <InputMask
+                        mask="99.999.999/9999-99"
+                        value={formData.cnpj}
+                        onChange={handleChange}
+                      >
+                        {(inputProps) => (
+                          <TextField
+                            {...inputProps}
+                            fullWidth
+                            label="CNPJ"
+                            name="cnpj"
+                            variant="outlined"
+                            size="small"
+                            required
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                '&.Mui-focused fieldset': {
+                                  borderColor: '#5E899D',
+                                },
+                              },
+                              '& .MuiInputLabel-root.Mui-focused': {
+                                color: '#5E899D',
+                              },
+                            }}
+                          />
+                        )}
+                      </InputMask>
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
 
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Email"
-                 size="small"
-                name="email"
-                type="text"
-                value={formData.email}
-                onChange={handleChange}
-                
-              />
-            </Grid>
+              {activeSection === 'contato' && (
+                <Box>
+                  <Typography variant="subtitle1" component="h3" sx={{ mb: 2, fontWeight: 500, color: '#424242' }}>
+                    <ContactsIcon fontSize="small" sx={{ mr: 1, verticalAlign: 'text-bottom', color: '#5E899D' }} />
+                    Informações de Contato
+                  </Typography>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#5E899D',
+                            },
+                          },
+                          '& .MuiInputLabel-root.Mui-focused': {
+                            color: '#5E899D',
+                          },
+                        }}
+                      />
+                    </Grid>
 
-            <Grid item xs={12} md={6}>
-              <InputMask
-                mask={formData.phone.length > 10 ? "(99) 99999-9999" : "(99) 9999-9999"}
-                value={formData.phone}
-                 size="small"
-                onChange={handleChange}
-              >
-                {(inputProps) => (
-                  <TextField
-                    {...inputProps}
-                    fullWidth
-                    label="Telefone"
-                    name="phone"
-                     size="small"
-                    
-                  />
-                )}
-              </InputMask>
-            </Grid>
+                    <Grid item xs={12} md={6}>
+                      <InputMask
+                        mask={formData.phone.length > 10 ? "(99) 99999-9999" : "(99) 9999-9999"}
+                        value={formData.phone}
+                        onChange={handleChange}
+                      >
+                        {(inputProps) => (
+                          <TextField
+                            {...inputProps}
+                            fullWidth
+                            label="Telefone"
+                            name="phone"
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                '&.Mui-focused fieldset': {
+                                  borderColor: '#5E899D',
+                                },
+                              },
+                              '& .MuiInputLabel-root.Mui-focused': {
+                                color: '#5E899D',
+                              },
+                            }}
+                          />
+                        )}
+                      </InputMask>
+                    </Grid>
 
-            <Grid  item xs={12} md={6}>
-            <TextField
-                fullWidth
-                label="Responsável"
-                name="contact"
-                 size="small"
-                type="text"
-                value={formData.contact}
-                onChange={handleChange}
-                
-              />
-            </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Nome do Responsável"
+                        name="contact"
+                        value={formData.contact}
+                        onChange={handleChange}
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#5E899D',
+                            },
+                          },
+                          '& .MuiInputLabel-root.Mui-focused': {
+                            color: '#5E899D',
+                          },
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
 
-            <Grid item xs={12} md={6}>
-              <InputMask
-                mask="99999-999"
-                 size="small"
-                value={formData.address.cep}
-                onChange={(e) => {
-                  handleChange(e);
-                  if (e.target.value.replace(/[^\d]/g, '').length === 8) {
-                    searchCEP(e.target.value.replace(/[^\d]/g, ''));
+              {activeSection === 'endereco' && (
+                <Box>
+                  <Typography variant="subtitle1" component="h3" sx={{ mb: 2, fontWeight: 500, color: '#424242' }}>
+                    <LocationOnIcon fontSize="small" sx={{ mr: 1, verticalAlign: 'text-bottom', color: '#5E899D' }} />
+                    Endereço
+                  </Typography>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={4}>
+                      <InputMask
+                        mask="99999-999"
+                        value={formData.address.cep}
+                        onChange={(e) => {
+                          handleChange(e);
+                          if (e.target.value.replace(/[^\d]/g, '').length === 8) {
+                            searchCEP(e.target.value.replace(/[^\d]/g, ''));
+                          }
+                        }}
+                      >
+                        {(inputProps) => (
+                          <TextField
+                            {...inputProps}
+                            fullWidth
+                            label="CEP"
+                            name="address.cep"
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                '&.Mui-focused fieldset': {
+                                  borderColor: '#5E899D',
+                                },
+                              },
+                              '& .MuiInputLabel-root.Mui-focused': {
+                                color: '#5E899D',
+                              },
+                            }}
+                          />
+                        )}
+                      </InputMask>
+                    </Grid>
+
+                    <Grid item xs={12} md={8}>
+                      <TextField
+                        fullWidth
+                        label="Rua"
+                        name="address.street"
+                        value={formData.address.street}
+                        onChange={handleChange}
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#5E899D',
+                            },
+                          },
+                          '& .MuiInputLabel-root.Mui-focused': {
+                            color: '#5E899D',
+                          },
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Número"
+                        name="address.number"
+                        value={formData.address.number}
+                        onChange={handleChange}
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#5E899D',
+                            },
+                          },
+                          '& .MuiInputLabel-root.Mui-focused': {
+                            color: '#5E899D',
+                          },
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={8}>
+                      <TextField
+                        fullWidth
+                        label="Complemento"
+                        name="address.complement"
+                        value={formData.address.complement}
+                        onChange={handleChange}
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#5E899D',
+                            },
+                          },
+                          '& .MuiInputLabel-root.Mui-focused': {
+                            color: '#5E899D',
+                          },
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Bairro"
+                        name="address.neighborhood"
+                        value={formData.address.neighborhood}
+                        onChange={handleChange}
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#5E899D',
+                            },
+                          },
+                          '& .MuiInputLabel-root.Mui-focused': {
+                            color: '#5E899D',
+                          },
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Cidade"
+                        name="address.city"
+                        value={formData.address.city}
+                        onChange={handleChange}
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#5E899D',
+                            },
+                          },
+                          '& .MuiInputLabel-root.Mui-focused': {
+                            color: '#5E899D',
+                          },
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="Estado"
+                        name="address.state"
+                        value={formData.address.state}
+                        onChange={handleChange}
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#5E899D',
+                            },
+                          },
+                          '& .MuiInputLabel-root.Mui-focused': {
+                            color: '#5E899D',
+                          },
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
+            </Box>
+
+            <Divider />
+            
+            <Box sx={{ px: 3, py: 2, display: 'flex', justifyContent: 'space-between' }}>
+              <Button 
+                onClick={onClose} 
+                disabled={loading}
+                variant="outlined"
+                color="inherit"
+                sx={{ 
+                  borderColor: '#e0e0e0',
+                  color: '#666',
+                  '&:hover': {
+                    backgroundColor: '#f5f5f5',
+                    borderColor: '#bdbdbd'
                   }
                 }}
               >
-                {(inputProps) => (
-                  <TextField
-                    {...inputProps}
-                    fullWidth
-                     size="small"
-                    label="CEP"
-                    name="address.cep"
-                    
-                  />
-                )}
-              </InputMask>
-
-              
-            </Grid>
-            
-            <Grid item xs={12} md={8}>
-              <TextField
-                fullWidth
-                label="Rua"
-                 size="small"
-                name="address.street"
-                value={formData.address.street}
-                onChange={handleChange}
-                
-              />
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Número"
-                name="address.number"
-                 size="small"
-                value={formData.address.number}
-                onChange={handleChange}
-                required
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Complemento"
-                 size="small"
-                name="address.complement"
-                value={formData.address.complement}
-                onChange={handleChange}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Bairro"
-                 size="small"
-                name="address.neighborhood"
-                value={formData.address.neighborhood}
-                onChange={handleChange}
-                
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                 size="small"
-                label="Cidade"
-                name="address.city"
-                value={formData.address.city}
-                onChange={handleChange}
-                
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                 size="small"
-                label="Estado"
-                name="address.state"
-                value={formData.address.state}
-                onChange={handleChange}
-              />
-            </Grid>
-          </Grid>
-
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              variant="contained"
-              color="primary"
-              type="submit"
-              disabled={loading}
-            >
-              {loading ? 'Carregando...' : (item ? 'Atualizar' : 'Salvar')}
-            </Button>
-          </Box>
-        </form>
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={loading}
+                sx={{ 
+                  backgroundColor: '#5E899D',
+                  '&:hover': {
+                    backgroundColor: '#4A7185',
+                  },
+                  px: 3
+                }}
+              >
+                {loading ? "Salvando..." : item ? "Atualizar" : "Salvar"}
+              </Button>
+            </Box>
+          </form>
+        </Box>
       </Box>
     </Modal>
   );

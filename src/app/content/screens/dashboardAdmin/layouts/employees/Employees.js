@@ -206,7 +206,7 @@ export default function Employees() {
         "Status",
       ],
       ...selectedData.map((emp) => [
-        `${emp.name} ${emp.surname}`,
+        `${emp.name}`,
         emp.codigoEquipe,
         emp.phone,
         emp.codigoRegional?.name,
@@ -406,7 +406,7 @@ export default function Employees() {
                   <TableCell align="center" sx={{ fontWeight: "bold" }}>Regional</TableCell>
                   <TableCell align="center" sx={{ fontWeight: "bold" }}>Município</TableCell>
                   <TableCell align="center" sx={{ fontWeight: "bold" }}>Localidade</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: "bold" }}>Placa Veículo</TableCell>
+                  
                   <TableCell align="center" sx={{ fontWeight: "bold" }}>Departamento</TableCell>
                   <TableCell align="center" sx={{ fontWeight: "bold" }}>Cargo</TableCell>
                   <TableCell align="center" sx={{ fontWeight: "bold" }}>Status</TableCell>
@@ -446,7 +446,7 @@ export default function Employees() {
                         <TableCell align="center">{employee?.codigoRegional?.name}</TableCell>
                         <TableCell align="center">{employee?.codigoMunicipio?.name}</TableCell>
                         <TableCell align="center">{employee?.codigoLocal?.name}</TableCell>
-                        <TableCell align="center">{employee?.placaMoto}</TableCell>
+                      
                         <TableCell align="center">{employee?.department}</TableCell>
                         <TableCell align="center">{employee?.position}</TableCell>
                         <TableCell align="center">

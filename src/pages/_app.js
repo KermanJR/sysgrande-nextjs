@@ -5,10 +5,12 @@ import { CartProvider } from "@/app/context/CartContext";
 import { SnackbarProvider } from "notistack";
 import { CompanyProvider } from "@/app/context/CompanyContext";
 import { Toaster } from 'react-hot-toast';
+import { ChakraProvider } from "@chakra-ui/react"
 
 export default function MyApp({ Component, pageProps }) {
   return (
-    <SnackbarProvider maxSnack={3} >
+
+<SnackbarProvider maxSnack={3} >
       <CompanyProvider>
         <CartProvider>
           <AuthProvider>
@@ -20,5 +22,8 @@ export default function MyApp({ Component, pageProps }) {
         </CartProvider>
       </CompanyProvider>
     </SnackbarProvider>
+
+
+    
   );
 }

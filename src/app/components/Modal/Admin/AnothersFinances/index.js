@@ -65,9 +65,9 @@ const OutrasDespesasModal = ({ open, onClose, onSave, item }) => {
     };
 
     // Função para extrair o nome do arquivo
-    const getFileName = (url) => {
-        if (!url) return "";
-        const parts = url.split("/");
+    const getFileName = (URL_LOCAL) => {
+        if (!URL_LOCAL) return "";
+        const parts = URL_LOCAL.split("/");
         return parts[parts.length - 1];
     };
 

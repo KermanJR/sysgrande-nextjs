@@ -254,7 +254,6 @@ const formatFieldName = (field) => {
   return fieldMap[field] || field;
 };
 
-console.log(history)
 
 
   return (

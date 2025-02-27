@@ -43,7 +43,7 @@
     margin: 0 auto;
     width: 100%;
     height: 400px;
-    background: url('../../../../../public/siteImages/background_site.png') 100%;
+    background: URL_LOCAL('../../../../../public/siteImages/background_site.png') 100%;
 }
 
 .topbar__box1{

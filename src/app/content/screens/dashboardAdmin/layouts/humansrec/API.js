@@ -1,4 +1,4 @@
-const URL = 'https://sysgrande-nodejs.onrender.com/api/'
+const URL_LOCAL = 'https://sysgrande-nodejs.onrender.com/api/'
 
 export const fetchedExpenses = async () => {
   try {

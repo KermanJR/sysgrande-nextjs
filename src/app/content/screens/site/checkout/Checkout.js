@@ -15,7 +15,6 @@ const Checkout = () => {
     phone: '',
   });
 
-  console.log(userData)
 
   useEffect(() => {
     if (user) {

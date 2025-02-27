@@ -551,11 +551,10 @@ const handleExportPdf = () => {
 
   const formatAddress = (address) => {
     if (!address) return "-";
-
-    const { street, number, complement, neighborhood, city, state, cep } =
+    const { street, number, neighborhood, city, state} =
       address;
 
-    return `${street}, ${number} - ${neighborhood}, ${city}/${state} - CEP: ${cep}`;
+    return `${street}, ${number} - ${neighborhood}, ${city}/${state}`;
   };
 
   return (
@@ -635,166 +634,146 @@ const handleExportPdf = () => {
           )}
         </Box>
      
-<TableContainer 
-   component={Paper}
-          sx={{
-            maxHeight: "calc(100vh - 250px)", // Altura máxima considerando o cabeçalho
-            width: "100%",
-            overflow: "auto", // Habilita scroll em ambas direções quando necessário
-            overflowY: 'scroll'
-          }}
+        <TableContainer 
+  component={Paper}
+  sx={{
+    maxHeight: "calc(100vh - 250px)", // Altura máxima considerando o cabeçalho
+    width: "100%",
+    overflow: "auto", // Habilita scroll em ambas direções quando necessário
+    overflowY: 'scroll'
+  }}
 >
-       
-        <Table stickyHeader sx={{ minWidth: 1200 }}>
-          <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox" sx={{  position: 'sticky',}}>
+  <Table stickyHeader sx={{ minWidth: 1200 }}>
+    <TableHead>
+      <TableRow>
+        <TableCell padding="checkbox" sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
+          <Checkbox
+            checked={selectedSuppliers.length === filteredSuppliers.length}
+            indeterminate={
+              selectedSuppliers.length > 0 &&
+              selectedSuppliers.length < filteredSuppliers.length
+            }
+            onChange={(event) => {
+              if (event.target.checked) {
+                setSelectedSuppliers(
+                  filteredSuppliers.map((emp) => emp._id)
+                );
+              } else {
+                setSelectedSuppliers([]);
+              }
+            }}
+          />
+        </TableCell>
+        <TableCell align="left" sx={{ fontWeight: "bold", position: 'sticky', top: 0, zIndex: 2 }}>
+          Fornecedor
+        </TableCell>
+        <TableCell align="left" sx={{ fontWeight: "bold", position: 'sticky', top: 0, zIndex: 2 }}>
+          Responsável
+        </TableCell>
+        <TableCell align="left" sx={{ fontWeight: "bold", position: 'sticky', top: 0, zIndex: 2 }}>
+          E-mail
+        </TableCell>
+        <TableCell align="left" sx={{ fontWeight: "bold", position: 'sticky', top: 0, zIndex: 2 }}>
+          Telefone
+        </TableCell>
+        <TableCell align="left" sx={{ fontWeight: "bold", position: 'sticky', top: 0, zIndex: 2 }}>
+          CNPJ
+        </TableCell>
+        <TableCell align="left" sx={{ fontWeight: "bold", position: 'sticky', top: 0, zIndex: 2 }}>
+          Endereço
+        </TableCell>
+        <TableCell align="left" sx={{ fontWeight: "bold", position: 'sticky', top: 0, zIndex: 2 }}>
+          Ações
+        </TableCell>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {suppliers
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+        .map((supplier, index) => {
+          let statusBgColor = "";
+          if (supplier.status === "Paga") {
+            statusBgColor = "#8BE78B";
+          } else if (supplier.status === "Pendente") {
+            statusBgColor = "#F6F794";
+          } else if (supplier.status === "Atrasada") {
+            statusBgColor = "red";
+          }
+
+          return (
+            <TableRow 
+              key={supplier.id}
+              sx={{ 
+                "&:nth-of-type(odd)": { backgroundColor: "#f5f5f5" },
+                "&:hover": { backgroundColor: "#e0e0e0" }
+              }}
+            >
+              <TableCell padding="checkbox">
                 <Checkbox
-                  checked={
-                    selectedSuppliers.length === filteredSuppliers.length
-                  }
-                  indeterminate={
-                    selectedSuppliers.length > 0 &&
-                    selectedSuppliers.length < filteredSuppliers.length
-                  }
+                  checked={selectedSuppliers.includes(supplier._id)}
                   onChange={(event) => {
+                    event.stopPropagation();
                     if (event.target.checked) {
-                      setSelectedSuppliers(
-                        filteredSuppliers.map((emp) => emp._id)
-                      );
+                      setSelectedSuppliers([
+                        ...selectedSuppliers,
+                        supplier._id,
+                      ]);
                     } else {
-                      setSelectedSuppliers([]);
+                      setSelectedSuppliers(
+                        selectedSuppliers.filter(
+                          (id) => id !== supplier._id
+                        )
+                      );
                     }
                   }}
+                  onClick={(event) => event.stopPropagation()}
                 />
               </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold", position: 'sticky',
-              top: 0,
-              zIndex: 2 }}>
-                Fornecedor
+              <TableCell align="left">{supplier?.name ? supplier?.name : '-'}</TableCell>
+              <TableCell align="left">{supplier?.contact ? supplier?.contact : '-'}</TableCell>
+              <TableCell align="left">{supplier?.email ? supplier?.email : '-'}</TableCell>
+              <TableCell align="left">
+                {supplier?.phone ? formatPhone(supplier?.phone) : '-'}
               </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold",  position: 'sticky',
-              top: 0,
-              zIndex: 2 }}>
-                Responsável
+              <TableCell align="left">
+                {supplier?.cnpj ? formatCNPJ(supplier?.cnpj) : '-'}
               </TableCell>
-
-              <TableCell align="center" sx={{ fontWeight: "bold",  position: 'sticky',
-              top: 0,
-              zIndex: 2 }}>
-                E-mail
+              <TableCell align="left">
+                {supplier?.address?.cep != '' ? formatAddress(supplier?.address) : '-'}
               </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold", position: 'sticky',
-              top: 0,
-              zIndex: 2 }}>
-                Telefone
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold", position: 'sticky',
-              top: 0,
-              zIndex: 2 }}>
-                CNPJ
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold", position: 'sticky',
-              top: 0,
-              zIndex: 2 }}>
-                Endereço
-              </TableCell>
-              <TableCell align="center" sx={{ fontWeight: "bold",  position: 'sticky',
-              top: 0,
-              zIndex: 2 }}>
-                Ações
+              <TableCell align="left">
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "left",
+                    gap: 1,
+                  }}
+                >
+                  <Tooltip title="Editar Compra">
+                    <span>
+                      <FaEdit
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleOpenPurchaseModal(supplier)}
+                      />
+                    </span>
+                  </Tooltip>
+                  <Tooltip title="Excluir">
+                    <span>
+                      <FaTrash
+                        style={{ cursor: "pointer" }}
+                        color="red"
+                        onClick={() => handleDeletePurchase(supplier._id)}
+                      />
+                    </span>
+                  </Tooltip>
+                </Box>
               </TableCell>
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {suppliers
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((supplier) => {
-                let statusBgColor = "";
-                if (supplier.status === "Paga") {
-                  statusBgColor = "#8BE78B";
-                } else if (supplier.status === "Pendente") {
-                  statusBgColor = "#F6F794";
-                } else if (supplier.status === "Atrasada") {
-                  statusBgColor = "red";
-                }
-
-                return (
-                  <TableRow key={supplier.id}>
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={selectedSuppliers.includes(supplier._id)}
-                        onChange={(event) => {
-                          event.stopPropagation();
-                          if (event.target.checked) {
-                            setSelectedSuppliers([
-                              ...selectedSuppliers,
-                              supplier._id,
-                            ]);
-                          } else {
-                            setSelectedSuppliers(
-                              selectedSuppliers.filter(
-                                (id) => id !== supplier._id
-                              )
-                            );
-                          }
-                        }}
-                        onClick={(event) => event.stopPropagation()}
-                      />
-                    </TableCell>
-                    <TableCell align="center">{supplier?.name 
-                ? supplier?.name: '-'}</TableCell>
-                    <TableCell align="center">{supplier?.contact 
-                ? supplier?.contact: '-'}</TableCell>
-
-                    <TableCell align="center">{supplier?.email 
-                ? supplier?.email: '-'}</TableCell>
-                    <TableCell align="center">
-                    {supplier?.phone 
-                ? formatPhone(supplier?.phone): '-'}
-                    </TableCell>
-                    <TableCell align="center">
-                    {supplier?.cnpj 
-                ? formatCNPJ(supplier?.cnpj): '-'}
-                    </TableCell>
-                    <TableCell align="center">
-                    {supplier?.address 
-                ? formatAddress(supplier?.address): '-'}
-                    </TableCell>
-                    <TableCell align="center">
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "center",
-                          gap: 1,
-                        }}
-                      >
-                        <Tooltip title="Editar Compra">
-                          <span>
-                            <FaEdit
-                              style={{ cursor: "pointer" }}
-                              onClick={() => handleOpenPurchaseModal(supplier)}
-                            />
-                          </span>
-                        </Tooltip>
-                        <Tooltip title="Excluir">
-                          <span>
-                            <FaTrash
-                              style={{ cursor: "pointer" }}
-                              color="red"
-                              onClick={() => handleDeletePurchase(supplier._id)}
-                            />
-                          </span>
-                        </Tooltip>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-          </TableBody>
-         
-        </Table>
-      </TableContainer>
+          );
+        })}
+    </TableBody>
+  </Table>
+</TableContainer>
     
 
       <SupplierModal

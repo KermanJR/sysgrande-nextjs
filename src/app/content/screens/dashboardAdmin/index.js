@@ -18,6 +18,7 @@ import Shop from "./layouts/shop/Shop";
 import Suppliers from "./layouts/suppliers/Suppliers";
 import FinancesControll from "./layouts/financesControl/FinancesControll";
 import EpiManagement from "./layouts/Epi/EpiManagement";
+import Coletors from "./layouts/coletors/Coletors";
 
 export default function ScreenDashboardAdmin() {
   const [selectedComponent, setSelectedComponent] = useState("init");
@@ -40,7 +41,8 @@ export default function ScreenDashboardAdmin() {
     Compras: <Shop />,
     Fornecedores: <Suppliers />,
     Controle: <FinancesControll/>,
-    EPI: <EpiManagement/>
+    EPI: <EpiManagement/>,
+    Coletores: <Coletors/>
   };
 
   return (

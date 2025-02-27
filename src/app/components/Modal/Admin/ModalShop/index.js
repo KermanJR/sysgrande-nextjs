@@ -11,347 +11,169 @@ import {
   MenuItem,
   IconButton,
   Grid,
-  Tooltip,
   Paper,
-  TableCell,
-  TableRow,
   Table,
   TableContainer,
+  TableCell,
+  TableRow,
   TableHead,
   TableBody,
+  Divider,
 } from "@mui/material";
-import { IoMdCloseCircleOutline } from "react-icons/io";
-import DownloadIcon from '@mui/icons-material/Download';
-import InfoIcon from "@mui/icons-material/Info";
+import CloseIcon from "@mui/icons-material/Close";
+import DownloadIcon from "@mui/icons-material/Download";
+import { Edit, Delete } from "@mui/icons-material";
 import AuthContext from "@/app/context/AuthContext";
 import { useCompany } from "@/app/context/CompanyContext";
 import NotificationManager from "@/app/components/NotificationManager/NotificationManager";
+import HistorySection from "./HistorySection";
 import {
   createPurchase,
   fetchedSuppliersByCompany,
   updatePurchase,
 } from "./API";
-import { DeleteIcon } from "lucide-react";
-import { Edit } from "@mui/icons-material";
 
-
+// Item form initial state
+const initialItemState = {
+  name: "",
+  type: "",
+  quantity: "",
+  unitPrice: "",
+  totalPrice: "",
+};
 
 const PurchaseModal = ({ open, onClose, onSave, item }) => {
   const { user } = useContext(AuthContext);
   const { company } = useCompany();
-
-  const [materialType, setMaterialType] = useState("");
-  const [buyer, setBuyer] = useState("");
-  const [supplier, setSupplier] = useState("");
-  const [contact, setContact] = useState("");
-  const [suppliers, setSuppliers] = useState([]);
-  const [quantity, setQuantity] = useState("");
-  const [entrancyPaymentDate, setEntrancyPaymentDate] = useState(""); // New state for entrance payment date
-  const [entrancy, setEntrancy] = useState("");
-  const [unitPrice, setUnitPrice] = useState("");
-  const [totalPrice, setTotalPrice] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("");
-  const [installments, setInstallments] = useState("");
-  const [installmentValue, setInstallmentValue] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [purchaseDate, setPurchaseDate] = useState("");
-  const [deliveryDate, setDeliveryDate] = useState("");
-  const [attachment, setAttachment] = useState(null);
-  const [installmentDates, setInstallmentDates] = useState([]);
-
-  const [items, setItems] = useState([]);
-  const [currentItem, setCurrentItem] = useState({
-    name: "",
-    type: "",
-    quantity: "",
-    unitPrice: "",
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    materialType: "",
+    supplier: "",
+    entrancy: "",
+    recurrence: "",
+    entrancyPaymentDate: "",
     totalPrice: "",
+    paymentMethod: "",
+    installments: "",
+    installmentValue: "",
+    dueDate: "",
+    purchaseDate: "",
+    deliveryDate: "",
+    nextPurchaseDate: "",
+    attachment: null,
+    installmentDates: [],
   });
+  
+  // Items state
+  const [items, setItems] = useState([]);
+  const [currentItem, setCurrentItem] = useState(initialItemState);
   const [editingItemId, setEditingItemId] = useState(null);
   const [editingItem, setEditingItem] = useState({});
+  
+  // Suppliers state
+  const [suppliers, setSuppliers] = useState([]);
 
-  const renderItemsSection = () => {
-   
-  
-    const handleEditItem = (item) => {
-      console.log(item)
-      setEditingItemId(item._id);
-      setEditingItem(item);
-    };
-  
-    const handleSaveEditedItem = () => {
-      if (!editingItem.name || !editingItem.quantity || !editingItem.unitPrice) {
-        NotificationManager.error("Por favor, preencha todos os campos do item");
-        return;
-      }
-  
-      const updatedItems = items.map(item => 
-        item._id === editingItemId 
-          ? { 
-              ...editingItem, 
-              totalPrice: (parseFloat(editingItem.quantity) * parseFloat(editingItem.unitPrice)).toFixed(2) 
-            } 
-          : item
-      );
-  
-      setItems(updatedItems);
-      calculateTotalPurchasePrice(updatedItems);
-      setEditingItemId(null);
-      setEditingItem({});
-    };
-  
-    const handleCancelEdit = () => {
-      setEditingItemId(null);
-      setEditingItem({});
-    };
-  
-    const handleEditItemChange = (field, value) => {
-      setEditingItem(prev => ({
-        ...prev, 
-        [field]: value
-      }));
-    };
-    return (
-      <Grid item xs={12}>
-        <Paper elevation={0} sx={{ p: 2, bgcolor: "grey.50", mt: 2 }}>
-          <Typography variant="subtitle1" gutterBottom>
-            Adicionar Item
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={3}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Nome do Item"
-                value={currentItem.name}
-                onChange={(e) => handleItemChange('name', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} md={2}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Tipo"
-                value={currentItem.type}
-                onChange={(e) => handleItemChange('type', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} md={2}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Quantidade"
-                type="number"
-                value={currentItem.quantity}
-                onChange={(e) => handleItemChange('quantity', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} md={2}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Valor Unitário"
-                type="number"
-                value={currentItem.unitPrice}
-                onChange={(e) => handleItemChange('unitPrice', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} md={2}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Valor Total"
-                type="number"
-                value={currentItem.totalPrice}
-                InputProps={{ readOnly: true }}
-              />
-            </Grid>
-            <Grid item xs={12} md={1}>
-              <Button
-               size="small"
-                variant="contained"
-                color="primary"
-                onClick={handleAddItem}
-                sx={{ mt: 0 }}
-              >
-                Adicionar
-              </Button>
-            </Grid>
-          </Grid>
-    
-          {items.length > 0 && (
-            <TableContainer component={Paper} sx={{ mt: 2 }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Nome</TableCell>
-                    <TableCell>Tipo</TableCell>
-                    <TableCell align="right">Quantidade</TableCell>
-                    <TableCell align="right">Valor Unitário</TableCell>
-                    <TableCell align="right">Valor Total</TableCell>
-                    <TableCell align="center">Ações</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id}>
-                      {editingItemId === item._id ? (
-                        <>
-                          <TableCell>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              value={editingItem.name}
-                              onChange={(e) => handleEditItemChange('name', e.target.value)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              value={editingItem.type}
-                              onChange={(e) => handleEditItemChange('type', e.target.value)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              type="number"
-                              value={editingItem.quantity}
-                              onChange={(e) => handleEditItemChange('quantity', e.target.value)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <TextField
-                              fullWidth
-                              size="small"
-                              type="number"
-                              value={editingItem.unitPrice}
-                              onChange={(e) => handleEditItemChange('unitPrice', e.target.value)}
-                            />
-                          </TableCell>
-                          <TableCell align="right">
-                            R$ {(editingItem.quantity * editingItem.unitPrice).toFixed(2)}
-                          </TableCell>
-                          <TableCell align="center">
-                            <Button 
-                              size="small" 
-                              color="primary" 
-                              onClick={handleSaveEditedItem}
-                            >
-                              Salvar
-                            </Button>
-                            <Button 
-                              size="small" 
-                              color="error" 
-                              onClick={handleCancelEdit}
-                            >
-                              Cancelar
-                            </Button>
-                          </TableCell>
-                        </>
-                      ) : (
-                        <>
-                          <TableCell>{item.name}</TableCell>
-                          <TableCell>{item.type}</TableCell>
-                          <TableCell align="right">{item.quantity}</TableCell>
-                          <TableCell align="right">R$ {parseFloat(item.unitPrice).toFixed(2)}</TableCell>
-                          <TableCell align="right">R$ {parseFloat(item.totalPrice).toFixed(2)}</TableCell>
-                          <TableCell align="center">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleEditItem(item)}
-                              color="primary"
-                            >
-                              <Edit />
-                            </IconButton>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleRemoveItem(item._id)}
-                              color="error"
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </TableCell>
-                        </>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </Paper>
-      </Grid>
-    );
+  // Handle form input changes
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
-
+  
+  // Calculate values when dependencies change
+  useEffect(() => {
+    if (formData.totalPrice && formData.installments && formData.installments > 0) {
+      const total = parseFloat(formData.totalPrice);
+      const entrada = parseFloat(formData.entrancy) || 0;
+      const numParcelas = parseFloat(formData.installments);
+      const valorParcela = (total - entrada) / numParcelas;
+      
+      handleChange("installmentValue", valorParcela.toFixed(2));
+    }
+  }, [formData.totalPrice, formData.installments, formData.entrancy]);
+  
+  // Update installment dates when installments change
+  useEffect(() => {
+    if (formData.installments > 0) {
+      const newDates = Array(parseInt(formData.installments))
+        .fill("")
+        .map((_, index) => formData.installmentDates[index] || "");
+      handleChange("installmentDates", newDates);
+    } else {
+      handleChange("installmentDates", []);
+    }
+  }, [formData.installments]);
+  
+  // Load suppliers
+  useEffect(() => {
+    const loadSuppliers = async () => {
+      const suppliersData = await fetchedSuppliersByCompany(company?.name);
+      setSuppliers(suppliersData);
+    };
+    
+    if (company?.name) {
+      loadSuppliers();
+    }
+  }, [company]);
+  
+  // Set form data when item changes
   useEffect(() => {
     if (item) {
-      console.log(item)
-      setMaterialType(item?.materialType || "");
-      setBuyer(item?.buyer || "");
-      setEntrancy(item?.entrancy || "");
-      setSupplier(item?.supplier || "");
-      setQuantity(item?.quantity || "");
-      setUnitPrice(item?.unitPrice || "");
-      setSupplier(item?.supplier?._id || "");
-      setTotalPrice(item?.totalPrice || "");
-      setPaymentMethod(item?.paymentMethod || "");
-      setInstallments(item?.installments || "");
-      setEntrancyPaymentDate(item?.entrancyPaymentDate ? item.entrancyPaymentDate.split("T")[0] : ""); // Initialize entrance payment date
+      setFormData({
+        materialType: item?.materialType || "",
+        supplier: item?.supplier?._id || "",
+        entrancy: item?.entrancy || "",
+        recurrence: item?.recurrence || "",
+        entrancyPaymentDate: item?.entrancyPaymentDate ? item.entrancyPaymentDate.split("T")[0] : "",
+        totalPrice: item?.totalPrice || "",
+        paymentMethod: item?.paymentMethod || "",
+        installments: item?.installments || "",
+        installmentValue: item?.installmentValue || "",
+        dueDate: item?.dueDate ? item.dueDate.split("T")[0] : "",
+        purchaseDate: item?.purchaseDate ? item.purchaseDate.split("T")[0] : "",
+        deliveryDate: item?.deliveryDate ? item.deliveryDate.split("T")[0] : "",
+        nextPurchaseDate: item?.nextPurchaseDate ? item.nextPurchaseDate.split("T")[0] : "",
+        attachment: item?.attachment || null,
+        installmentDates: item?.installmentDates || [],
+      });
       setItems(item?.items || []);
-      setInstallmentValue(item?.installmentValue || "");
-      setDueDate(item?.dueDate ? item.dueDate.split("T")[0] : "");
-      setPurchaseDate(
-        item?.purchaseDate ? item.purchaseDate.split("T")[0] : ""
-      );
-      setDeliveryDate(
-        item?.deliveryDate ? item.deliveryDate.split("T")[0] : ""
-      );
-      setAttachment(item?.attachment || null);
-      setInstallmentDates(item?.installmentDates || []);
     } else {
       resetForm();
     }
   }, [item]);
-
+  
+  // Reset form
   const resetForm = () => {
-    setMaterialType("");
-    setBuyer("");
-    setSupplier("");
-    setQuantity("");
-    setUnitPrice("");
-    setTotalPrice("");
-    setPaymentMethod("");
-    setInstallments("");
-    setInstallmentValue("");
-    setEntrancy("");
-    setDueDate("");
-    setPurchaseDate("");
-    setDeliveryDate("");
-    setEntrancyPaymentDate("");
-    setAttachment(null);
-    setInstallmentDates([]);
-    setItems([]);
-    setCurrentItem({
-      name: "",
-      type: "",
-      quantity: "",
-      unitPrice: "",
+    setFormData({
+      materialType: "",
+      supplier: "",
+      entrancy: "",
+      entrancyPaymentDate: "",
       totalPrice: "",
+      paymentMethod: "",
+      recurrence: "", 
+      installments: "",
+      installmentValue: "",
+      dueDate: "",
+      purchaseDate: "",
+      deliveryDate: "",
+      nextPurchaseDate: "",
+      attachment: null,
+      installmentDates: [],
     });
+    setItems([]);
+    setCurrentItem(initialItemState);
   };
-
+  
+  // Handle item form changes
   const handleItemChange = (field, value) => {
     setCurrentItem(prev => {
       const updated = { ...prev, [field]: value };
       
-      // Automatically calculate total price for the item
-      if (field === 'quantity' || field === 'unitPrice') {
-        const quantity = field === 'quantity' ? value : prev.quantity;
-        const unitPrice = field === 'unitPrice' ? value : prev.unitPrice;
+      // Automatically calculate total price
+      if (field === "quantity" || field === "unitPrice") {
+        const quantity = field === "quantity" ? value : prev.quantity;
+        const unitPrice = field === "unitPrice" ? value : prev.unitPrice;
+        
         if (quantity && unitPrice) {
           updated.totalPrice = (parseFloat(quantity) * parseFloat(unitPrice)).toFixed(2);
         }
@@ -360,182 +182,176 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
       return updated;
     });
   };
-
+  
+  // Add new item
   const handleAddItem = () => {
-    if (!currentItem.name || !currentItem.quantity || !currentItem.unitPrice) {
+   
+      NotificationManager.error("Por favor, preencha todos os campos do item");
+      
+    
+    const newItems = [...items, { ...currentItem, id: Date.now() }];
+    setItems(newItems);
+    setCurrentItem(initialItemState);
+    calculateTotalPrice(newItems);
+  };
+  
+  // Remove item
+  const handleRemoveItem = (itemId) => {
+    const updatedItems = items.filter(item => item._id !== itemId);
+    setItems(updatedItems);
+    calculateTotalPrice(updatedItems);
+  };
+  
+  // Start editing item
+  const handleEditItem = (item) => {
+    setEditingItemId(item._id);
+    setEditingItem(item);
+  };
+  
+  // Save edited item
+  const handleSaveEditedItem = () => {
+    if (!editingItem.name || !editingItem.quantity || !editingItem.unitPrice) {
       NotificationManager.error("Por favor, preencha todos os campos do item");
       return;
     }
-
-    setItems(prev => [...prev, { ...currentItem, id: Date.now() }]);
-    setCurrentItem({
-      name: "",
-      type: "",
-      quantity: "",
-      unitPrice: "",
-      totalPrice: "",
-    });
-
-    // Recalculate total purchase price
-    calculateTotalPurchasePrice([...items, currentItem]);
-  };
-
-  const handleRemoveItem = (itemId) => {
-    // Cria uma nova array excluindo o item com o ID especificado
-    console.log(itemId)
-    const updatedItems = items.filter(item => item._id !== itemId);
+    
+    const updatedItems = items.map(item =>
+      item._id === editingItemId
+        ? {
+            ...editingItem,
+            totalPrice: (parseFloat(editingItem.quantity) * parseFloat(editingItem.unitPrice)).toFixed(2),
+          }
+        : item
+    );
+    
     setItems(updatedItems);
-    // Recalcula o total após a remoção
-    calculateTotalPurchasePrice(updatedItems);
+    calculateTotalPrice(updatedItems);
+    setEditingItemId(null);
+    setEditingItem({});
   };
-  // Function to calculate total purchase price
-  const calculateTotalPurchasePrice = (currentItems) => {
-  const total = currentItems.reduce((sum, item) => 
-    sum + (parseFloat(item.totalPrice) || 0), 0
-  );
-  setTotalPrice(total.toFixed(2));
-};
-
-  useEffect(() => {
-    if (installments > 0) {
-      // Ajusta o array de datas de acordo com o número de parcelas
-      const newDates = Array(parseInt(installments))
-        .fill("")
-        .map((_, index) => installmentDates[index] || "");
-      setInstallmentDates(newDates);
-    } else {
-      setInstallmentDates([]);
-    }
-  }, [installments]);
-
+  
+  // Cancel editing item
+  const handleCancelEdit = () => {
+    setEditingItemId(null);
+    setEditingItem({});
+  };
+  
+  // Handle edited item changes
+  const handleEditItemChange = (field, value) => {
+    setEditingItem(prev => ({ ...prev, [field]: value }));
+  };
+  
+  // Calculate total price
+  const calculateTotalPrice = (currentItems) => {
+    const total = currentItems.reduce(
+      (sum, item) => sum + (parseFloat(item.totalPrice) || 0),
+      0
+    );
+    handleChange("totalPrice", total.toFixed(2));
+  };
+  
+  // Handle installment date change
   const handleInstallmentDateChange = (index, value) => {
-    const newDates = [...installmentDates];
+    const newDates = [...formData.installmentDates];
     newDates[index] = value;
-    setInstallmentDates(newDates);
+    handleChange("installmentDates", newDates);
   };
-
-  const handleFileDownload = (attachment) => {
-    // Se o attachment for uma string (URL/path)
-    if (typeof attachment === 'string') {
-      // Cria um link temporário
-      const link = document.createElement('a');
-      link.href = attachment;
-      // Extrai o nome do arquivo do path
-      link.download = attachment.split('/').pop();
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-    // Se for um File object
-    else if (attachment instanceof File) {
-      const url = URL.createObjectURL(attachment);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = attachment.name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }
-  };
-
+  
+  // Handle file change
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setAttachment(file);
+      handleChange("attachment", file);
     }
   };
-
-  useEffect(() => {
-    if (quantity && unitPrice) {
-      const total = parseFloat(quantity) * parseFloat(unitPrice);
-      setTotalPrice(total.toFixed(2));
-    }
-  }, [quantity, unitPrice]);
-
-  useEffect(() => {
-    if (totalPrice && installments && installments > 0) {
-      // Converte os valores para número e subtrai a entrada do total
-      const total = parseFloat(totalPrice);
-      const entrada = parseFloat(entrancy) || 0; // caso entrada seja undefined/null
-      const numParcelas = parseFloat(installments);
-
-      // Calcula valor das parcelas (total - entrada) / número de parcelas
-      const valorParcela = (total - entrada) / numParcelas;
-
-      setInstallmentValue(valorParcela.toFixed(2));
-    }
-  }, [totalPrice, installments, entrancy]); // Adiciona entrancy como dependência
-
-  useEffect(() => {
-    const loadSuppliers = async () => {
-      const employeesData = await fetchedSuppliersByCompany(company?.name);
-      setSuppliers(employeesData);
-    };
-    loadSuppliers();
-  }, [company]);
-
+  
+  // Save purchase
   const handleSave = async (e) => {
     e.preventDefault();
-
+    
     if (items.length === 0) {
       NotificationManager.error("Adicione pelo menos um item à compra");
       return;
     }
-    const purchaseData = new FormData();
-
-    // Validações básicas
-    if (!materialType || !supplier) {
-      NotificationManager.error(
-        "Por favor, preencha todos os campos obrigatórios"
-      );
+    
+    if (!formData.materialType) {
+      NotificationManager.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
-
-    // Dados básicos da compra
-    purchaseData.append("materialType", materialType);
+    
+    const purchaseData = new FormData();
+    
+    // Basic purchase data
+    purchaseData.append("materialType", formData.materialType);
     purchaseData.append("items", JSON.stringify(items));
     purchaseData.append("buyer", company?.name || "");
-    purchaseData.append("supplier", supplier);
-   
-    purchaseData.append("entrancy", entrancy);
-   
-    purchaseData.append("totalPrice", totalPrice);
-    purchaseData.append("paymentMethod", paymentMethod);
-    purchaseData.append("installments", installments);
-    purchaseData.append("installmentValue", installmentValue);
-    purchaseData.append("entrancyPaymentDate", entrancyPaymentDate ? new Date(entrancyPaymentDate).toISOString() : "");
+    purchaseData.append("supplier", formData.supplier);
+    purchaseData.append("entrancy", formData.entrancy);
+    purchaseData.append("recurrence", formData.recurrence);
+    purchaseData.append("totalPrice", formData.totalPrice);
+    purchaseData.append("paymentMethod", formData.paymentMethod);
+    purchaseData.append("installments", formData.installments);
+    purchaseData.append("installmentValue", formData.installmentValue);
     
-
-    // Datas
-    purchaseData.append(
-      "dueDate",
-      dueDate ? new Date(dueDate).toISOString() : ""
-    );
-    purchaseData.append(
-      "purchaseDate",
-      purchaseDate ? new Date(purchaseDate).toISOString() : ""
-    );
-    purchaseData.append(
-      "deliveryDate",
-      deliveryDate ? new Date(deliveryDate).toISOString() : ""
-    );
-
-    // Informações do usuário e empresa
+    // Dates
+    purchaseData.append("entrancyPaymentDate", formData.entrancyPaymentDate ? new Date(formData.entrancyPaymentDate).toISOString() : "");
+    purchaseData.append("dueDate", formData.dueDate ? new Date(formData.dueDate).toISOString() : "");
+    purchaseData.append("purchaseDate", formData.purchaseDate ? new Date(formData.purchaseDate).toISOString() : "");
+    purchaseData.append("deliveryDate", formData.deliveryDate ? new Date(formData.deliveryDate).toISOString() : "");
+    purchaseData.append("nextPurchaseDate", formData.nextPurchaseDate ? new Date(formData.nextPurchaseDate).toISOString() : "");
+    
+    // User and company info
     purchaseData.append("createdBy", user?.name || "");
-    purchaseData.append("updatedBy", user?.name || ""); // Corrigido de updateBy para updatedBy
+    purchaseData.append("updatedBy", user?.name || "");
     purchaseData.append("company", company?.name || "");
-
-    // Datas das parcelas
-    if (installmentDates && Array.isArray(installmentDates)) {
-      purchaseData.append("installmentDates", JSON.stringify(installmentDates));
+    
+    // Installment dates
+    if (formData.installmentDates && Array.isArray(formData.installmentDates)) {
+      purchaseData.append("installmentDates", JSON.stringify(formData.installmentDates));
     }
-
-    // Anexo
-    if (attachment instanceof File) {
-      purchaseData.append("attachment", attachment);
+    
+    // Track history changes for updates
+    if (item) {
+      const changes = [];
+      if (item.materialType !== formData.materialType) {
+        changes.push({ field: 'materialType', oldValue: item.materialType, newValue: formData.materialType });
+      }
+      if (item.supplier !== formData.supplier) {
+        changes.push({ field: 'supplier', oldValue: item.supplier, newValue: formData.supplier });
+      }
+      
+      if (changes.length > 0) {
+        purchaseData.append("history", JSON.stringify([{
+          action: 'update',
+          user: user?.name || '',
+          changes,
+          timestamp: new Date()
+        }]));
+      }
     }
-
+    
+    // Handle notifications
+    const notifications = [{
+      type: 'recompra',
+      sentAt: new Date(),
+      nextPurchaseDate: formData.nextPurchaseDate || '',
+      status: 'pending',
+      emailTo: user?.email || ''
+    }];
+    
+    notifications.forEach((notification, index) => {
+      purchaseData.append(`notifications[${index}][type]`, notification.type);
+      purchaseData.append(`notifications[${index}][sentAt]`, notification.sentAt.toISOString());
+      purchaseData.append(`notifications[${index}][nextPurchaseDate]`, formData.nextPurchaseDate);
+      purchaseData.append(`notifications[${index}][status]`, notification.status);
+      purchaseData.append(`notifications[${index}][emailTo]`, notification.emailTo);
+    });
+    
+    // Attachment
+    if (formData.attachment instanceof File) {
+      purchaseData.append("attachment", formData.attachment);
+    }
+    
     try {
       let response;
       if (item) {
@@ -543,25 +359,210 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
       } else {
         response = await createPurchase(purchaseData);
       }
-
+      
       if (response?.data || response) {
-        // Verifica se há dados na resposta
         onSave(response.data || response);
-        NotificationManager.success(
-          `Compra ${item ? "atualizada" : "criada"} com sucesso`
-        );
+        NotificationManager.success(`Compra ${item ? "atualizada" : "criada"} com sucesso`);
         onClose();
       } else {
         throw new Error("Resposta inválida do servidor");
       }
     } catch (error) {
       console.error("Erro na operação:", error);
-      NotificationManager.error(
-        `Erro ao ${item ? "atualizar" : "criar"} a compra: ${
-          error.message || "Erro desconhecido"
-        }`
-      );
+      NotificationManager.error(`Erro ao ${item ? "atualizar" : "criar"} a compra: ${error.message || "Erro desconhecido"}`);
     }
+  };
+  
+  // Render items section
+  const renderItemsSection = () => (
+    <Box sx={{ mt: 3, mb: 3 }}>
+      <Typography variant="subtitle1" fontWeight="500" gutterBottom>
+        Itens
+      </Typography>
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} md={3}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Nome do Item"
+              value={currentItem.name}
+              onChange={(e) => handleItemChange("name", e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Tipo"
+              value={currentItem.type}
+              onChange={(e) => handleItemChange("type", e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Quantidade"
+              type="number"
+              value={currentItem.quantity}
+              onChange={(e) => handleItemChange("quantity", e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Valor Unitário"
+              type="number"
+              value={currentItem.unitPrice}
+              onChange={(e) => handleItemChange("unitPrice", e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Total"
+              type="number"
+              value={currentItem.totalPrice}
+              InputProps={{ readOnly: true }}
+            />
+          </Grid>
+          <Grid item xs={12} md={1}>
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              onClick={handleAddItem}
+              size="small"
+            >
+              Adicionar
+            </Button>
+          </Grid>
+        </Grid>
+
+        {items.length > 0 && (
+          <TableContainer sx={{ mt: 2 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Nome</TableCell>
+                  <TableCell>Tipo</TableCell>
+                  <TableCell align="right">Quantidade</TableCell>
+                  <TableCell align="right">Valor Unit.</TableCell>
+                  <TableCell align="right">Total</TableCell>
+                  <TableCell align="center">Ações</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {items.map((item) => (
+                  <TableRow key={item.id || item._id}>
+                    {editingItemId === item._id ? (
+                      // Editing row
+                      <>
+                        <TableCell>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            value={editingItem.name}
+                            onChange={(e) => handleEditItemChange("name", e.target.value)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            value={editingItem.type}
+                            onChange={(e) => handleEditItemChange("type", e.target.value)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            type="number"
+                            value={editingItem.quantity}
+                            onChange={(e) => handleEditItemChange("quantity", e.target.value)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            type="number"
+                            value={editingItem.unitPrice}
+                            onChange={(e) => handleEditItemChange("unitPrice", e.target.value)}
+                          />
+                        </TableCell>
+                        <TableCell align="right">
+                          R$ {(editingItem.quantity * editingItem.unitPrice).toFixed(2)}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Button size="small" color="primary" onClick={handleSaveEditedItem}>
+                            Salvar
+                          </Button>
+                          <Button size="small" color="error" onClick={handleCancelEdit}>
+                            Cancelar
+                          </Button>
+                        </TableCell>
+                      </>
+                    ) : (
+                      // Display row
+                      <>
+                        <TableCell>{item.name}</TableCell>
+                        <TableCell>{item.type}</TableCell>
+                        <TableCell align="right">{item.quantity}</TableCell>
+                        <TableCell align="right">R$ {parseFloat(item.unitPrice).toFixed(2)}</TableCell>
+                        <TableCell align="right">R$ {parseFloat(item.totalPrice).toFixed(2)}</TableCell>
+                        <TableCell align="center">
+                          <IconButton size="small" onClick={() => handleEditItem(item)} color="primary">
+                            <Edit fontSize="small" />
+                          </IconButton>
+                          <IconButton size="small" onClick={() => handleRemoveItem(item._id)} color="error">
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </TableCell>
+                      </>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Paper>
+    </Box>
+  );
+  
+  // Render installment dates section
+  const renderInstallmentDates = () => {
+    if (!formData.installments || formData.installments <= 0) return null;
+    
+    return (
+      <Box sx={{ mt: 3 }}>
+        <Typography variant="subtitle1" fontWeight="500" gutterBottom>
+          Datas das Parcelas
+        </Typography>
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <Grid container spacing={2}>
+            {formData.installmentDates.map((date, index) => (
+              <Grid item xs={12} md={4} key={index}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label={`${index + 1}ª Parcela`}
+                  type="date"
+                  value={date ? new Date(date).toISOString().split("T")[0] : ""}
+                  onChange={(e) => handleInstallmentDateChange(index, e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Paper>
+      </Box>
+    );
   };
 
   return (
@@ -572,38 +573,38 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: "50%",
+          width: { xs: "90%", md: "70%", lg: "60%" },
+          maxWidth: "900px",
           bgcolor: "background.paper",
-          borderRadius: "5px",
+          borderRadius: 1,
           boxShadow: 24,
-          p: 4,
-          maxHeight: "80vh",
+          p: 3,
+          maxHeight: "90vh",
           overflow: "auto",
         }}
       >
-        <IconButton
-          onClick={onClose}
-          sx={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-          }}
-        >
-          <IoMdCloseCircleOutline />
-        </IconButton>
-
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
-          {item ? "Editar Compra" : "Adicionar Nova Compra"}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+          <Typography variant="h6" fontWeight="600">
+            {item ? "Editar Compra" : "Nova Compra"}
+          </Typography>
+          <IconButton onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        
+        <Divider sx={{ mb: 3 }} />
+        
+        {/* Basic Info */}
+        <Typography variant="subtitle1" fontWeight="500" gutterBottom>
+          Informações Básicas
         </Typography>
-
-        <Grid container spacing={1}>
+        <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
               label="Tipo de Material"
-              value={materialType}
-              onChange={(e) => setMaterialType(e.target.value)}
-              margin="normal"
+              value={formData.materialType}
+              onChange={(e) => handleChange("materialType", e.target.value)}
               size="small"
             />
           </Grid>
@@ -611,29 +612,18 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
             <TextField
               fullWidth
               label="Comprador"
-              value={company.name}
-              margin="normal"
-              disabled
+              value={company?.name || ""}
               size="small"
+              disabled
             />
           </Grid>
           <Grid item xs={12} md={6}>
-            <FormControl fullWidth margin="normal">
+            <FormControl fullWidth size="small">
               <InputLabel>Fornecedor</InputLabel>
               <Select
-                value={supplier}
-                onChange={(e) => {
-                  const selectedId = e.target.value;
-                  setSupplier(selectedId);
-                  const selectedSupplier = suppliers.find(
-                    (s) => s._id === selectedId
-                  );
-                  if (selectedSupplier?.contact) {
-                    setContact(selectedSupplier.contact);
-                  }
-                }}
+                value={formData.supplier}
+                onChange={(e) => handleChange("supplier", e.target.value)}
                 label="Fornecedor"
-                 size="small"
               >
                 {suppliers.map((sup) => (
                   <MenuItem key={sup._id} value={sup._id}>
@@ -643,41 +633,41 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
               </Select>
             </FormControl>
           </Grid>
-
-          {renderItemsSection()}
-
-         
+        </Grid>
+        
+        {/* Items Section */}
+        {renderItemsSection()}
+        
+        {/* Payment Info */}
+        <Typography variant="subtitle1" fontWeight="500" gutterBottom>
+          Informações de Pagamento
+        </Typography>
+        <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Valor Total"
               type="number"
-              value={totalPrice}
+              value={formData.totalPrice}
               InputProps={{ readOnly: true }}
-              margin="normal"
-               size="small"
+              size="small"
             />
           </Grid>
           <Grid item xs={12} md={4}>
-            <FormControl fullWidth margin="normal">
+            <FormControl fullWidth size="small">
               <InputLabel>Forma de Pagamento</InputLabel>
               <Select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
+                value={formData.paymentMethod}
+                onChange={(e) => handleChange("paymentMethod", e.target.value)}
                 label="Forma de Pagamento"
-                 size="small"
               >
                 <MenuItem value="Dinheiro">Dinheiro</MenuItem>
                 <MenuItem value="Cartão de Crédito">Cartão de Crédito</MenuItem>
                 <MenuItem value="Cartão de Débito">Cartão de Débito</MenuItem>
                 <MenuItem value="Boleto">Boleto</MenuItem>
                 <MenuItem value="PIX">PIX</MenuItem>
-                <MenuItem value="Entrada + Pix Parcelas">
-                  Entrada + Pix Parcelas
-                </MenuItem>
-                <MenuItem value="Entrada + Boleto Parcelas">
-                  Entrada + Boleto Parcelas
-                </MenuItem>
+                <MenuItem value="Entrada + Pix Parcelas">Entrada + Pix Parcelas</MenuItem>
+                <MenuItem value="Entrada + Boleto Parcelas">Entrada + Boleto Parcelas</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -686,121 +676,154 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
               fullWidth
               label="Entrada"
               type="number"
-               size="small"
-              value={entrancy}
-              onChange={(e) => setEntrancy(e.target.value)}
-              margin="normal"
+              size="small"
+              value={formData.entrancy}
+              onChange={(e) => handleChange("entrancy", e.target.value)}
             />
           </Grid>
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
-              label="Data do Pagamento da Entrada"
+              label="Data Pagamento Entrada"
               type="date"
               size="small"
-              value={entrancyPaymentDate}
-              onChange={(e) => setEntrancyPaymentDate(e.target.value)}
-              margin="normal"
+              value={formData.entrancyPaymentDate}
+              onChange={(e) => handleChange("entrancyPaymentDate", e.target.value)}
               InputLabelProps={{ shrink: true }}
             />
           </Grid>
-
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
-              label="Quantidade de Parcelas"
+              label="Qtd. Parcelas"
               type="number"
-              value={installments}
-               size="small"
-              onChange={(e) => setInstallments(e.target.value)}
-              margin="normal"
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Valor da Parcela"
-              type="number"
-               size="small"
-              value={installmentValue}
-              onChange={(e) => setInstallmentValue(e.target.value)}
-              margin="normal"
-            />
-          </Grid>
-
-          {installments > 0 && (
-  <Grid item xs={12}>
-    <Paper elevation={0} sx={{ p: 2, bgcolor: "grey.50" }}>
-      <Typography variant="subtitle1" gutterBottom>
-        Datas das Parcelas
-      </Typography>
-      <Grid container spacing={2}>
-        {installmentDates.map((date, index) => (
-          <Grid item xs={12} md={4} key={index}>
-            <TextField
-              fullWidth
+              value={formData.installments}
               size="small"
-              label={`${index + 1}ª Parcela`}
-              type="date"
-              value={date ? new Date(date).toISOString().split('T')[0] : ''}
-              onChange={(e) => handleInstallmentDateChange(index, e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
-        ))}
-      </Grid>
-    </Paper>
-  </Grid>
-)}
-
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-               size="small"
-              label="Data da Compra"
-              type="date"
-              value={purchaseDate}
-              onChange={(e) => setPurchaseDate(e.target.value)}
-              margin="normal"
-              InputLabelProps={{ shrink: true }}
+              onChange={(e) => handleChange("installments", e.target.value)}
             />
           </Grid>
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
-               size="small"
-              label="Data de Entrega"
-              type="date"
-              value={deliveryDate}
-              onChange={(e) => setDeliveryDate(e.target.value)}
-              margin="normal"
-              InputLabelProps={{ shrink: true }}
+              label="Valor Parcela"
+              type="number"
+              size="small"
+              value={formData.installmentValue}
+              onChange={(e) => handleChange("installmentValue", e.target.value)}
+              InputProps={{ readOnly: true }}
             />
           </Grid>
         </Grid>
-
-        {attachment && (
-        <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="body2">
-            Arquivo: {attachment?.name ? attachment.name : attachment.split("/").pop()}
+        
+        {/* Installment Dates */}
+        {renderInstallmentDates()}
+        
+        {/* Dates */}
+        <Typography variant="subtitle1" fontWeight="500" gutterBottom sx={{ mt: 3 }}>
+          Datas
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Data da Compra"
+              type="date"
+              value={formData.purchaseDate}
+              onChange={(e) => handleChange("purchaseDate", e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Data de Entrega"
+              type="date"
+              value={formData.deliveryDate}
+              onChange={(e) => handleChange("deliveryDate", e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Data da Próxima Compra"
+              type="date"
+              value={formData.nextPurchaseDate}
+              onChange={(e) => handleChange("nextPurchaseDate", e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Recorrência</InputLabel>
+              <Select
+                value={formData.recurrence}
+                onChange={(e) => handleChange("recurrence", e.target.value)}
+                label="Recorrência"
+              >
+                <MenuItem value="Semanal">Semanal</MenuItem>
+                <MenuItem value="Quinzenal">Quinzenal</MenuItem>
+                <MenuItem value="Mensal">Mensal</MenuItem>
+                <MenuItem value="2 Meses">2 Meses</MenuItem>
+                <MenuItem value="3 Meses">3 Meses</MenuItem>
+                <MenuItem value="Mediante Necessidade">Mediante Necessidade</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+        
+        {/* Attachment */}
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="subtitle1" fontWeight="500" gutterBottom>
+            Anexo
           </Typography>
-          <IconButton
-            onClick={() => window.open(attachment, '_blank')}
+          {formData.attachment && (
+            <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+              <Typography variant="body2" sx={{ mr: 1 }}>
+                Arquivo: {formData.attachment?.name ? formData.attachment.name : formData.attachment.split("/").pop()}
+              </Typography>
+              <IconButton
+                onClick={() => window.open(formData.attachment, "_blank")}
+                size="small"
+                color="primary"
+              >
+                <DownloadIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          )}
+          <Button
+            variant="outlined"
+            component="label"
             size="small"
-            color="primary"
+            startIcon={<DownloadIcon />}
           >
-            <DownloadIcon />
-          </IconButton>
+            {formData.attachment ? "Substituir Arquivo" : "Anexar Nota Fiscal"}
+            <input type="file" hidden onChange={handleFileChange} />
+          </Button>
         </Box>
-      )}
-        <Button variant="contained" component="label" sx={{ mt: 2 }}>
-          {attachment ? "Substituir Arquivo" : "Adicionar Arquivo"}
-          <input type="file" hidden onChange={handleFileChange} />
-        </Button>
-
-        <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
+        
+        {/* History Section */}
+        {item?.history && (
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="subtitle1" fontWeight="500" gutterBottom>
+              Histórico
+            </Typography>
+            <HistorySection history={item.history} />
+          </Box>
+        )}
+        
+        <Divider sx={{ my: 3 }} />
+        
+        {/* Actions */}
+        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+          <Button variant="outlined" onClick={onClose}>
+            Cancelar
+          </Button>
           <Button variant="contained" color="primary" onClick={handleSave}>
-            Salvar
+            {item ? "Atualizar" : "Criar"} Compra
           </Button>
         </Box>
       </Box>
