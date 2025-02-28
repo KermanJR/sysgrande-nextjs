@@ -76,10 +76,13 @@ export const fetchedEmployeesByCompany = async (companyName) => {
 export const updateCollector = async (collectorData, id) => {
   try {
     const response = await fetch(
-      `${URL_LOCAL}collector/${id}`,
+      `${URL_LOCAL}collectors/${id}`,
       {
-        method: "PATCH",
-        body: collectorData, 
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json", // Certifique-se que o backend aceita JSON
+        },
+        body: JSON.stringify(collectorData), // Converta o objeto em JSON
       }
     );
 

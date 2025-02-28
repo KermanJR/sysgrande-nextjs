@@ -123,8 +123,8 @@ export default function Coletors() {
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(7);
-  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
-  const [currentCollector, setCurrentCollector] = useState(null);
+  const [isCollectorModalOpen, setIsCollectorModalOpen] = useState(false);
+  const [currentCollector, setCurrentCollector] = useState([]);
   const [collectors, setCollectors] = useState([]);
   const [filteredCollectors, setFilteredCollectors] = useState([]);
   const [dateFilteredPurchases, setDateFilteredPurchases] =
@@ -991,31 +991,34 @@ export default function Coletors() {
     setPage(0);
   };
 
-  const handleOpenPurchaseModal = (purchase = null) => {
+  const [coletorAtual, setColetorAtual] = useState([])
 
-    setCurrentCollector(purchase);
-    setIsPurchaseModalOpen(true);
+  const handleOpenCollectorModal = (coletor) => {
+    console.log(coletor)
+    setColetorAtual(coletor);
+    console.log(coletor)
+    setIsCollectorModalOpen(true);
   };
 
-  const handleClosePurchaseModal = () => {
-    setIsPurchaseModalOpen(false);
+  const handleCloseCollectorModal = () => {
+    setIsCollectorModalOpen(false);
     setCurrentCollector(null);
   };
 
-  const handleSavePurchase = (updatedPurchase) => {
+  const handleSaveCollector = (updatedCollector) => {
     if (currentCollector) {
-      setPurchases((prevPurchases) =>
-        prevPurchases.map((purchase) =>
-          purchase.id === updatedPurchase.id ? updatedPurchase : purchase
+      setPurchases((prevCollectors) =>
+        prevCollectors.map((collector) =>
+          collector.id === updatedCollector.id ? updatedCollector : collector
         )
       );
     } else {
-      setCollectors((prevPurchases) => [...prevPurchases, updatedPurchase]);
+      setCollectors((prevCollectors) => [...prevCollectors, updatedCollector]);
       loadCollectors();
     }
   };
 
-  const handleDeletePurchase = async (id) => {
+  const handleDeleteCollector = async (id) => {
     const deleted = await deleteCollectorById(id);
     if (deleted) {
       setCollectors((prevItem) => prevItem.filter((item) => item.id !== id));
@@ -1046,7 +1049,7 @@ export default function Coletors() {
       return matchesDate && matchesMaterial && matchesSupplier;
     });
     
-    setFilteredPurchases(filtered);
+    setFilteredCollectors(filtered);
   };
   
   const buttonStyles = {
@@ -1142,7 +1145,7 @@ export default function Coletors() {
         <Button
           variant="contained"
           sx={buttonStyles}
-          onClick={() => handleOpenPurchaseModal()}
+          onClick={() => handleOpenCollectorModal()}
           startIcon={<AddIcon />}
         >
           Novo Coletor
@@ -1183,8 +1186,6 @@ export default function Coletors() {
 
 
       </Box>
-
-      
 
       <TableContainer
         component={Paper}
@@ -1336,11 +1337,14 @@ export default function Coletors() {
                     <Box
                       sx={{ display: "flex", justifyContent: "center", gap: 1 }}
                     >
-                      <Tooltip title="Editar Compra">
+                      <Tooltip title="Editar Coletor">
                         <span>
                           <FaEdit
                             style={{ cursor: "pointer" }}
-                            onClick={() => handleOpenPurchaseModal(collector)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenCollectorModal(collector);
+                            }}
                           />
                         </span>
                       </Tooltip>
@@ -1349,7 +1353,7 @@ export default function Coletors() {
                           <FaTrash
                             style={{ cursor: "pointer" }}
                             color="red"
-                            onClick={() => handleDeletePurchase(collector._id)}
+                            onClick={() => handleDeleteCollector(collector._id)}
                           />
                         </span>
                       </Tooltip>
@@ -1363,10 +1367,10 @@ export default function Coletors() {
       
 
       <CollectorModal
-        open={isPurchaseModalOpen}
-        onClose={handleClosePurchaseModal}
-        onSave={handleSavePurchase}
-        item={currentCollector}
+        open={isCollectorModalOpen}
+        onClose={handleCloseCollectorModal}
+        onSave={handleSaveCollector}
+        collector={coletorAtual}
       />
     </Box>
   );

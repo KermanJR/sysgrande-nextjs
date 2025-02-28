@@ -114,7 +114,7 @@ function TablePaginationActions(props) {
 export default function Suppliers() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
-  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+  const [isCollectorModalOpen, setIsCollectorModalOpen] = useState(false);
   const [currentCollector, setCurrentCollector] = useState(null);
   const [suppliers, setSuppliers] = useState([]);
   const [filteredSuppliers, setFilteredSuppliers] = useState([]);
@@ -171,15 +171,15 @@ export default function Suppliers() {
 
   const handleOpenPurchaseModal = (supplier = null) => {
     setCurrentCollector(supplier); // Renomeie para currentSupplier se preferir
-    setIsPurchaseModalOpen(true);
+    setIsCollectorModalOpen(true);
   };
 
   const handleClosePurchaseModal = () => {
-    setIsPurchaseModalOpen(false);
+    setIsCollectorModalOpen(false);
     setCurrentCollector(null);
   };
 
-  const handleSavePurchase = (updatedSupplier) => {
+  const handleSaveCollector = (updatedSupplier) => {
     if (currentCollector) {
       setSuppliers((prevSuppliers) =>
         prevSuppliers.map((supplier) =>
@@ -192,7 +192,7 @@ export default function Suppliers() {
     setFilteredSuppliers(suppliers); // Atualiza a lista filtrada também
   };
 
-  const handleDeletePurchase = async (id) => {
+  const handleDeleteCollector = async (id) => {
     const deleted = await deleteSupplierById(id);
     if (deleted) {
       setSuppliers((prevItem) => prevItem.filter((item) => item.id !== id));
@@ -762,7 +762,7 @@ const handleExportPdf = () => {
                       <FaTrash
                         style={{ cursor: "pointer" }}
                         color="red"
-                        onClick={() => handleDeletePurchase(supplier._id)}
+                        onClick={() => handleDeleteCollector(supplier._id)}
                       />
                     </span>
                   </Tooltip>
@@ -777,9 +777,9 @@ const handleExportPdf = () => {
     
 
       <SupplierModal
-        open={isPurchaseModalOpen}
+        open={isCollectorModalOpen}
         onClose={handleClosePurchaseModal}
-        onSave={handleSavePurchase}
+        onSave={handleSaveCollector}
         item={currentCollector}
       />
     </Box>

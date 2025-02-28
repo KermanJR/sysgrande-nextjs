@@ -121,7 +121,7 @@ function TablePaginationActions(props) {
 export default function Shop() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(7);
-  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+  const [isCollectorModalOpen, setIsCollectorModalOpen] = useState(false);
   const [currentCollector, setCurrentCollector] = useState(null);
   const [purchases, setPurchases] = useState([]);
   const [filteredPurchases, setFilteredPurchases] = useState([]);
@@ -1204,15 +1204,15 @@ export default function Shop() {
     //Para carregar novamente os dados após atualizar uma compra
     loadPurchases();
     setCurrentCollector(purchase);
-    setIsPurchaseModalOpen(true);
+    setIsCollectorModalOpen(true);
   };
 
   const handleClosePurchaseModal = () => {
-    setIsPurchaseModalOpen(false);
+    setIsCollectorModalOpen(false);
     setCurrentCollector(null);
   };
 
-  const handleSavePurchase = (updatedPurchase) => {
+  const handleSaveCollector = (updatedPurchase) => {
     if (currentCollector) {
       setPurchases((prevPurchases) =>
         prevPurchases.map((purchase) =>
@@ -1225,7 +1225,7 @@ export default function Shop() {
     loadPurchases()
   };
 
-  const handleDeletePurchase = async (id) => {
+  const handleDeleteCollector = async (id) => {
     const deleted = await deletePurchaseById(id);
     if (deleted) {
       setPurchases((prevItem) => prevItem.filter((item) => item.id !== id));
@@ -1595,7 +1595,7 @@ export default function Shop() {
                     <FaTrash
                       style={{ cursor: "pointer" }}
                       color="red"
-                      onClick={() => handleDeletePurchase(purchase._id)}
+                      onClick={() => handleDeleteCollector(purchase._id)}
                     />
                   </span>
                 </Tooltip>
@@ -1609,9 +1609,9 @@ export default function Shop() {
       
 
       <PurchaseModal
-        open={isPurchaseModalOpen}
+        open={isCollectorModalOpen}
         onClose={handleClosePurchaseModal}
-        onSave={handleSavePurchase}
+        onSave={handleSaveCollector}
         item={currentCollector}
       />
     </Box>

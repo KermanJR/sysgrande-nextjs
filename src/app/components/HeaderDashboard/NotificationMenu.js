@@ -82,7 +82,9 @@ import {
                           Próxima Compra: {format(new Date(notification.nextPurchaseDate), "dd 'de' MMMM ", { locale: ptBR })}
                         </Typography>
                         <Box>
-                       
+                        <Typography variant="caption" color="text.secondary">
+                          {format(new Date(notification.sentAt), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                        </Typography>
                         </Box>
                        
                       </>

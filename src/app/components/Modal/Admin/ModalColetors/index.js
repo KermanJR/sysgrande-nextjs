@@ -23,6 +23,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import PhoneAndroidIcon from "@mui/icons-material/PhoneAndroid";
 import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
 import BuildIcon from "@mui/icons-material/Build";
+import HistoryIcon from "@mui/icons-material/History";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import ptBR from "date-fns/locale/pt-BR";
@@ -44,6 +45,7 @@ const initialFormState = {
   employee: "",
   company: "",
   lastMaintenance: null,
+  maintenanceHistory: []
 };
 
 export default function CollectorModal({ open, onClose, onSave, collector }) {
@@ -57,6 +59,7 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
+    console.log(collector)
     if (collector) {
       setFormData({
         ...initialFormState,
@@ -88,31 +91,46 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+  
     // Validação básica
     const newErrors = {};
     if (!formData.mei) newErrors.mei = "IMEI é obrigatório";
     if (!formData.registration) newErrors.registration = "Matrícula é obrigatória";
     if (!formData.condition) newErrors.condition = "Condição é obrigatória";
-
+  
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setIsSubmitting(false);
       return;
     }
-
+  
     try {
+      // Criar o payload com os dados do formulário
       const payload = {
         ...formData,
         lastMaintenance: formData.lastMaintenance?.toISOString(), // Converter data para ISO
       };
-
+  
+      // Se houver uma data de manutenção, adicionar ao histórico
+      if (formData.lastMaintenance) {
+        const newMaintenanceEntry = {
+          date: formData.lastMaintenance.toISOString(), // Data da manutenção
+          description: formData.description || "Manutenção realizada", // Descrição da manutenção
+          cost: 0, // Custo da manutenção (pode ser ajustado conforme necessário)
+        };
+  
+        // Adicionar a nova entrada ao histórico de manutenção
+        payload.maintenanceHistory = [...(collector?.maintenanceHistory || []), newMaintenanceEntry];
+      }
+  
+      // Enviar os dados para a API
       if (collector?._id) {
         await updateCollector(payload, collector._id);
       } else {
         await createCollector(payload);
       }
-
+  
+      // Fechar o modal e exibir mensagem de sucesso
       onSave();
       onClose();
       toast.success(
@@ -125,8 +143,6 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
       setIsSubmitting(false);
     }
   };
-
-
 
   return (
     <Dialog 
@@ -227,6 +243,22 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
                 >
                   Status
                 </Button>
+                <Button
+                  onClick={() => setActiveSection('historico')}
+                  sx={{
+                    px: 3,
+                    py: 1,
+                    borderRadius: 0,
+                    backgroundColor: activeSection === 'historico' ? '#79A6D3' : 'transparent',
+                    color: activeSection === 'historico' ? 'white' : '#666',
+                    '&:hover': {
+                      backgroundColor: activeSection === 'historico' ? '#4A7185' : '#f5f5f5',
+                    },
+                  }}
+                  startIcon={<HistoryIcon />}
+                >
+                  Histórico
+                </Button>
               </Paper>
             </Box>
 
@@ -241,7 +273,7 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
                     <FormControl fullWidth margin="dense" error={!!errors.employee} variant="outlined">
                       <InputLabel>Funcionário</InputLabel>
                       <Select
-                        value={formData.employee}
+                        value={formData?.employee?.name}
                         onChange={(e) =>
                           setFormData({ ...formData, employee: e.target.value })
                         }
@@ -249,8 +281,8 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
                         label="Funcionário"
                       >
                         {employees.map((employee) => (
-                          <MenuItem key={employee._id} value={employee._id}>
-                            {employee.name}
+                          <MenuItem key={employee._id} value={employee?.name}>
+                            {employee?.name}
                           </MenuItem>
                         ))}
                       </Select>
@@ -385,6 +417,27 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
                     />
                   </Grid>
                 </Grid>
+              </Box>
+            )}
+
+            {activeSection === 'historico' && (
+              <Box>
+                <Typography variant="subtitle1" component="h3" sx={{ mb: 2, fontWeight: 500, color: '#424242' }}>
+                  <HistoryIcon fontSize="small" sx={{ mr: 1, verticalAlign: 'text-bottom', color: '#5E899D' }} />
+                  Histórico de Alterações
+                </Typography>
+                <Box sx={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  {collector?.history?.map((entry, index) => (
+                    <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {entry.date} - {entry.user}
+                      </Typography>
+                      <Typography variant="body2">
+                        {entry.description}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
               </Box>
             )}
           </DialogContent>
