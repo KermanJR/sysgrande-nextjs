@@ -300,17 +300,17 @@ const PurchaseModal = ({ open, onClose, onSave, item }) => {
     purchaseData.append("deliveryDate", formData.deliveryDate ? new Date(formData.deliveryDate).toISOString() : "");
     purchaseData.append("nextPurchaseDate", formData.nextPurchaseDate ? new Date(formData.nextPurchaseDate).toISOString() : "");
     
-    // User and company info
+
     purchaseData.append("createdBy", user?.name || "");
     purchaseData.append("updatedBy", user?.name || "");
     purchaseData.append("company", company?.name || "");
     
-    // Installment dates
+    
     if (formData.installmentDates && Array.isArray(formData.installmentDates)) {
       purchaseData.append("installmentDates", JSON.stringify(formData.installmentDates));
     }
     
-    // Track history changes for updates
+   
     if (item) {
       const changes = [];
       if (item.materialType !== formData.materialType) {

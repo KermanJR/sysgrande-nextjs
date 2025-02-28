@@ -328,15 +328,11 @@ const EmployeeModal = ({ open, onClose, onSave, employee }) => {
   };
 
   const handleSave = async () => {
-    /*if (!validateForm()) {
-      toast.error("Por favor, corrija os erros no formulário");
-      return;
-    }*/
 
     setIsSubmitting(true);
 
     try {
-      // Create a clean data object with only the necessary fields
+
       const employeeData = {
         name: formData.name,
         surname: formData.surname,

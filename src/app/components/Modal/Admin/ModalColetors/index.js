@@ -22,18 +22,13 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import PhoneAndroidIcon from "@mui/icons-material/PhoneAndroid";
 import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
-import NetworkWifiIcon from "@mui/icons-material/NetworkWifi";
 import BuildIcon from "@mui/icons-material/Build";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import ptBR from "date-fns/locale/pt-BR";
 import toast from "react-hot-toast";
 import {
   fetchedEmployeesByCompany,
-  fetchLocals,
-  fetchMunicipios,
-  fetchRegionals,
   createCollector,
   updateCollector,
 } from "./API";
@@ -41,8 +36,6 @@ import { useCompany } from "@/app/context/CompanyContext";
 
 const initialFormState = {
   mei: "",
-  mac: "",
-  employee: "",
   registration: "",
   model: "Motorola Moto G34",
   status: "Inativo",
@@ -57,15 +50,9 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
   const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [regionals, setRegionals] = useState([]);
-  const [municipalities, setMunicipalities] = useState([]);
-  const [filteredMunicipalities, setFilteredMunicipalities] = useState([]);
-  const [locations, setLocations] = useState([]);
-  const [filteredLocations, setFilteredLocations] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [activeSection, setActiveSection] = useState("dados");
   const { company } = useCompany();
-  
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -78,53 +65,10 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
           ? new Date(collector.lastMaintenance)
           : null,
       });
-      if (collector.codigoRegional) {
-        updateMunicipalities(collector.codigoRegional);
-      }
-      if (collector.codigoMunicipio) {
-        updateLocations(collector.codigoMunicipio);
-      }
     } else {
       resetForm();
     }
   }, [collector]);
-
-  const resetForm = () => {
-    setFormData({ ...initialFormState, company: company?.name });
-    setErrors({});
-    setFilteredMunicipalities([]);
-    setFilteredLocations([]);
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [regionalData, municipioData, localData] = await Promise.all([
-          fetchRegionals(),
-          fetchMunicipios(),
-          fetchLocals(),
-        ]);
-
-        const prioritizeMatriz = (data) =>
-          data
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .sort((a, b) => {
-              if (a.name === "Matriz") return -1;
-              if (b.name === "Matriz") return 1;
-              return 0;
-            });
-
-        setRegionals(prioritizeMatriz(regionalData));
-        setMunicipalities(prioritizeMatriz(municipioData));
-        setLocations(prioritizeMatriz(localData));
-      } catch (error) {
-        console.error("Erro ao carregar dados:", error);
-        toast.error("Erro ao carregar dados iniciais");
-      }
-    };
-
-    fetchData();
-  }, []);
 
   useEffect(() => {
     const loadEmployees = async () => {
@@ -136,67 +80,39 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
     loadEmployees();
   }, [company]);
 
-  const updateMunicipalities = (regionalId) => {
-    if (regionalId) {
-      const filtered = municipalities.filter(
-        (mun) =>
-          mun.codigoRegional?._id === regionalId ||
-          mun.codigoRegional === regionalId
-      );
-      setFilteredMunicipalities(filtered);
-      if (!collector) {
-        setFormData((prev) => ({
-          ...prev,
-          codigoMunicipio: "",
-          codigoLocal: "",
-        }));
-      }
-    } else {
-      setFilteredMunicipalities([]);
-      setFormData((prev) => ({
-        ...prev,
-        codigoMunicipio: "",
-        codigoLocal: "",
-      }));
-    }
-  };
-
-  const updateLocations = (municipioId) => {
-    if (municipioId) {
-      const filtered = locations.filter(
-        (local) =>
-          local.codigoMunicipio?._id === municipioId ||
-          local.codigoMunicipio === municipioId
-      );
-      setFilteredLocations(filtered);
-      if (!collector) {
-        setFormData((prev) => ({ ...prev, codigoLocal: "" }));
-      }
-    } else {
-      setFilteredLocations([]);
-      setFormData((prev) => ({ ...prev, codigoLocal: "" }));
-    }
+  const resetForm = () => {
+    setFormData({ ...initialFormState, company: company?.name });
+    setErrors({});
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    //if (!validateForm()) return;
-
     setIsSubmitting(true);
+
+    // Validação básica
+    const newErrors = {};
+    if (!formData.mei) newErrors.mei = "IMEI é obrigatório";
+    if (!formData.registration) newErrors.registration = "Matrícula é obrigatória";
+    if (!formData.condition) newErrors.condition = "Condição é obrigatória";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      const formDataToSend = new FormData();
-      Object.keys(formData).forEach((key) => {
-        if (formData[key] !== null && formData[key] !== undefined) {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
+      const payload = {
+        ...formData,
+        lastMaintenance: formData.lastMaintenance?.toISOString(), // Converter data para ISO
+      };
 
       if (collector?._id) {
-        await updateCollector(formDataToSend, collector._id);
+        await updateCollector(payload, collector._id);
       } else {
-        await createCollector(formDataToSend);
+        await createCollector(payload);
       }
-      
+
       onSave();
       onClose();
       toast.success(
@@ -204,20 +120,13 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
       );
     } catch (error) {
       console.error("Erro ao salvar coletor:", error);
-      toast.error("Erro ao salvar coletor");
+      toast.error(error.message || "Erro ao salvar coletor");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getStatusColor = (status) => {
-    switch(status) {
-      case 'Ativo': return '#4caf50';
-      case 'Inativo': return '#f44336';
-      case 'Em Manutenção': return '#ff9800';
-      default: return '#757575';
-    }
-  };
+
 
   return (
     <Dialog 
@@ -237,7 +146,7 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
       <Box sx={{ position: 'relative' }}>
         <Box 
           sx={{ 
-            backgroundColor: '#5E899D',
+            backgroundColor: '#79A6D3',
             py: 2, 
             px: 3,
             display: 'flex',
@@ -276,7 +185,7 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
                     px: 3,
                     py: 1,
                     borderRadius: 0,
-                    backgroundColor: activeSection === 'dados' ? '#5E899D' : 'transparent',
+                    backgroundColor: activeSection === 'dados' ? '#79A6D3' : 'transparent',
                     color: activeSection === 'dados' ? 'white' : '#666',
                     '&:hover': {
                       backgroundColor: activeSection === 'dados' ? '#4A7185' : '#f5f5f5',
@@ -292,7 +201,7 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
                     px: 3,
                     py: 1,
                     borderRadius: 0,
-                    backgroundColor: activeSection === 'dispositivo' ? '#5E899D' : 'transparent',
+                    backgroundColor: activeSection === 'dispositivo' ? '#79A6D3' : 'transparent',
                     color: activeSection === 'dispositivo' ? 'white' : '#666',
                     '&:hover': {
                       backgroundColor: activeSection === 'dispositivo' ? '#4A7185' : '#f5f5f5',
@@ -308,7 +217,7 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
                     px: 3,
                     py: 1,
                     borderRadius: 0,
-                    backgroundColor: activeSection === 'status' ? '#5E899D' : 'transparent',
+                    backgroundColor: activeSection === 'status' ? '#79A6D3' : 'transparent',
                     color: activeSection === 'status' ? 'white' : '#666',
                     '&:hover': {
                       backgroundColor: activeSection === 'status' ? '#4A7185' : '#f5f5f5',
@@ -338,14 +247,6 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
                         }
                         required
                         label="Funcionário"
-                        sx={{
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: errors.employee ? 'error.main' : '#e0e0e0',
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#5E899D',
-                          },
-                        }}
                       >
                         {employees.map((employee) => (
                           <MenuItem key={employee._id} value={employee._id}>
@@ -369,16 +270,6 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
                       error={!!errors.registration}
                       helperText={errors.registration}
                       required
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#5E899D',
-                          },
-                        },
-                        '& .MuiInputLabel-root.Mui-focused': {
-                          color: '#5E899D',
-                        },
-                      }}
                     />
                   </Grid>
                 </Grid>
@@ -405,66 +296,7 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
                       error={!!errors.mei}
                       helperText={errors.mei}
                       required
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#5E899D',
-                          },
-                        },
-                        '& .MuiInputLabel-root.Mui-focused': {
-                          color: '#5E899D',
-                        },
-                      }}
                     />
-                  </Grid>
-
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="MAC Address"
-                      variant="outlined"
-                      margin="dense"
-                      value={formData.mac}
-                      onChange={(e) =>
-                        setFormData({ ...formData, mac: e.target.value })
-                      }
-                      error={!!errors.mac}
-                      helperText={errors.mac || "Formato: XX:XX:XX:XX:XX:XX"}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#5E899D',
-                          },
-                        },
-                        '& .MuiInputLabel-root.Mui-focused': {
-                          color: '#5E899D',
-                        },
-                      }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth margin="dense" variant="outlined">
-                      <InputLabel>Operadora de Dados</InputLabel>
-                      <Select
-                        value={formData.operadoraDados || ''}
-                        label="Operadora de Dados"
-                        onChange={(e) =>
-                          setFormData({ ...formData, operadoraDados: e.target.value })
-                        }
-                        sx={{
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#5E899D',
-                          },
-                        }}
-                      >
-                        <MenuItem value="Vivo">Vivo</MenuItem>
-                        <MenuItem value="Claro">Claro</MenuItem>
-                        <MenuItem value="Tim">Tim</MenuItem>
-                        <MenuItem value="Oi">Oi</MenuItem>
-                        <MenuItem value="Sem Chip">Sem Chip</MenuItem>
-                      </Select>
-                    </FormControl>
                   </Grid>
 
                   <Grid item xs={12} sm={6}>
@@ -475,9 +307,6 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
                       margin="dense"
                       value={formData.model}
                       disabled
-                      sx={{
-                        backgroundColor: '#f5f5f5',
-                      }}
                     />
                   </Grid>
                 </Grid>
@@ -496,37 +325,29 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
                       <InputLabel>Status</InputLabel>
                       <Select
                         value={formData.status}
-                        label="Status"
                         onChange={(e) =>
                           setFormData({ ...formData, status: e.target.value })
                         }
-                        sx={{
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#5E899D',
-                          },
-                        }}
+                        label="Status"
                       >
-                        <MenuItem value="Ativo" sx={{ color: '#4caf50' }}>Ativo</MenuItem>
-                        <MenuItem value="Inativo" sx={{ color: '#f44336' }}>Inativo</MenuItem>
-                        <MenuItem value="Em Manutenção" sx={{ color: '#ff9800' }}>Em Manutenção</MenuItem>
+                        <MenuItem value="Ativo">Ativo</MenuItem>
+                        <MenuItem value="Inativo">Inativo</MenuItem>
+                        <MenuItem value="Em Manutenção">Em Manutenção</MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>
 
                   <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth error={!!errors.condition} required margin="dense" variant="outlined">
+                    <FormControl fullWidth margin="dense" variant="outlined">
                       <InputLabel>Condição</InputLabel>
                       <Select
                         value={formData.condition}
-                        label="Condição"
                         onChange={(e) =>
                           setFormData({ ...formData, condition: e.target.value })
                         }
-                        sx={{
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#5E899D',
-                          },
-                        }}
+                        label="Condição"
+                        error={!!errors.condition}
+                        required
                       >
                         <MenuItem value="Novo">Novo</MenuItem>
                         <MenuItem value="Bom">Bom</MenuItem>
@@ -537,33 +358,14 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
                   </Grid>
 
                   <Grid item xs={12} sm={6}>
-                    <LocalizationProvider
-                      dateAdapter={AdapterDateFns}
-                      adapterLocale={ptBR}
-                    >
+                    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
                       <DatePicker
                         label="Última Manutenção"
                         value={formData.lastMaintenance}
                         onChange={(newDate) =>
                           setFormData({ ...formData, lastMaintenance: newDate })
                         }
-                        slotProps={{ 
-                          textField: { 
-                            fullWidth: true,
-                            margin: "dense",
-                            variant: "outlined",
-                            sx: {
-                              '& .MuiOutlinedInput-root': {
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#5E899D',
-                                },
-                              },
-                              '& .MuiInputLabel-root.Mui-focused': {
-                                color: '#5E899D',
-                              },
-                            }
-                          } 
-                        }}
+                        slotProps={{ textField: { fullWidth: true, margin: "dense", variant: "outlined" } }}
                       />
                     </LocalizationProvider>
                   </Grid>
@@ -580,78 +382,24 @@ export default function CollectorModal({ open, onClose, onSave, collector }) {
                       }
                       multiline
                       rows={3}
-                      placeholder="Adicione observações ou detalhes sobre o coletor..."
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#5E899D',
-                          },
-                        },
-                        '& .MuiInputLabel-root.Mui-focused': {
-                          color: '#5E899D',
-                        },
-                      }}
                     />
                   </Grid>
                 </Grid>
               </Box>
             )}
-
-            {formData.status && (
-              <Box sx={{ 
-                mt: 3, 
-                display: 'flex', 
-                alignItems: 'center',
-                backgroundColor: '#f5f5f5',
-                padding: '10px 16px',
-                borderRadius: '8px'
-              }}>
-                <Box
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: '50%',
-                    backgroundColor: getStatusColor(formData.status),
-                    mr: 1.5
-                  }}
-                />
-                <Typography variant="body2" component="span" sx={{ fontWeight: 500 }}>
-                  Status atual: {formData.status}
-                </Typography>
-              </Box>
-            )}
           </DialogContent>
 
           <Divider />
-          
-          <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between' }}>
-            <Button 
-              onClick={onClose} 
-              disabled={isSubmitting}
-              variant="outlined"
-              color="inherit"
-              sx={{ 
-                borderColor: '#e0e0e0',
-                color: '#666',
-                '&:hover': {
-                  backgroundColor: '#f5f5f5',
-                  borderColor: '#bdbdbd'
-                }
-              }}
-            >
+
+          <DialogActions sx={{ px: 3, py: 2 }}>
+            <Button onClick={onClose} disabled={isSubmitting} variant="outlined">
               Cancelar
             </Button>
             <Button
               type="submit"
               variant="contained"
               disabled={isSubmitting}
-              sx={{ 
-                backgroundColor: '#5E899D',
-                '&:hover': {
-                  backgroundColor: '#4A7185',
-                },
-                px: 3
-              }}
+              sx={{ backgroundColor: '#79A6D3', '&:hover': { backgroundColor: '#79A6D3' } }}
             >
               {isSubmitting ? "Salvando..." : collector ? "Atualizar" : "Salvar"}
             </Button>

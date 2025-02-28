@@ -115,7 +115,7 @@ export default function Suppliers() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
-  const [currentPurchase, setCurrentPurchase] = useState(null);
+  const [currentCollector, setCurrentCollector] = useState(null);
   const [suppliers, setSuppliers] = useState([]);
   const [filteredSuppliers, setFilteredSuppliers] = useState([]);
   const [setIsLoading, isLoading] = useState(false);
@@ -170,17 +170,17 @@ export default function Suppliers() {
   };
 
   const handleOpenPurchaseModal = (supplier = null) => {
-    setCurrentPurchase(supplier); // Renomeie para currentSupplier se preferir
+    setCurrentCollector(supplier); // Renomeie para currentSupplier se preferir
     setIsPurchaseModalOpen(true);
   };
 
   const handleClosePurchaseModal = () => {
     setIsPurchaseModalOpen(false);
-    setCurrentPurchase(null);
+    setCurrentCollector(null);
   };
 
   const handleSavePurchase = (updatedSupplier) => {
-    if (currentPurchase) {
+    if (currentCollector) {
       setSuppliers((prevSuppliers) =>
         prevSuppliers.map((supplier) =>
           supplier._id === updatedSupplier._id ? updatedSupplier : supplier
@@ -780,7 +780,7 @@ const handleExportPdf = () => {
         open={isPurchaseModalOpen}
         onClose={handleClosePurchaseModal}
         onSave={handleSavePurchase}
-        item={currentPurchase}
+        item={currentCollector}
       />
     </Box>
   );

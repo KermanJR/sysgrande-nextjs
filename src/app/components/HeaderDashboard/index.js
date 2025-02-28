@@ -73,7 +73,7 @@ const { company, setSelectedCompany } = useCompany();
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/notifications?company=${company?.name}`);
+      const response = await fetch(`https://sysgrande-nodejs.onrender.com/api/notifications?company=${company?.name}`);
       const data = await response.json();
       console
       if (data.success) {

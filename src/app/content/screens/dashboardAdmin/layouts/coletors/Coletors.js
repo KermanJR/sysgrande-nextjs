@@ -124,23 +124,23 @@ export default function Coletors() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(7);
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
-  const [currentPurchase, setCurrentPurchase] = useState(null);
-  const [purchases, setPurchases] = useState([]);
+  const [currentCollector, setCurrentCollector] = useState(null);
+  const [collectors, setCollectors] = useState([]);
   const [filteredCollectors, setFilteredCollectors] = useState([]);
   const [dateFilteredPurchases, setDateFilteredPurchases] =
     useState(filteredCollectors);
   const [setIsLoading, isLoading] = useState(false);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
-  const [selectedPurchases, setSelectedPurchases] = useState([]);
+  const [selectedCollectors, setSelectedCollectors] = useState([]);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [monthMenuAnchor, setMonthMenuAnchor] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [filters, setFilters] = useState({
-    materialType: "",
-    supplier: "",
-    startDate: null,
-    endDate: null,
+    registration: "",
+    mei: "",
+    mac: null,
+  
   });
   const { company } = useCompany();
   const theme = useTheme();
@@ -171,18 +171,14 @@ export default function Coletors() {
       if (company) {
         const loadCollectors = async () => {
           
-          try {
+  
             const employeesData = await fetchedCollectorsByCompany(company.name);
-            const activeEmployees = employeesData.filter(
+            const activeCollectors = employeesData.filter(
               (employee) => !employee.deletedAt
             );
-            setEmployees(activeEmployees);
-            setFilteredEmployess(activeEmployees);
-          } catch (error) {
-            console.error("Erro ao carregar coletores", error);
-          } finally {
-         
-          }
+            setCollectors(activeCollectors);
+            setFilteredCollectors(activeCollectors);
+          
         };
         loadCollectors();
       }
@@ -237,8 +233,8 @@ export default function Coletors() {
 
     // Separar dados em grupos especiais e outros itens
     const separatePurchaseData = () => {
-      const selectedData = filteredPurchases
-        .filter(purchase => selectedPurchases.includes(purchase._id))
+      const selectedData = filteredCollectors
+        .filter(purchase => selectedCollectors.includes(purchase._id))
         .sort((a, b) => new Date(a.purchaseDate) - new Date(b.purchaseDate));
 
       const longTermItems = [];
@@ -800,7 +796,7 @@ export default function Coletors() {
 
   const handleExportSelected = () => {
     const selectedData = filteredPurchases.filter((purchase) =>
-      selectedPurchases.includes(purchase._id)
+      selectedCollectors.includes(purchase._id)
     );
 
     const now = new Date();
@@ -985,26 +981,6 @@ export default function Coletors() {
     }).format(value);
   };
 
-  const loadPurchases = async () => {
-    try {
-      const purchaseData = await fetchedPurchasesByCompany(company.name);
-      const activePurchases = purchaseData.filter(
-        (purchase) => !purchase.deletedAt
-      );
-
-      setPurchases(activePurchases);
-      setFilteredPurchases(activePurchases);
-    } catch (error) {
-      console.error("Erro ao carregar compras", error);
-      toast.error("Erro ao carregar as compras");
-    }
-  };
-
-  useEffect(() => {
-    if (company) {
-      loadPurchases();
-    }
-  }, [company, purchases.length]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -1016,39 +992,38 @@ export default function Coletors() {
   };
 
   const handleOpenPurchaseModal = (purchase = null) => {
-    //Para carregar novamente os dados após atualizar uma compra
-    loadPurchases();
-    setCurrentPurchase(purchase);
+
+    setCurrentCollector(purchase);
     setIsPurchaseModalOpen(true);
   };
 
   const handleClosePurchaseModal = () => {
     setIsPurchaseModalOpen(false);
-    setCurrentPurchase(null);
+    setCurrentCollector(null);
   };
 
   const handleSavePurchase = (updatedPurchase) => {
-    if (currentPurchase) {
+    if (currentCollector) {
       setPurchases((prevPurchases) =>
         prevPurchases.map((purchase) =>
           purchase.id === updatedPurchase.id ? updatedPurchase : purchase
         )
       );
     } else {
-      setPurchases((prevPurchases) => [...prevPurchases, updatedPurchase]);
+      setCollectors((prevPurchases) => [...prevPurchases, updatedPurchase]);
+      loadCollectors();
     }
-    loadPurchases()
   };
 
   const handleDeletePurchase = async (id) => {
     const deleted = await deleteCollectorById(id);
     if (deleted) {
-      setPurchases((prevItem) => prevItem.filter((item) => item.id !== id));
-      setFilteredPurchases((prevExpense) =>
+      setCollectors((prevItem) => prevItem.filter((item) => item.id !== id));
+      setFilteredCollectors((prevExpense) =>
         prevExpense.filter((expense) => expense.id !== id)
       );
-      loadPurchases()
-      toast.success("Compra excluída com sucesso.");
+      toast.success("Coletor excluído com sucesso.");
+      loadCollectors();
     }
   };
 
@@ -1082,6 +1057,27 @@ export default function Coletors() {
       backgroundColor: "#3A8DFF",
     },
   };
+
+  const loadCollectors = async () => {
+    try {
+      const collectorData = await fetchedCollectorsByCompany(company.name);
+      const activeCollectors = collectorData.filter(
+        (collector) => !collector.deletedAt
+      );
+
+      setCollectors(activeCollectors);
+      setFilteredCollectors(activeCollectors);
+    } catch (error) {
+      console.error("Erro ao carregar coletores", error);
+      toast.error("Erro ao carregar as coletores");
+    }
+  };
+
+  useEffect(() => {
+    if (company) {
+      loadCollectors();
+    }
+  }, [company, collectors.length]);
 
  
 
@@ -1129,15 +1125,7 @@ export default function Coletors() {
         title="Coletores"
       />
 
-      <FilterPurchases
-        open={filterDrawerOpen}
-        onClose={() => setFilterDrawerOpen(false)}
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onApplyFilters={applyFilters}
-        purchases={purchases}
-        buttonStyles={buttonStyles}
-      />
+    
 
       <Box
         display="flex"
@@ -1183,7 +1171,7 @@ export default function Coletors() {
             </MenuItem>
           ))}
         </Menu>
-        {selectedPurchases.length > 0 && (
+        {selectedCollectors.length > 0 && (
           <Button
             variant="contained"
             startIcon={<ArticleIcon />}
@@ -1223,24 +1211,31 @@ export default function Coletors() {
               >
                 <Checkbox
                   checked={
-                    selectedPurchases.length === filteredCollectors.length
+                    selectedCollectors.length === filteredCollectors.length
                   }
                   indeterminate={
-                    selectedPurchases.length > 0 &&
-                    selectedPurchases.length < filteredCollectors.length
+                    selectedCollectors.length > 0 &&
+                    selectedCollectors.length < filteredCollectors.length
                   }
                   onChange={(event) => {
                     if (event.target.checked) {
-                      setSelectedPurchases(
+                      setSelectedCollectors(
                         filteredCollectors.map((emp) => emp._id)
                       );
                     } else {
-                      setSelectedPurchases([]);
+                      setSelectedCollectors([]);
                     }
                   }}
                 />
               </TableCell>
               {/* Definir larguras fixas para as colunas */}
+             
+              <TableCell
+                align="center"
+                sx={{ fontWeight: "bold", minWidth: 150 }}
+              >
+                Funcionário
+              </TableCell>
               <TableCell
                 align="center"
                 sx={{ fontWeight: "bold", minWidth: 150 }}
@@ -1251,7 +1246,7 @@ export default function Coletors() {
                 align="center"
                 sx={{ fontWeight: "bold", minWidth: 150 }}
               >
-                Funcionário
+                Aparelho
               </TableCell>
               <TableCell
                 align="center"
@@ -1260,12 +1255,7 @@ export default function Coletors() {
                 MEI
               </TableCell>
               
-              <TableCell
-                align="center"
-                sx={{ fontWeight: "bold", minWidth: 120 }}
-              >
-                MAC
-              </TableCell>
+        
               <TableCell
                 align="center"
                 sx={{ fontWeight: "bold", minWidth: 120 }}
@@ -1297,8 +1287,8 @@ export default function Coletors() {
           <TableBody>
             {filteredCollectors
               .slice(page)
-              .map((purchase) => (
-                <TableRow key={purchase.id}>
+              .map((collector) => (
+                <TableRow key={collector.id}>
                   <TableCell
                     padding="checkbox"
                     sx={{
@@ -1309,18 +1299,18 @@ export default function Coletors() {
                     }}
                   >
                     <Checkbox
-                      checked={selectedPurchases.includes(purchase._id)}
+                      checked={selectedCollectors.includes(collector._id)}
                       onChange={(event) => {
                         event.stopPropagation();
                         if (event.target.checked) {
-                          setSelectedPurchases([
-                            ...selectedPurchases,
-                            purchase._id,
+                          setSelectedCollectors([
+                            ...selectedCollectors,
+                            collector._id,
                           ]);
                         } else {
-                          setSelectedPurchases(
-                            selectedPurchases.filter(
-                              (id) => id !== purchase._id
+                          setSelectedCollectors(
+                            selectedCollectors.filter(
+                              (id) => id !== collector._id
                             )
                           );
                         }
@@ -1328,33 +1318,12 @@ export default function Coletors() {
                       onClick={(event) => event.stopPropagation()}
                     />
                   </TableCell>
-                  <TableCell align="center">{purchase.materialType}</TableCell>
-                  <TableCell align="center">{purchase.supplier.name}</TableCell>
-                 <TableCell align="center">
-  {purchase?.items?.reduce((total, item) => total + item.quantity, 0)}
-</TableCell>
-                  
-                  <TableCell align="center">
-                    {purchase.totalPrice.toLocaleString("pt-br", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                  </TableCell>
-                  <TableCell align="center">{purchase.paymentMethod}</TableCell>
-                  <TableCell align="center">
-                    {purchase?.entrancy
-                      ? purchase.entrancy.toLocaleString("pt-br", {
-                          style: "currency",
-                          currency: "BRL",
-                        })
-                      : "-"}
-                  </TableCell>
-                  <TableCell align="center">
-                    {formatDate(purchase.purchaseDate)}
-                  </TableCell>
-                  <TableCell align="center">
-                    {formatDate(purchase.deliveryDate)}
-                  </TableCell>
+                  <TableCell align="center">{collector?.employee?.name}</TableCell>
+                  <TableCell align="center">{collector?.registration}</TableCell>
+                  <TableCell align="center">{collector?.model}</TableCell>
+                  <TableCell align="center">{collector?.mei}</TableCell>
+                  <TableCell align="center">{collector?.condition}</TableCell>
+                  <TableCell align="center">{collector?.status}</TableCell>
                   <TableCell
                     align="center"
                     sx={{
@@ -1371,7 +1340,7 @@ export default function Coletors() {
                         <span>
                           <FaEdit
                             style={{ cursor: "pointer" }}
-                            onClick={() => handleOpenPurchaseModal(purchase)}
+                            onClick={() => handleOpenPurchaseModal(collector)}
                           />
                         </span>
                       </Tooltip>
@@ -1380,7 +1349,7 @@ export default function Coletors() {
                           <FaTrash
                             style={{ cursor: "pointer" }}
                             color="red"
-                            onClick={() => handleDeletePurchase(purchase._id)}
+                            onClick={() => handleDeletePurchase(collector._id)}
                           />
                         </span>
                       </Tooltip>
@@ -1397,7 +1366,7 @@ export default function Coletors() {
         open={isPurchaseModalOpen}
         onClose={handleClosePurchaseModal}
         onSave={handleSavePurchase}
-        item={currentPurchase}
+        item={currentCollector}
       />
     </Box>
   );

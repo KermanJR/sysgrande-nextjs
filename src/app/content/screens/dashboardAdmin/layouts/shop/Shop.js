@@ -122,14 +122,14 @@ export default function Shop() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(7);
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
-  const [currentPurchase, setCurrentPurchase] = useState(null);
+  const [currentCollector, setCurrentCollector] = useState(null);
   const [purchases, setPurchases] = useState([]);
   const [filteredPurchases, setFilteredPurchases] = useState([]);
   const [dateFilteredPurchases, setDateFilteredPurchases] =
     useState(filteredPurchases);
   const [setIsLoading, isLoading] = useState(false);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
-  const [selectedPurchases, setSelectedPurchases] = useState([]);
+  const [selectedCollectors, setSelectedCollectors] = useState([]);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [monthMenuAnchor, setMonthMenuAnchor] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState("");
@@ -214,7 +214,7 @@ export default function Shop() {
     // Separar dados em grupos especiais e outros itens
     const separatePurchaseData = () => {
       const selectedData = filteredPurchases
-        .filter(purchase => selectedPurchases.includes(purchase._id))
+        .filter(purchase => selectedCollectors.includes(purchase._id))
         .sort((a, b) => new Date(a.purchaseDate) - new Date(b.purchaseDate));
 
       const longTermItems = [];
@@ -809,7 +809,7 @@ export default function Shop() {
       const prepareTableData = () => {
         // Selecionar apenas as compras marcadas
         const selectedData = filteredPurchases
-          .filter(purchase => selectedPurchases.includes(purchase._id))
+          .filter(purchase => selectedCollectors.includes(purchase._id))
           .sort((a, b) => new Date(a.purchaseDate) - new Date(b.purchaseDate));
         
         const tableData = [];
@@ -985,7 +985,7 @@ export default function Shop() {
 
   const handleExportSelected = () => {
     const selectedData = filteredPurchases.filter((purchase) =>
-      selectedPurchases.includes(purchase._id)
+      selectedCollectors.includes(purchase._id)
     );
 
     const now = new Date();
@@ -1203,17 +1203,17 @@ export default function Shop() {
   const handleOpenPurchaseModal = (purchase = null) => {
     //Para carregar novamente os dados após atualizar uma compra
     loadPurchases();
-    setCurrentPurchase(purchase);
+    setCurrentCollector(purchase);
     setIsPurchaseModalOpen(true);
   };
 
   const handleClosePurchaseModal = () => {
     setIsPurchaseModalOpen(false);
-    setCurrentPurchase(null);
+    setCurrentCollector(null);
   };
 
   const handleSavePurchase = (updatedPurchase) => {
-    if (currentPurchase) {
+    if (currentCollector) {
       setPurchases((prevPurchases) =>
         prevPurchases.map((purchase) =>
           purchase.id === updatedPurchase.id ? updatedPurchase : purchase
@@ -1368,7 +1368,7 @@ export default function Shop() {
             </MenuItem>
           ))}
         </Menu>
-        {selectedPurchases.length > 0 && (
+        {selectedCollectors.length > 0 && (
           <Button
             variant="contained"
             startIcon={<ArticleIcon />}
@@ -1408,19 +1408,19 @@ export default function Shop() {
         >
           <Checkbox
             checked={
-              selectedPurchases.length === filteredPurchases.length
+              selectedCollectors.length === filteredPurchases.length
             }
             indeterminate={
-              selectedPurchases.length > 0 &&
-              selectedPurchases.length < filteredPurchases.length
+              selectedCollectors.length > 0 &&
+              selectedCollectors.length < filteredPurchases.length
             }
             onChange={(event) => {
               if (event.target.checked) {
-                setSelectedPurchases(
+                setSelectedCollectors(
                   filteredPurchases.map((emp) => emp._id)
                 );
               } else {
-                setSelectedPurchases([]);
+                setSelectedCollectors([]);
               }
             }}
           />
@@ -1521,17 +1521,17 @@ export default function Shop() {
               }}
             >
               <Checkbox
-                checked={selectedPurchases.includes(purchase._id)}
+                checked={selectedCollectors.includes(purchase._id)}
                 onChange={(event) => {
                   event.stopPropagation();
                   if (event.target.checked) {
-                    setSelectedPurchases([
-                      ...selectedPurchases,
+                    setSelectedCollectors([
+                      ...selectedCollectors,
                       purchase._id,
                     ]);
                   } else {
-                    setSelectedPurchases(
-                      selectedPurchases.filter(
+                    setSelectedCollectors(
+                      selectedCollectors.filter(
                         (id) => id !== purchase._id
                       )
                     );
@@ -1613,7 +1613,7 @@ export default function Shop() {
         open={isPurchaseModalOpen}
         onClose={handleClosePurchaseModal}
         onSave={handleSavePurchase}
-        item={currentPurchase}
+        item={currentCollector}
       />
     </Box>
   );
