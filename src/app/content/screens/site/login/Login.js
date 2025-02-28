@@ -71,7 +71,7 @@ const LoginPage = () => {
                 margin: '0 auto',
                 borderRadius: '12px',
                 overflow: 'hidden',
-                height: '650px',
+                height: '600px',
                 boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)'
             }}>
                 {/* Header with logos */}
@@ -148,13 +148,13 @@ const LoginPage = () => {
 
                 {/* Form section */}
                 <Box sx={{
-                    padding: '32px 40px 40px',
+                    padding: '15px 32px 32px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '16px'
+                    gap: '5px'
                 }}>
                     <Typography variant="h5" component="h2" align="center" sx={{ 
-                        mb: 3,
+                        mb: 1,
                         fontWeight: 600,
                         color: '#2D3748'
                     }}>
@@ -239,8 +239,7 @@ const LoginPage = () => {
                 </Box>
             </Paper>
             
-                <Wave />
-         
+               
         </Box>
     );
 };
