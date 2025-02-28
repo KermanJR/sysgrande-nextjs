@@ -1573,7 +1573,6 @@ export default function Shop() {
             <TableCell
               align="center"
               sx={{
-                position: "sticky",
                 right: 0,
                
                 zIndex: 2,
