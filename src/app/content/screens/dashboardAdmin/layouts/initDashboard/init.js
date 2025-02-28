@@ -10,6 +10,13 @@ import {
   MenuItem,
   Button,
   useTheme,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -17,28 +24,34 @@ import PowerBIEmbed from "@/app/components/PowerBi";
 import { BarChart, PieChart } from "@mui/x-charts";
 import AuthContext from "@/app/context/AuthContext";
 import { fetchedCollectorsByCompany } from "@/app/content/screens/dashboardAdmin/layouts/coletors/API"; 
+import { fetchedPurchasesByCompany } from "@/app/content/screens/dashboardAdmin/layouts/shop/API"; 
 import { useCompany } from "@/app/context/CompanyContext";
 import styles from "./Init.module.css";
+import HeaderDashboard from "@/app/components/HeaderDashboard";
 
 export default function Init() {
   const { user, logout } = useContext(AuthContext);
   const { company } = useCompany();
   const [collectors, setCollectors] = useState([]);
+  const [purchases, setPurchases] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [powerBISrc, setPowerBISrc] = useState(
     "https://app.powerbi.com/reportEmbed?reportId=f404ec3e-8c21-4f67-876d-28b6fcb79e7b&autoAuth=true&ctid=06738f6b-6721-49b2-908b-ddeed51824ff"
   );
   const theme = useTheme();
 
-  // Carregar coletores da API
+  // Carregar coletores e compras da API
   useEffect(() => {
-    const loadCollectors = async () => {
+    const loadData = async () => {
       if (company?.name) {
         const collectorsData = await fetchedCollectorsByCompany(company.name);
         setCollectors(collectorsData);
+
+        const purchasesData = await fetchedPurchasesByCompany(company.name);
+        setPurchases(purchasesData);
       }
     };
-    loadCollectors();
+    loadData();
   }, [company]);
 
   // Dados para gráficos
@@ -71,6 +84,18 @@ export default function Init() {
     }));
   };
 
+  // Filtrar as próximas compras
+  const getUpcomingPurchases = () => {
+    const now = new Date();
+    return purchases
+      .filter((purchase) => {
+        const nextPurchaseDate = new Date(purchase.nextPurchaseDate);
+        return nextPurchaseDate > now;
+      })
+      .sort((a, b) => new Date(a.nextPurchaseDate) - new Date(b.nextPurchaseDate))
+      .slice(0, 5); // Limita a 5 compras
+  };
+
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -92,100 +117,17 @@ export default function Init() {
     <Box
       sx={{
         backgroundColor: theme.palette.background.default,
-        minHeight: "100vh",
-        padding: "2rem",
+        height: "100vh",
+        overflowY: "scroll", 
+        padding: '0 1rem 0 0',
+        mt: '-1.8rem'
       }}
     >
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "1rem",
-          backgroundColor: theme.palette.background.paper,
-          borderRadius: "12px",
-          boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)",
-          marginBottom: "2rem",
-        }}
-      >
-        {/* Informações do Usuário */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <Box
-            sx={{
-              width: "50px",
-              height: "50px",
-              borderRadius: "50%",
-              overflow: "hidden",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              border: "2px solid #ddd",
-              backgroundColor: theme.palette.primary.main,
-            }}
-          >
-            {user?.profileImage ? (
-              <img
-                src={user.profileImage}
-                alt={`${user?.name || "Usuário"}`}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            ) : (
-              <Typography
-                sx={{ fontSize: "1.2rem", color: theme.palette.common.white }}
-              >
-                {user?.name?.charAt(0) || "U"}
-              </Typography>
-            )}
-          </Box>
-          <Box>
-            <Typography
-              sx={{ fontWeight: "bold", fontSize: "1.2rem", color: "text.primary" }}
-            >
-              Olá, {user?.name}!
-            </Typography>
-            <Typography sx={{ fontSize: "0.9rem", color: "text.secondary" }}>
-              {user?.role || "Usuário"}
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* Ícone de Notificações e Menu de Logout */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <IconButton
-            sx={{
-              backgroundColor: theme.palette.background.paper,
-              boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.05)",
-              "&:hover": {
-                backgroundColor: theme.palette.action.hover,
-              },
-            }}
-          >
-            <NotificationsIcon sx={{ color: theme.palette.text.primary }} />
-          </IconButton>
-          <IconButton
-            onClick={handleMenuOpen}
-            sx={{
-              backgroundColor: theme.palette.background.paper,
-              boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.05)",
-              "&:hover": {
-                backgroundColor: theme.palette.action.hover,
-              },
-            }}
-          >
-            <LogoutIcon sx={{ color: theme.palette.text.primary }} />
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem onClick={handleLogout}>Sair</MenuItem>
-          </Menu>
-        </Box>
-      </Box>
-
+    <HeaderDashboard title="Início"/>
       {/* Cards de Resumo */}
+      <Typography variant="h6" sx={{ marginBottom: "1rem" }}>
+                Coletores
+              </Typography>
       <Grid container spacing={3} sx={{ marginBottom: "2rem" }}>
         {Object.entries(getCollectorStatusData()).map(([status, count]) => (
           <Grid item xs={12} sm={4} key={status}>
@@ -194,14 +136,15 @@ export default function Init() {
                 borderRadius: "12px",
                 boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)",
                 background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                color: theme.palette.common.white,
+                color: 'white',
+                fill: 'white'
               }}
             >
               <CardContent>
-                <Typography variant="h6" sx={{ marginBottom: "0.5rem" }}>
+                <Typography  sx={{ marginBottom: "0.5rem", color: 'white',   fill: 'white', fontSize: '1.3rem'}}>
                   {status}
                 </Typography>
-                <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                <Typography  sx={{ fontWeight: "bold", fontSize: '1.3rem' }}>
                   {count}
                 </Typography>
               </CardContent>
@@ -273,9 +216,54 @@ export default function Init() {
         </Grid>
       </Grid>
 
+      {/* Próximas Compras */}
+      <Card
+        sx={{
+          borderRadius: "12px",
+          boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)",
+          marginBottom: "2rem",
+        }}
+      >
+        <CardContent>
+          <Typography variant="h6" sx={{ marginBottom: "1rem" }}>
+            Próximas Compras
+          </Typography>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: "bold" }}>Material</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Fornecedor</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Data Próx. Compra</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Valor</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {getUpcomingPurchases().map((purchase) => (
+                  <TableRow key={purchase._id}>
+                    <TableCell>{purchase.materialType}</TableCell>
+                    <TableCell>{purchase.supplier.name}</TableCell>
+                    <TableCell>
+                      {new Date(purchase.nextPurchaseDate).toLocaleDateString("pt-BR")}
+                    </TableCell>
+                    <TableCell>
+                      {purchase.totalPrice.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
+      </Card>
+
       {/* Power BI Embed */}
       <Card
         sx={{
+          width: '100%',
           borderRadius: "12px",
           boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)",
         }}

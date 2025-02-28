@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Cookies from 'js-cookie';
 import { CompanyProvider, useCompany } from './CompanyContext'; // Importando o contexto de empresa
 
-const URL = 'https://sysgrande-nodejs.onrender.com/api/'
+const URL = 'https://sysgrande-nodejs-1.onrender.com/api/'
 const URL_LOCAL = 'http://localhost:5000/api/'
 
 const AuthContext = createContext();

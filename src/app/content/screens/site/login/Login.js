@@ -12,7 +12,7 @@ import LogoEnterhome from '../../../../../../public/icons/logo-enterhome.png';
 import Wave from "@/app/components/Footer/Wave";
 
 const URL_LOCAL = 'http://localhost:5000/api/';
-const URL = 'https://sysgrande-nodejs.onrender.com/api/'
+const URL = 'https://sysgrande-nodejs-1.onrender.com/api/'
 
 const LoginPage = () => {
     const { login } = useContext(AuthContext);
